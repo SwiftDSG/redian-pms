@@ -18,6 +18,7 @@
 import gsap from "gsap";
 
 import { User } from "~~/interfaces/user.js";
+import { Customer } from "~~/interfaces/customer.js";
 interface NavigationLink {
   to: string;
   name: string;
@@ -47,6 +48,7 @@ type PanelType =
   | "transaction-payment-warn";
 
 const { user, login, refresh, logout } = useUser();
+const { getCustomers, getCustomer, addCustomer } = useCustomer();
 const { viewMode } = useMain();
 const route = useRoute();
 
@@ -514,6 +516,9 @@ watch(
 
 async function submit() {
   const user: User = await login("kdwiheldy@gmail.com", "bb2109wyt01");
+  setTimeout(() => {
+    getCustomers()
+  }, 1000);
 
 }
 
