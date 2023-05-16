@@ -4,7 +4,7 @@ export default () => {
   const { $fetch } = useNuxtApp();
   const config = useRuntimeConfig();
 
-  const names = useState<CustomerMin[]>("customers-names", () => null);
+  const names = useState<CustomerMin[]>("customer", () => null);
   const customers = useState<Customer[]>("customers", () => null);
 
   const getCustomers = async (): Promise<Customer[]> => {
@@ -24,10 +24,10 @@ export default () => {
     }
   };
 
-  const getCustomer = async (): Promise<CustomerMin[]> => {
+  const getCustomer = async (payload): Promise<CustomerMin[]> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/customers/names`,
+        `${config.public.apiBase}/customers/${payload}`,
         "get"
       );
       if (response.status !== 200) throw new Error("");
@@ -82,7 +82,7 @@ export default () => {
     names,
     getCustomers,
     getCustomer,
-    getCustomerOverview,
     addCustomer,
+    getCustomerOverview,
   };
 };

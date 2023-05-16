@@ -18,7 +18,7 @@
 import gsap from "gsap";
 
 import { User } from "~~/interfaces/user.js";
-import { Customer } from "~~/interfaces/customer.js";
+import { Customer, CustomerRequest } from "~~/interfaces/customer.js";
 interface NavigationLink {
   to: string;
   name: string;
@@ -516,8 +516,30 @@ watch(
 
 async function submit() {
   const user: User = await login("kdwiheldy@gmail.com", "bb2109wyt01");
+
   setTimeout(() => {
-    getCustomers()
+    const payload: CustomerRequest = {
+      name: "PT. Mencari Cinta Sejati",
+      contact: {
+        address: "Aja",
+        email: "s",
+        phone: "koko"
+      },
+      person: [{
+        name: "Hendri",
+        address: "jaksjdk",
+        phone: "asd",
+        email: "asd",
+        role: "asd",
+      }]
+    }
+    addCustomer(payload)
+    setTimeout(() => {
+      getCustomers()
+      setTimeout(() => {
+        getCustomer("64628b103724b46e6648c417")
+      }, 1000);
+    }, 1000);
   }, 1000);
 
 }
@@ -527,18 +549,6 @@ onMounted(async () => {
     submit();
 
   }, 1000);
-  // const mediaQuery: MediaQueryList = window.matchMedia("(max-width: 1024px)");
-  // mediaQuery.addEventListener("change", resizeHandler);
-  // resizeHandler(mediaQuery);
-  // await refresh();
-  // if (user.value) {
-  //   animate.init(
-  //     viewMode.value,
-  //     rdNavigation.value,
-  //     rdOverview.value,
-  //     rdHeader.value
-  //   );
-  // }
 });
 </script>
 
