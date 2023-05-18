@@ -1,4 +1,4 @@
-import { Customer, CustomerMin, CustomerRequest } from "~~/interfaces/customer";
+import { Customer, CustomerMin, CustomerRequest } from "~~/types/customer";
 
 export default () => {
   const { $fetch } = useNuxtApp();

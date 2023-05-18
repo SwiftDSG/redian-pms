@@ -1,5 +1,5 @@
 import { CookieRef } from "nuxt/dist/app/composables";
-import { User } from "~~/interfaces/user";
+import { User } from "~~/types/user";
 
 export default () => {
   const { $setDefaults, $fetch } = useNuxtApp();

@@ -1,16 +1,16 @@
-export interface User {
+export type User = {
   _id: string;
   name: String;
   email: String;
   password: String;
   role: [];
-}
+};
 
-export interface UserRequest {
+export type UserRequest = {
   name: String;
   email: String;
   password: String;
   role: [];
-}
+};
 
 //Old

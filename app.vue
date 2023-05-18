@@ -48,7 +48,7 @@ type PanelType =
   | "transaction-payment-warn";
 
 const { user, login, refresh, logout } = useUser();
-const { getCustomers, getCustomer, addCustomer } = useCustomer();
+const { getCustomers, getCustomer, addCustomer, deleteCustomer, updateCustomer } = useCustomer();
 const { viewMode } = useMain();
 const route = useRoute();
 
@@ -518,26 +518,47 @@ async function submit() {
   const user: User = await login("kdwiheldy@gmail.com", "bb2109wyt01");
 
   setTimeout(() => {
-    const payload: CustomerRequest = {
-      name: "PT. Mencari Cinta Sejati",
-      contact: {
-        address: "Aja",
-        email: "s",
-        phone: "koko"
-      },
-      person: [{
-        name: "Hendri",
-        address: "jaksjdk",
-        phone: "asd",
-        email: "asd",
-        role: "asd",
-      }]
-    }
-    addCustomer(payload)
+    // const payload: CustomerRequest = {
+    //   name: "PT. Mencari Cinta Sejati",
+    //   contact: {
+    //     address: "Aja",
+    //     email: "s",
+    //     phone: "koko"
+    //   },
+    //   person: [{
+    //     name: "Hendri",
+    //     address: "jaksjdk",
+    //     phone: "asd",
+    //     email: "asd",
+    //     role: "asd",
+    //   }]
+    // }
+    // addCustomer(payload)
     setTimeout(() => {
       getCustomers()
       setTimeout(() => {
-        getCustomer("64628b103724b46e6648c417")
+        getCustomer("64637d3e20788f0c5fe9fd52")
+        setTimeout(() => {
+          setTimeout(() => {
+            const payload: CustomerRequest = {
+              name: "PT. Mencari Pasangan Sejati",
+              contact: {
+                address: "Aja",
+                email: "s",
+                phone: "koko"
+              },
+              person: [{
+                name: "Hendri",
+                address: "jaksjdk",
+                phone: "asd",
+                email: "asd",
+                role: "asd",
+              }]
+            }
+            updateCustomer(payload, "64637d3e20788f0c5fe9fd52")
+            getCustomers()
+          }, 1000);
+        }, 1000);
       }, 1000);
     }, 1000);
   }, 1000);

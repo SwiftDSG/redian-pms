@@ -1,38 +1,38 @@
 import { UserRecord } from "./general";
 
-export interface Customer {
+export type Customer = {
   _id: string;
   name: string;
   contact: CustomerPerson[];
   person: CustomerContact[];
-}
+};
 
-export interface CustomerContact {
+export type CustomerContact = {
   address: string;
   email?: string;
   phone?: string;
-}
-export interface CustomerPerson {
+};
+export type CustomerPerson = {
   name: String;
   address: String;
   phone: String;
   email: String;
   role: String;
-}
-export interface CustomerRequest {
+};
+export type CustomerRequest = {
   // _id: string;
   name: string;
   contact: CustomerContact;
   person: CustomerPerson[];
-}
+};
 // Old
-export interface CustomerNote {
+export type CustomerNote = {
   title: string;
   message: string;
   user?: UserRecord;
-}
+};
 
-export interface CustomerMin {
+export type CustomerMin = {
   _id: string;
   name: string;
-}
+};
