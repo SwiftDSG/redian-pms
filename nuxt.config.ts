@@ -2,7 +2,8 @@
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      apiBase: "http://localhost:8000",
+      apiBase: process.env.API_URL || "http://localhost:8000",
+      base: process.env.BASE_URL || 'http://localhost:3000',
     },
   },
   app: {
@@ -11,7 +12,7 @@ export default defineNuxtConfig({
         lang: "id",
       },
       titleTemplate: "%s — Redian Grup",
-      title: "Redian Grup",
+      title: "Project Management System",
       meta: [
         { charset: "utf-8" },
         { name: "keywords", content: "Website, Application, Digital Agency" },
