@@ -1,5 +1,5 @@
 import { Branch } from "~~/interfaces/branch";
-import { ChartCashflow } from "~~/interfaces/general";
+import { ChartCashflow } from "~~/types/general";
 import { Product } from "~~/interfaces/product";
 
 export default function () {

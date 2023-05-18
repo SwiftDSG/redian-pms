@@ -1,4 +1,4 @@
-import { Customer, CustomerMin, CustomerRequest } from "~~/interfaces/customer";
+import { Customer, CustomerMin, CustomerRequest } from "~~/types/customer";
 
 export default () => {
   const { $fetch } = useNuxtApp();
@@ -76,10 +76,50 @@ export default () => {
       return null;
     }
   };
+  const updateCustomer = async (
+    payload: CustomerRequest,
+    id
+  ): Promise<string> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/customers/${id}`,
+        "put",
+        JSON.stringify({
+          name: payload.name,
+          person: payload.person,
+          contact: payload.contact,
+        })
+      );
+      if (response.status !== 201) throw new Error("");
+
+      const result = await response.text();
+
+      return result;
+    } catch (e) {
+      return null;
+    }
+  };
+  const deleteCustomer = async (id): Promise<string> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/customers/${id}`,
+        "delete"
+      );
+      if (response.status !== 201) throw new Error("");
+
+      const result = await response.text();
+
+      return result;
+    } catch (e) {
+      return null;
+    }
+  };
 
   return {
     customers,
     names,
+    deleteCustomer,
+    updateCustomer,
     getCustomers,
     getCustomer,
     addCustomer,
