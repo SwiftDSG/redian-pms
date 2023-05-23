@@ -10,29 +10,36 @@
         :href="link.to"
         class="rd-navigation-link"
         :class="route.path === link.to ? 'rd-navigation-link-active' : ''"
-        @click.prevent="changeHandler(link.to)"
+        @click.prevent="
+          changeHandler({
+            name: link.name,
+            href: link.to,
+          })
+        "
       >
         <div class="rd-navigation-link-icon-container">
           <rd-svg :name="link.icon" class="rd-navigation-link-icon" />
         </div>
         <span class="rd-navigation-link-name rd-headline-5">{{
-          link.name
+          link.title
         }}</span>
       </a>
     </nav>
     <section class="rd-section">
       <header class="rd-header">
         <div class="rd-header-title-container" ref="rdHeaderTitle">
-          <h1 class="rd-header-title rd-headline-1">{{ routeCurrent.name }}</h1>
+          <h1 v-if="routeCurrent" class="rd-header-title rd-headline-1">
+            {{ routeCurrent.title }}
+          </h1>
           <h1
             v-if="routeChanging"
             class="rd-header-title rd-header-title-decoy rd-headline-1"
           >
-            {{ routeChanging.name }}
+            {{ routeChanging.title }}
           </h1>
         </div>
         <div class="rd-header-action">
-          <div class="rd-header-action-profile">
+          <div v-if="viewMode === 'desktop'" class="rd-header-action-profile">
             <span class="rd-header-action-profile-name rd-headline-5"
               >John Doe</span
             >
@@ -40,19 +47,32 @@
               >Owner</span
             >
           </div>
-          <rd-input-button-small icon="account" />
-          <rd-input-button-small icon="bell" />
+          <rd-input-button-small v-if="viewMode !== 'desktop'" icon="account" />
+          <rd-input-button-small v-if="viewMode === 'desktop'" icon="account" />
+          <rd-input-button-small v-if="viewMode === 'desktop'" icon="bell" />
           <rd-input-button-small icon="dots" />
         </div>
       </header>
       <main class="rd-main" ref="rdMain">
-        <nuxt-page
-          class="rd-main"
-          @open-panel="panelHandler"
-          @change-page="changeHandler"
-        />
+        <nuxt-page @open-panel="panelHandler" @change-page="changeHandler" />
       </main>
     </section>
+    <rd-project-area-add-panel
+      v-if="panelOpened === 'project-area-add'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
+    <rd-project-task-add-panel
+      v-if="panelOpened === 'project-task-add'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
   </div>
 </template>
 
@@ -60,61 +80,74 @@
   import { gsap } from "gsap";
 
   type Link = {
+    title: string;
     name: string;
     icon: string;
     to: string;
   };
   type Route = {
-    href: string;
+    title?: string;
     name: string;
+    href: string;
   };
   type PanelHandlerOption = {
     state: "show" | "hide";
     type?: PanelType;
     data?: any;
   };
-  type PanelType = "category-add" | "media-add" | "media-side-add";
+  type PanelType = "project-area-add" | "project-task-add";
 
   const links: Link[] = [
     {
-      name: "Dashboard",
+      title: "Dashboard",
+      name: "index",
       icon: "dashboard",
       to: "/",
     },
     {
-      name: "Projects",
+      title: "Projects",
+      name: "projects",
       icon: "list",
       to: "/projects",
     },
     {
-      name: "Users",
+      title: "Users",
+      name: "users",
       icon: "account-multiple",
       to: "/users",
     },
     {
-      name: "Customers",
+      title: "Customers",
+      name: "customers",
       icon: "account-circle",
       to: "/customers",
     },
   ];
   const routes: Route[] = [
     {
-      name: "Dashboard",
+      title: "Dashboard",
+      name: "index",
       href: "/",
     },
     {
-      name: "Projects",
+      title: "Projects",
+      name: "projects",
       href: "/projects",
+    },
+    {
+      title: "Project Overview",
+      name: "projects-project_id",
+      href: "/projects/[]",
     },
   ];
 
   const route = useRoute();
   const router = useRouter();
-  const { viewMode } = useMain();
+  const { viewMode, rem } = useMain();
   const { refresh } = useUser();
 
   const routeCurrent = computed<Route>(() => {
-    return routes.find((a) => a.href === route.path);
+    return routes.find((a) => a.name === route.name);
   });
   const routeChanging = ref<Route>(null);
 
@@ -183,6 +216,7 @@
   };
 
   function panelHandler({ state, type, data }: PanelHandlerOption): void {
+    console.log(state);
     if (state === "show") {
       if (panelSequence.value.length === 0) {
         panelState.value = "idle";
@@ -223,14 +257,14 @@
       }
     }
   }
-  function changeHandler(to: string, e?: MouseEvent): MouseEvent {
+  function changeHandler(to: Route, e?: MouseEvent): MouseEvent {
     if (!routeChanging.value) {
-      routeChanging.value = routes.find((a) => a.href === to);
+      routeChanging.value = routes.find((a) => a.name === to.name);
       if (routeChanging.value) {
         setTimeout(() => {
           animate.leavePage(rdMain.value, rdHeaderTitle.value, () => {
-            if (route.path !== (to || "/")) {
-              router.push(to || "/");
+            if (route.path !== (to.href || "/")) {
+              router.push(to.href || "/");
               setTimeout(() => {
                 routeChanging.value = null;
                 animate.enterPage(rdMain.value);
@@ -245,7 +279,21 @@
   function resizeHandler(e: MediaQueryList | MediaQueryListEvent): void {
     if (e.matches) viewMode.value = "mobile";
     else viewMode.value = "desktop";
+    rem.value = parseInt(getComputedStyle?.(document.body)?.fontSize) || 24;
   }
+
+  watch(
+    () => viewMode.value,
+    (val, oldVal) => {
+      if (val && oldVal) location.reload();
+    }
+  );
+
+  onMounted(() => {
+    const mediaQuery: MediaQueryList = window.matchMedia("(max-width: 1024px)");
+    mediaQuery.addEventListener("change", resizeHandler);
+    resizeHandler(mediaQuery);
+  });
 </script>
 
 <style lang="scss" scoped>
@@ -346,7 +394,9 @@
           h1.rd-header-title {
             position: relative;
             height: 100%;
+            white-space: nowrap;
             display: flex;
+            align-items: center;
             &.rd-header-title-decoy {
               pointer-events: none;
               position: absolute;
@@ -382,26 +432,60 @@
           }
         }
       }
+      main.rd-main {
+        position: relative;
+        width: 100%;
+        min-height: calc(100% - 6rem);
+        display: flex;
+      }
+    }
+    @media only screen and (max-width: 1024px) {
+      nav.rd-navigation {
+        position: absolute;
+        left: -100%;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+      }
+      section.rd-section {
+        header.rd-header {
+          position: relative;
+          height: auto;
+          padding: 1rem;
+          flex-direction: column-reverse;
+          .rd-header-action {
+            width: 100%;
+            margin-bottom: 1rem;
+            justify-content: space-between;
+          }
+          .rd-header-title-container {
+            width: 100%;
+            height: 2rem;
+          }
+        }
+      }
     }
   }
 </style>
 
 <style lang="scss">
   :root {
+    -webkit-tap-highlight-color: transparent;
     --primary-color: #000;
-    --secondary-color: #fff37c;
+    --secondary-color: #fff;
+    // --secondary-color: #fff37c;
     --error-color: #ff584c;
     --warning-color: #ffc904;
     --success-color: #6bc785;
     --border-color: #cfcfcf;
     --font-main-color: #000;
     --font-secondary-color: #fff;
+    --font-sub-color: rgba(0, 0, 0, 0.375);
     --background-depth-one-color: #ffffff;
     --background-depth-two-color: #efefef;
     --background-depth-three-color: #dfdfdf;
     --border: 1px solid var(--border-color);
     --box-shadow: 0 0.5rem 1rem rgba(199, 199, 199, 0.125);
-
     // @media (prefers-color-scheme: dark) {
     //   --background-depth-one-color: #290e17;
     //   --background-depth-two-color: #36121f;

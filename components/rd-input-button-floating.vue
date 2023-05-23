@@ -14,10 +14,10 @@
       <rd-svg :name="props.icon" />
     </div>
     <div class="rd-input-label-container">
-      <label class="rd-input-label rd-body-text rd-input-label-decoy">
+      <label class="rd-input-label rd-button-text rd-input-label-decoy">
         {{ props.label }}
       </label>
-      <label class="rd-input-label rd-body-text rd-input-label-main">
+      <label class="rd-input-label rd-button-text rd-input-label-main">
         <span
           class="rd-letter"
           :class="letter === ' ' ? 'rd-letter-space' : ''"
@@ -27,7 +27,7 @@
           {{ letter }}
         </span>
       </label>
-      <label class="rd-input-label rd-body-text rd-input-label-overlay">
+      <label class="rd-input-label rd-button-text rd-input-label-overlay">
         <span
           class="rd-letter"
           :class="letter === ' ' ? 'rd-letter-space' : ''"

@@ -54,6 +54,9 @@
           {{ typeof option === "string" ? option : option.name }}
         </div>
       </div>
+      <div class="rd-input-chevron-container">
+        <rd-svg name="chevron-down" :color="'primary'" />
+      </div>
     </div>
     <span
       v-if="typeof props.input.error === 'string'"
@@ -70,7 +73,7 @@
 
 <script lang="ts" setup>
   import gsap from "gsap";
-  import { InputOption } from "~~/interfaces/general.js";
+  import { InputOption } from "~~/types/general.js";
 
   const props = defineProps<{
     input: InputOption;
@@ -201,6 +204,7 @@
 
 <style lang="scss" scoped>
   .rd-input-component {
+    cursor: pointer;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -217,28 +221,32 @@
       position: relative;
       width: 100%;
       height: 2rem;
-      background: var(--background-depth-three-color);
+      background: var(--background-depth-one-color);
       border-radius: 0.5rem;
       display: flex;
       align-items: center;
       .rd-input-icon-container {
-        position: relative;
+        z-index: 2;
+        position: absolute;
         width: 2rem;
         height: 2rem;
         padding: 0 0.5rem;
         border-top-left-radius: 0.5rem;
         border-bottom-left-radius: 0.5rem;
         box-sizing: border-box;
-        background: rgba(0, 0, 0, 0.05);
         display: flex;
         justify-content: center;
         align-items: center;
+        ~ input.rd-input {
+          padding: 0 2rem;
+        }
       }
       input.rd-input {
+        cursor: pointer;
         position: relative;
         width: 100%;
         height: 100%;
-        padding: 0 0.5rem;
+        padding: 0 2rem 0 0.5rem;
         border: none;
         border-top-right-radius: 0.5rem;
         border-bottom-right-radius: 0.5rem;
@@ -269,6 +277,9 @@
             opacity: 0.25;
           }
         }
+        &:focus ~ .rd-input-chevron-container {
+          rotate: 180deg;
+        }
       }
       .rd-input-border {
         pointer-events: none;
@@ -288,7 +299,7 @@
           left: -3px;
           width: calc(100% + 6px);
           height: calc(100% + 6px);
-          border-radius: calc(0.5rem + 1.5px);
+          border-radius: calc(0.5rem + 1px);
           border: 3px solid var(--primary-color);
           box-sizing: border-box;
           opacity: 0;
@@ -334,6 +345,21 @@
         &.rd-input-options-opened {
           pointer-events: all;
         }
+      }
+      .rd-input-chevron-container {
+        z-index: 2;
+        position: absolute;
+        right: 0;
+        width: 2rem;
+        height: 2rem;
+        padding: 0 0.5rem;
+        border-top-left-radius: 0.5rem;
+        border-bottom-left-radius: 0.5rem;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: 0.25s rotate;
       }
     }
     span.rd-input-error {

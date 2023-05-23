@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { InputSearchOption } from "~~/interfaces/general";
+  import { InputSearchOption } from "~~/types/general";
 
   const props = defineProps<{
     input: InputSearchOption;
@@ -84,7 +84,7 @@
       }
       &:focus {
         outline: none;
-        background: var(--background-depth-one-color);
+        background: var(--background-depth-two-color);
       }
       &:focus + .rd-input-border {
         border-color: var(--primary-color);
@@ -111,7 +111,7 @@
         left: -3px;
         width: calc(100% + 6px);
         height: calc(100% + 6px);
-        border-radius: calc(0.5rem + 1.5px);
+        border-radius: calc(0.5rem + 1px);
         border: 3px solid var(--primary-color);
         box-sizing: border-box;
         opacity: 0;

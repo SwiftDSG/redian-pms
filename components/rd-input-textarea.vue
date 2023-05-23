@@ -35,7 +35,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { InputOption } from "~~/interfaces/general.js";
+  import { InputOption } from "~~/types/general.js";
 
   const props = defineProps<{
     input: InputOption;
@@ -108,7 +108,7 @@
       position: relative;
       width: 100%;
       height: 5rem;
-      background: var(--background-depth-three-color);
+      background: var(--background-depth-one-color);
       border-radius: 0.5rem;
       display: flex;
       align-items: center;
@@ -119,8 +119,7 @@
         height: 100%;
         padding: 0.5rem;
         border: none;
-        border-top-right-radius: 0.5rem;
-        border-bottom-right-radius: 0.5rem;
+        border-radius: 0.5rem;
         box-sizing: border-box;
         color: var(--font-main-color);
         background: rgba(0, 0, 0, 0);
@@ -141,6 +140,9 @@
         &:focus {
           outline: none;
           background: var(--background-depth-two-color);
+          &::placeholder {
+            opacity: 1;
+          }
         }
         &:focus + .rd-input-border {
           border-color: var(--primary-color);
@@ -167,7 +169,7 @@
           left: -3px;
           width: calc(100% + 6px);
           height: calc(100% + 6px);
-          border-radius: 0.5rem;
+          border-radius: calc(0.5rem + 1px);
           border: 3px solid var(--primary-color);
           box-sizing: border-box;
           opacity: 0;

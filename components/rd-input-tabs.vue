@@ -31,27 +31,33 @@
 </template>
 
 <script lang="ts" setup>
-  import { InputSwitchOption } from "~~/interfaces/general";
+  import { InputSwitchOption } from "~~/types/general";
   import gsap from "gsap";
+
+  type Size = {
+    left: number;
+    width: number;
+  };
 
   const props = defineProps<{
     input: InputSwitchOption;
   }>();
+  const { rem } = useMain();
 
   const rdInputLabel = ref<HTMLLabelElement[]>(null);
   const rdInputComponent = ref<HTMLDivElement>(null);
   const rdInputBorder = ref<HTMLDivElement>(null);
 
+  const windowLeft = ref<number>(0);
+  const sizes = ref<Size[]>([]);
+
   function updateModel(e: InputEvent): InputEvent {
     if (e.target instanceof HTMLInputElement) {
       const index: number = parseInt(e.target.dataset.index);
-      const windowLeft: number =
-        rdInputComponent.value.getBoundingClientRect().left;
       props.input.model = props.input.options[index];
-      const { width, left }: DOMRect =
-        rdInputLabel.value[index].getBoundingClientRect();
+      const { width, left }: Size = sizes.value[index];
       gsap.to(rdInputBorder.value, {
-        x: left - windowLeft,
+        x: left - windowLeft.value - 0.75 * rem.value,
         width,
         duration: 0.25,
         ease: "power2.out",
@@ -59,17 +65,32 @@
     }
     return e;
   }
+
+  onMounted(() => {
+    windowLeft.value = rdInputComponent.value.getBoundingClientRect().left;
+    for (const rdElement of rdInputLabel.value) {
+      const { width, left }: DOMRect = rdElement.getBoundingClientRect();
+      sizes.value.push({ width, left });
+    }
+    rdInputComponent.value.querySelector("input").click();
+  });
 </script>
 
 <style lang="scss" scoped>
   .rd-input-component {
     position: relative;
+    width: 100%;
+    padding: 0 0.75rem;
+    box-sizing: border-box;
     display: flex;
     gap: 0.75rem;
     align-items: center;
+    overflow-x: auto;
     input.rd-input {
       pointer-events: none;
-      position: absolute;
+      position: fixed;
+      top: -1rem;
+      left: -1rem;
       opacity: 0;
       &:checked + label.rd-input-label {
         .rd-input-label-slider {
@@ -95,6 +116,7 @@
       span.rd-input-label-option {
         position: relative;
         width: 100%;
+        white-space: nowrap;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -105,50 +127,19 @@
           color: var(--primary-color);
         }
       }
-      // .rd-input-border {
-      //   pointer-events: none;
-      //   position: absolute;
-      //   top: 0;
-      //   left: 0;
-      //   width: 100%;
-      //   height: 100%;
-      //   border-radius: 0.5rem;
-      //   border: 1px solid rgba(0, 0, 0, 0.125);
-      //   box-sizing: border-box;
-      //   transition: 0.25s border-color, 0.25s border-width;
-      //   &::before {
-      //     content: "";
-      //     position: absolute;
-      //     top: -3px;
-      //     left: -3px;
-      //     width: calc(100% + 6px);
-      //     height: calc(100% + 6px);
-      //     border-radius: 0.5rem;
-      //     border: 3px solid var(--primary-color);
-      //     box-sizing: border-box;
-      //     opacity: 0;
-      //     transition: 0.25s opacity;
-      //   }
-      // }
-      // &:focus {
-      //   .rd-input-border {
-      //     border-color: var(--primary-color);
-      //     &::before {
-      //       opacity: 0.25;
-      //     }
-      //   }
-      // }
     }
     .rd-input-border {
       position: absolute;
-      bottom: -1.5px;
-      width: 10px;
+      bottom: 0;
       height: 2px;
       background: var(--primary-color);
     }
     &.rd-input-component-disabled {
       pointer-events: none;
       opacity: 0.5;
+    }
+    &::-webkit-scrollbar {
+      display: none;
     }
   }
 </style>

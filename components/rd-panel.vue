@@ -36,7 +36,7 @@
 <script lang="ts" setup>
   import gsap from "gsap";
   import { ComputedRef } from "vue";
-  import { ViewMode } from "~~/interfaces/general";
+  import { ViewMode } from "~~/types/general";
 
   const { viewMode } = useMain();
   const props = defineProps<{

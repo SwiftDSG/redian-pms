@@ -23,7 +23,7 @@
 
 <script lang="ts" setup>
   import gsap from "gsap";
-  import { Alert } from "~~/interfaces/alert";
+  import { Alert } from "~~/types/alert";
 
   interface AlertTimeout extends Alert {
     id: number;

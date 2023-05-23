@@ -1,16 +1,14 @@
 export type User = {
   _id: string;
-  name: String;
-  email: String;
-  password: String;
+  name: string;
+  email: string;
+  password: string;
   role: [];
 };
 
 export type UserRequest = {
-  name: String;
-  email: String;
-  password: String;
+  name: string;
+  email: string;
+  password: string;
   role: [];
 };
-
-//Old
