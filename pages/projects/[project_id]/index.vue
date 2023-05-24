@@ -9,6 +9,7 @@
       <div class="rd-project-menu-section">
         <rd-input-select v-if="projectMenu !== 'tasks'" :input="areaInput" />
         <rd-input-button v-else label="Add area" @clicked="openAddArea" />
+        <rd-input-button label="Add report" @clicked="openAddReport" />
       </div>
     </div>
     <rd-project-overview v-if="projectMenu === 'overview'" :project="project" :state="projectMenuState"
@@ -111,6 +112,15 @@ function openAddArea(): void {
   emits("open-panel", {
     state: "show",
     type: "project-area-add",
+    data: {
+      project_id: project.value._id,
+    },
+  });
+}
+function openAddReport(): void {
+  emits("open-panel", {
+    state: "show",
+    type: "project-report-add",
     data: {
       project_id: project.value._id,
     },

@@ -25,7 +25,6 @@ export default () => {
       if (!result.atk || !result.rtk) throw new Error("");
       atkCookie.value = result.atk;
       rtkCookie.value = result.rtk;
-      console.log(result.atk);
       $setDefaults({
         headers: {
           Authorization: `Bearer ${result.atk}`,

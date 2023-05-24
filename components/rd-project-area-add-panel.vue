@@ -47,7 +47,6 @@ async function submit(): Promise<void> {
     request: { name: name.value },
     project_id: props.data.project_id,
   };
-  console.log(payload)
 
   await addProjectArea(payload);
 }

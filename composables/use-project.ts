@@ -64,7 +64,6 @@ export default () => {
     request: ProjectAreaRequest;
   }): Promise<string> => {
     try {
-      console.log(payload);
       const response: Response = await $fetch(
         `${config.public.apiBase}/projects/${payload.project_id}/areas`,
         "post",

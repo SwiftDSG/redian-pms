@@ -46,6 +46,8 @@
     </section>
     <rd-project-area-add-panel v-if="panelOpened === 'project-area-add'" :state="panelState" :data="panelData[0]"
       @exit="panelHandler({ state: 'hide' })" @open-panel="panelHandler" @change-page="changeHandler" />
+    <rd-project-report-add-panel v-if="panelOpened === 'project-report-add'" :state="panelState" :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })" @open-panel="panelHandler" @change-page="changeHandler" />
     <rd-project-task-add-panel v-if="panelOpened === 'project-task-add'" :state="panelState" :data="panelData[0]"
       @exit="panelHandler({ state: 'hide' })" @open-panel="panelHandler" @change-page="changeHandler" />
   </div>
@@ -72,7 +74,7 @@ type PanelHandlerOption = {
   type?: PanelType;
   data?: any;
 };
-type PanelType = "project-area-add" | "project-task-add";
+type PanelType = "project-area-add" | "project-task-add" | "project-report-add";
 
 const links: Link[] = [
   {
