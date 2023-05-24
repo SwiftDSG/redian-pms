@@ -22,23 +22,29 @@
       </div>
     </div>
     <div class="rd-panel-footer">
-      <rd-input-button class="rd-panel-button" label="submit" />
+      <rd-input-button
+        class="rd-panel-button"
+        label="submit"
+        :disabled="!name || !value || value > 100 || value <= 0"
+      />
     </div>
   </rd-panel>
 </template>
 
 <script lang="ts" setup>
   import { InputOption } from "~~/types/general";
+  import { ProjectTaskRequest } from "~~/types/project-task";
 
   const props = defineProps<{
     state: "idle" | "hide";
     data: {
       task_id?: string;
       project_id: string;
-      area_id: string;
+      area_id?: string;
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
+  const { createProjectTask } = useProject();
 
   const panelState = ref<"idle" | "hide">("idle");
 
@@ -76,11 +82,40 @@
   const valueInput = ref<InputOption>({
     label: "Value (%)",
     name: "value",
-    type: "number",
     model: "",
     placeholder: "100",
     error: "",
   });
+
+  const name = computed<ProjectTaskRequest["name"]>(
+    () => nameInput.value.model
+  );
+  const description = computed<ProjectTaskRequest["description"]>(
+    () => descriptionInput.value.model
+  );
+  const value = computed<ProjectTaskRequest["value"]>(() =>
+    parseFloat(valueInput.value.model)
+  );
+  const volume = computed<ProjectTaskRequest["volume"]>(() => ({
+    unit: volumeUnitInput.value.model,
+    value: parseInt(volumeValueInput.value.model.split(".").join("")),
+  }));
+
+  async function submit(): Promise<void> {
+    const payload: ProjectTaskRequest = {
+      name: name.value,
+      description: description.value,
+      value: value.value,
+      volume: volume.value,
+      area_id: props.data.area_id,
+    };
+
+    await createProjectTask({
+      project_id: props.data.project_id,
+      task_id: props.data.task_id,
+      request: payload,
+    });
+  }
 
   onMounted(() => {
     console.log("test");

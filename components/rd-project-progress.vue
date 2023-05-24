@@ -9,7 +9,9 @@
         <div class="rd-panel-axis rd-caption-text">25%</div>
       </div>
       <div class="rd-panel-sparkline-container">
-        <svg class="rd-panel-sparkline" ref="rdSparkline"></svg>
+        <div class="rd-panel-sparkline-wrapper">
+          <svg class="rd-panel-sparkline" ref="rdSparkline"></svg>
+        </div>
       </div>
       <div class="rd-panel-cursor-container">
         <div
@@ -110,22 +112,6 @@
     {
       x: ["21 April 2023"],
       y: [0],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [25],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [50],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [75],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [100],
     },
     {
       x: ["21 April 2023"],
@@ -247,9 +233,10 @@
       emits("changing-done");
       setTimeout(() => {
         draw();
-        gsap.to(rdSparkline.value, {
-          opacity: 1,
-          duration: 0.25,
+        gsap.to([rdSparkline.value.parentElement, rdSparkline.value], {
+          x: 0,
+          duration: 2,
+          ease: "power2.inOut",
         });
       }, 100);
     });
@@ -316,11 +303,21 @@
         position: absolute;
         width: 100%;
         height: 100%;
-        svg.rd-panel-sparkline {
+        display: flex;
+        overflow: hidden;
+        .rd-panel-sparkline-wrapper {
           position: relative;
           width: 100%;
           height: 100%;
-          opacity: 0;
+          display: flex;
+          transform: translateX(-100%);
+          overflow: hidden;
+          svg.rd-panel-sparkline {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform: translateX(100%);
+          }
         }
       }
       .rd-panel-cursor-container {
