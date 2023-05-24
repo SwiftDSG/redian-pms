@@ -265,13 +265,13 @@ watch(
     if (val && oldVal) location.reload();
   }
 );
-async function submit() {
+async function submit() { // MUST DELETE LATER!!!
   const user: User = await login("kdwiheldy@gmail.com", "bb2109wyt01");
 }
 onMounted(() => {
   const mediaQuery: MediaQueryList = window.matchMedia("(max-width: 1024px)");
   mediaQuery.addEventListener("change", resizeHandler);
-  submit();
+  submit(); // MUST DELETE LATER!!!
   resizeHandler(mediaQuery);
 });
 </script>
