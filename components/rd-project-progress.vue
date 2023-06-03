@@ -89,16 +89,17 @@
 </template>
 
 <script lang="ts" setup>
-  import { Project } from "~~/types/project";
+  import { ProjectProgressResponse, ProjectResponse } from "~~/types/project";
   import { gsap } from "gsap";
 
   type DataProgress = {
-    x: string[];
+    x: number;
     y: number[];
   };
 
   const props = defineProps<{
-    project: Project;
+    project: ProjectResponse;
+    data: ProjectProgressResponse[];
     state: "idle" | "changing";
   }>();
   const emits = defineEmits(["change-menu", "changing-done"]);
@@ -108,64 +109,8 @@
 
   const dataHoverIndex = ref<number>(-1);
 
-  const datas = ref<DataProgress[]>([
-    {
-      x: ["21 April 2023"],
-      y: [0],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [12.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [15],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [21.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [22.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [23.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [24.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [25.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [26.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [27.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [50],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [77.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [87.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [100],
-    },
-  ]);
+  const datas = ref<DataProgress[]>([]);
+  const init = ref<boolean>(true);
 
   const animate = {
     init(rdPanel: HTMLElement, cb: () => void): void {
@@ -187,15 +132,6 @@
       });
     },
   };
-
-  watch(
-    () => props.state,
-    (val) => {
-      if (val === "changing") {
-        animate.exit(rdPanel.value);
-      }
-    }
-  );
 
   function draw(): void {
     const { width, height } = rdSparkline.value.getBoundingClientRect();
@@ -225,20 +161,43 @@
       rdLine.setAttributeNS(null, "stroke-width", "2");
 
       rdSparkline.value.appendChild(rdLine);
+      if (i === xLen - 1) {
+        gsap.to([rdSparkline.value.parentElement, rdSparkline.value], {
+          x: 0,
+          duration: 2,
+          ease: "power2.out",
+        });
+      }
     }
   }
+  watch(
+    () => props.data,
+    (val) => {
+      if (val) {
+        datas.value = val;
+        if (!init.value) draw();
+      }
+    }
+  );
+  watch(
+    () => init.value,
+    (val) => {
+      if (!val && props.data) draw();
+    }
+  );
+  watch(
+    () => props.state,
+    (val) => {
+      if (val === "changing") {
+        animate.exit(rdPanel.value);
+      }
+    }
+  );
 
   onMounted(() => {
     animate.init(rdPanel.value, () => {
       emits("changing-done");
-      setTimeout(() => {
-        draw();
-        gsap.to([rdSparkline.value.parentElement, rdSparkline.value], {
-          x: 0,
-          duration: 2,
-          ease: "power2.inOut",
-        });
-      }, 100);
+      init.value = false;
     });
   });
 </script>

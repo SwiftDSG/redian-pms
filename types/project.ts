@@ -1,3 +1,5 @@
+import { ProjectTaskMinResponse } from "./project-task";
+
 export type ProjectStatusKind =
   | "running"
   | "paused"
@@ -29,12 +31,22 @@ export type ProjectArea = {
 export type ProjectAreaRequest = {
   name: string;
 };
+export type ProjectAreaResponse = {
+  _id: string;
+  name: string;
+  task?: ProjectTaskMinResponse[]
+};
+export type ProjectProgressResponse = {
+  x: number;
+  y: number[];
+};
 export type ProjectMember = {
   _id: string;
   name: string;
   kind: ProjectMemberKind;
   role_id: string[];
 };
+
 export type ProjectResponse = {
   _id: string;
   customer: {
@@ -44,11 +56,6 @@ export type ProjectResponse = {
   name: string;
   code: string;
   status: ProjectStatus[];
-  project?: {
-    _id: string;
-    name: string;
-  }[];
   area?: ProjectArea[];
-  member?: ProjectMember[];
   holiday?: Date[];
 };

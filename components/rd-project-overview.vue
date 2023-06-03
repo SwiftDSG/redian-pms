@@ -2,22 +2,35 @@
   <div ref="rdComponent" class="rd-component rd-component-overview">
     <div class="rd-panel rd-panel-chart">
       <div class="rd-panel-header"></div>
-      <!-- <rd-project-progress-lite class="rd-panel-body" /> -->
+      <rd-project-progress-lite
+        class="rd-panel-body"
+        :data="data.projectProgress"
+        :project="project"
+      />
     </div>
     <div class="rd-panel rd-panel-chart">
       <div class="rd-panel-header"></div>
-      <rd-project-timeline-lite class="rd-panel-body" />
+      <rd-project-timeline-lite
+        class="rd-panel-body"
+        :data="data.projectTimeline"
+        :project="project"
+      />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { Project } from "~~/types/project";
   import { gsap } from "gsap";
+  import { ProjectProgressResponse, ProjectResponse } from "~~/types/project";
+  import { ProjectTaskMinResponse } from "~~/types/project-task";
 
   const props = defineProps<{
-    project: Project;
+    project: ProjectResponse;
     state: "idle" | "changing";
+    data: {
+      projectProgress: ProjectProgressResponse[];
+      projectTimeline: ProjectTaskMinResponse[];
+    };
   }>();
   const emits = defineEmits(["change-menu", "changing-done"]);
 

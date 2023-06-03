@@ -39,3 +39,30 @@ export type ProjectTaskRequest = {
   volume?: ProjectTaskVolume;
   value: number;
 };
+export type ProjectTaskPeriodRequest = {
+  start: number;
+  end: number;
+};
+
+export type ProjectTaskPeriodResponse = {
+  start: string;
+  end: string;
+};
+
+export type ProjectTaskMinResponse = {
+  _id: string;
+  user?: {
+    _id: string;
+    name: string;
+    image_url?: string;
+  }[];
+  task?: {
+    _id: string;
+    name: string;
+  }[];
+  name: string;
+  period?: ProjectTaskPeriodResponse;
+  status: ProjectTaskStatus[];
+  volume?: ProjectTaskVolume;
+  value: number;
+};

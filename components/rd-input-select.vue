@@ -51,7 +51,9 @@
           @mousedown="selectOption"
           :class="dropDownIndex === i ? 'rd-input-option-selected' : ''"
         >
-          {{ typeof option === "string" ? option : option.name }}
+          <span>
+            {{ typeof option === "string" ? option : option.name }}
+          </span>
         </div>
       </div>
       <div class="rd-input-chevron-container">
@@ -338,6 +340,13 @@
           flex-shrink: 0;
           align-items: center;
           transition: background-color 0.25s;
+          span {
+            position: relative;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
           &.rd-input-option-selected {
             background: rgba(0, 0, 0, 0.05);
           }

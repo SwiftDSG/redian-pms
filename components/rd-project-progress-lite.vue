@@ -6,25 +6,27 @@
       <div class="rd-axis rd-caption-text">50%</div>
       <div class="rd-axis rd-caption-text">25%</div>
     </div>
-    <div class="rd-sparkline-container">
-      <canvas class="rd-sparkline" ref="rdSparklineCanvas"></canvas>
+    <div class="rd-sparkline-wrapper">
+      <div class="rd-sparkline-container">
+        <svg class="rd-sparkline" ref="rdSparkline"></svg>
+      </div>
     </div>
     <div class="rd-cursor-container">
       <div
         v-for="i in datas.length"
         :key="i"
         class="rd-cursor-area"
-        @mouseenter="canvasHoverIndex = i - 1"
+        @mouseenter="dataHoverIndex = i - 1"
       ></div>
       <div
         class="rd-cursor"
         :style="`width: ${100 / datas.length}%; left: ${
-          (canvasHoverIndex / datas.length) * 100
+          (dataHoverIndex / datas.length) * 100
         }%`"
       >
         <div
           class="rd-cursor-line-container"
-          :style="`left: ${(canvasHoverIndex / (datas.length - 1)) * 100}%`"
+          :style="`left: ${(dataHoverIndex / (datas.length - 1)) * 100}%`"
         >
           <svg
             class="rd-cursor-line"
@@ -50,7 +52,7 @@
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             :style="`bottom: ${
-              canvasHoverIndex > 0 ? datas[canvasHoverIndex].y[0] : 0
+              dataHoverIndex > 0 ? datas[dataHoverIndex].y[0] : 0
             }%`"
           >
             <rect
@@ -84,82 +86,77 @@
 </template>
 
 <script lang="ts" setup>
-  type Data = {
-    x: string[];
+  import { ProjectProgressResponse, ProjectResponse } from "~~/types/project";
+  import { gsap } from "gsap";
+
+  type DataProgress = {
+    x: number;
     y: number[];
   };
 
-  const rdSparklineCanvas = ref<HTMLCanvasElement>(null);
+  const props = defineProps<{
+    project: ProjectResponse;
+    data: ProjectProgressResponse[];
+  }>();
 
-  const canvasCtx = ref<CanvasRenderingContext2D>(null);
-  const canvasHoverIndex = ref<number>(-1);
-  const canvasDotsCount = ref<number>(0);
+  const rdSparkline = ref<SVGSVGElement>(null);
 
-  const datas: Data[] = [
-    {
-      x: ["21 April 2023"],
-      y: [0],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [12.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [27.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [50],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [77.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [87.5],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [95],
-    },
-    {
-      x: ["21 April 2023"],
-      y: [100],
-    },
-  ];
+  const dataHoverIndex = ref<number>(-1);
 
-  onMounted(() => {
-    const { width, height }: DOMRect =
-      rdSparklineCanvas.value.getBoundingClientRect();
+  const datas = ref<DataProgress[]>([]);
 
-    rdSparklineCanvas.value.width = width * 10;
-    rdSparklineCanvas.value.height = height * 10;
+  function draw(): void {
+    const { width, height } = rdSparkline.value.getBoundingClientRect();
 
-    canvasCtx.value = rdSparklineCanvas.value.getContext("2d");
-    canvasCtx.value.clearRect(
-      0,
-      0,
-      rdSparklineCanvas.value.width,
-      rdSparklineCanvas.value.height
-    );
-    canvasCtx.value.lineWidth = 20;
-    canvasCtx.value.beginPath();
+    const xLen = datas.value.length - 1;
+    const xStep = width / xLen;
 
-    const xStep = rdSparklineCanvas.value.width / (datas.length - 1);
-    const yStep = rdSparklineCanvas.value.height;
+    for (let i: number = 0; i < xLen; i++) {
+      const rdLine: SVGLineElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line"
+      );
 
-    canvasCtx.value.moveTo(0, rdSparklineCanvas.value.height);
-    for (var i: number = 0; i < datas.length; i++) {
-      const data = datas[i];
+      const x = (i + 1) * xStep;
+      const y = height - (datas.value[i + 1].y[0] / 100) * height;
 
-      const x = i * xStep;
-      const y = yStep - (data.y[0] / 100) * yStep;
+      rdLine.setAttributeNS(null, "x1", (i * xStep).toString());
+      rdLine.setAttributeNS(
+        null,
+        "y1",
+        (height - (datas.value[i].y[0] / 100) * height).toString()
+      );
+      rdLine.setAttributeNS(null, "x2", x.toString());
+      rdLine.setAttributeNS(null, "y2", y.toString());
 
-      canvasCtx.value.lineTo(x, y);
+      rdLine.setAttributeNS(null, "stroke", "#000");
+      rdLine.setAttributeNS(null, "stroke-width", "2");
+
+      rdSparkline.value.appendChild(rdLine);
+      if (i === xLen - 1) {
+        gsap.to([rdSparkline.value.parentElement, rdSparkline.value], {
+          x: 0,
+          duration: 2,
+          ease: "power2.out",
+        });
+      }
     }
-    canvasCtx.value.stroke();
+  }
+
+  watch(
+    () => props.data,
+    (val) => {
+      if (val) {
+        datas.value = val;
+        if (rdSparkline.value) draw();
+      }
+    },
+    {
+      immediate: true,
+    }
+  );
+  onMounted(() => {
+    if (props.data) draw();
   });
 </script>
 
@@ -198,14 +195,25 @@
         }
       }
     }
-    .rd-sparkline-container {
+    .rd-sparkline-wrapper {
       position: absolute;
       width: 100%;
       height: 100%;
-      canvas.rd-sparkline {
+      display: flex;
+      overflow: hidden;
+      .rd-sparkline-container {
         position: relative;
         width: 100%;
         height: 100%;
+        display: flex;
+        transform: translateX(-100%);
+        overflow: hidden;
+        svg.rd-sparkline {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          transform: translateX(100%);
+        }
       }
     }
     .rd-cursor-container {

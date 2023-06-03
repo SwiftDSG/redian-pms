@@ -4,9 +4,12 @@
     class="rd-input-component"
     :class="props.input.error ? 'rd-input-error-active' : ''"
   >
-    <label v-if="props.input.label" class="rd-input-label rd-headline-6">{{
-      props.input.label
-    }}</label>
+    <label
+      :for="`rd-input-${inputId}`"
+      v-if="props.input.label"
+      class="rd-input-label rd-headline-6"
+      >{{ props.input.label }}</label
+    >
     <div class="rd-input-container">
       <div v-if="props.input.icon" class="rd-input-icon-container">
         <rd-svg :name="props.input.icon" :color="'secondary'" />
@@ -15,6 +18,7 @@
         class="rd-input rd-body-text"
         :placeholder="props.input.placeholder"
         ref="rdInput"
+        :id="`rd-input-${inputId}`"
         readonly
         :name="props.input.name"
         @focusin="dropDownHandler('open')"
@@ -25,16 +29,20 @@
         v-if="dropDownOpened"
         ref="rdInputDate"
         class="rd-input-date"
-        tabindex="-1"
+        :data-id="inputId"
         :class="dropDownOpened ? 'rd-input-date-opened' : ''"
-        @focusout="dropDownHandler('close')"
       >
-        <div class="rd-input-date-controls-container">
-          <div class="rd-input-date-controls-indicator-wrapper">
+        <div :data-id="inputId" class="rd-input-date-controls-container">
+          <div
+            :data-id="inputId"
+            class="rd-input-date-controls-indicator-wrapper"
+          >
             <div
+              :data-id="inputId"
               class="rd-input-date-controls-indicator rd-input-date-controls-indicator-prev"
             >
               <span
+                :data-id="inputId"
                 class="rd-input-date-controls-indicator-text rd-headline-5"
                 >{{
                   monthHandler(
@@ -47,9 +55,11 @@
               >
             </div>
             <div
+              :data-id="inputId"
               class="rd-input-date-controls-indicator rd-input-date-controls-indicator-prev"
             >
               <span
+                :data-id="inputId"
                 class="rd-input-date-controls-indicator-text rd-headline-5"
                 >{{
                   monthHandler(selectedMonth.year, selectedMonth.month)
@@ -57,9 +67,11 @@
               >
             </div>
             <div
+              :data-id="inputId"
               class="rd-input-date-controls-indicator rd-input-date-controls-indicator-prev"
             >
               <span
+                :data-id="inputId"
                 class="rd-input-date-controls-indicator-text rd-headline-5"
                 >{{
                   monthHandler(
@@ -72,42 +84,48 @@
               >
             </div>
           </div>
-          <div class="rd-input-date-controls">
+          <div :data-id="inputId" class="rd-input-date-controls">
             <rd-input-button-small
+              :data-id="inputId"
               class="rd-panel-button"
+              side="left"
               :icon="'chevron-left'"
-              style="
-                border-top-right-radius: 0;
-                border-bottom-right-radius: 0;
-                transform-origin: center right;
-              "
+              style="transform-origin: center right"
               @clicked="changeMonth('left')"
             />
             <rd-input-button-small
+              :data-id="inputId"
               class="rd-panel-button"
+              side="right"
               :icon="'chevron-right'"
-              style="
-                border-top-left-radius: 0;
-                border-bottom-left-radius: 0;
-                transform-origin: center left;
-              "
+              style="transform-origin: center left"
               @clicked="changeMonth('right')"
             />
           </div>
         </div>
-        <div class="rd-input-date-days-container">
+        <div :data-id="inputId" class="rd-input-date-days-container">
           <span
             v-for="(day, i) in days"
+            :data-id="inputId"
             :key="i"
             class="rd-input-date-day rd-caption-text"
             >{{ day.slice(0, 1) }}</span
           >
         </div>
-        <div class="rd-input-date-weeks-wrapper">
-          <div class="rd-input-date-weeks rd-input-date-weeks-prev">
-            <div v-for="i in 6" :key="i" class="rd-input-date-week">
+        <div :data-id="inputId" class="rd-input-date-weeks-wrapper">
+          <div
+            :data-id="inputId"
+            class="rd-input-date-weeks rd-input-date-weeks-prev"
+          >
+            <div
+              v-for="i in 6"
+              :data-id="inputId"
+              :key="i"
+              class="rd-input-date-week"
+            >
               <div
                 v-for="j in 7"
+                :data-id="inputId"
                 :key="j"
                 class="rd-input-date-week-day"
                 :class="
@@ -136,10 +154,12 @@
                       prevDays[i - 1][j - 1]
                     )
                   "
+                  :data-id="inputId"
                   class="rd-input-date-week-day-overlay"
                 ></div>
                 <span
                   v-if="prevDays[i - 1][j - 1]"
+                  :data-id="inputId"
                   class="rd-input-date-week-day-date rd-headline-6"
                   :class="
                     isSelected(
@@ -154,14 +174,27 @@
                   "
                   >{{ prevDays[i - 1][j - 1] }}</span
                 >
-                <span v-else class="rd-input-date-week-day-dot"></span>
+                <span
+                  v-else
+                  :data-id="inputId"
+                  class="rd-input-date-week-day-dot"
+                ></span>
               </div>
             </div>
           </div>
-          <div class="rd-input-date-weeks rd-input-date-weeks-current">
-            <div v-for="i in 6" :key="i" class="rd-input-date-week">
+          <div
+            :data-id="inputId"
+            class="rd-input-date-weeks rd-input-date-weeks-current"
+          >
+            <div
+              v-for="i in 6"
+              :data-id="inputId"
+              :key="i"
+              class="rd-input-date-week"
+            >
               <div
                 v-for="j in 7"
+                :data-id="inputId"
                 :key="j"
                 class="rd-input-date-week-day"
                 :class="
@@ -177,6 +210,7 @@
                 "
               >
                 <div
+                  :data-id="inputId"
                   v-if="
                     isSameDay(
                       selectedMonth.year,
@@ -188,6 +222,7 @@
                 ></div>
                 <span
                   v-if="currentDays[i - 1][j - 1]"
+                  :data-id="inputId"
                   class="rd-input-date-week-day-date rd-headline-6"
                   :class="
                     isSelected(
@@ -201,14 +236,27 @@
                   @click="selectOption(currentDays[i - 1][j - 1])"
                   >{{ currentDays[i - 1][j - 1] }}</span
                 >
-                <span v-else class="rd-input-date-week-day-dot"></span>
+                <span
+                  v-else
+                  :data-id="inputId"
+                  class="rd-input-date-week-day-dot"
+                ></span>
               </div>
             </div>
           </div>
-          <div class="rd-input-date-weeks rd-input-date-weeks-next">
-            <div v-for="i in 6" :key="i" class="rd-input-date-week">
+          <div
+            :data-id="inputId"
+            class="rd-input-date-weeks rd-input-date-weeks-next"
+          >
+            <div
+              v-for="i in 6"
+              :data-id="inputId"
+              :key="i"
+              class="rd-input-date-week"
+            >
               <div
                 v-for="j in 7"
+                :data-id="inputId"
                 :key="j"
                 class="rd-input-date-week-day"
                 :class="
@@ -237,10 +285,12 @@
                       nextDays[i - 1][j - 1]
                     )
                   "
+                  :data-id="inputId"
                   class="rd-input-date-week-day-overlay"
                 ></div>
                 <span
                   v-if="nextDays[i - 1][j - 1]"
+                  :data-id="inputId"
                   class="rd-input-date-week-day-date rd-headline-6"
                   :class="
                     isSelected(
@@ -255,7 +305,11 @@
                   "
                   >{{ nextDays[i - 1][j - 1] }}</span
                 >
-                <span v-else class="rd-input-date-week-day-dot"></span>
+                <span
+                  v-else
+                  :data-id="inputId"
+                  class="rd-input-date-week-day-dot"
+                ></span>
               </div>
             </div>
           </div>
@@ -276,7 +330,7 @@
   import gsap from "gsap";
   import { ComputedRef } from "vue";
 
-  import { InputDateOption } from "~~/interfaces/general.js";
+  import { InputDateOption } from "~~/types/general.js";
 
   interface DateObject {
     date?: number;
@@ -291,6 +345,7 @@
   const rdInputDate = ref<HTMLDivElement>(null);
   const rdInput = ref<HTMLInputElement>(null);
 
+  const inputId = ref<string>(generateId());
   const inputError = ref<string>(props.input.error);
   const inputModel = ref<string>("");
   const inputValue = ref<string>("");
@@ -327,27 +382,27 @@
   });
 
   const days: string[] = [
-    "Minggu",
-    "Senin",
-    "Selasa",
-    "Rabu",
-    "Kamis",
-    "Jumat",
-    "Sabtu",
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
   ];
   const months: string[] = [
-    "Januari",
-    "Februari",
-    "Maret",
+    "January",
+    "February",
+    "March",
     "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
+    "May",
+    "June",
+    "July",
+    "August",
     "September",
-    "Oktober",
+    "October",
     "November",
-    "Desember",
+    "December",
   ];
 
   const animate = {
@@ -381,9 +436,20 @@
     },
   };
 
+  function generateId(): string {
+    let str = "";
+    for (var i: number = 0; i < 10; i++) {
+      str += "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[
+        Math.round(Math.random() * 25)
+      ];
+    }
+    return str;
+  }
   function dropDownHandler(state: "open" | "close"): void {
     if (state === "open") {
       dropDownOpened.value = true;
+      window.addEventListener("mousedown", closeHandler);
+      window.addEventListener("touchstart", closeHandler);
       setTimeout(() => {
         rdInputDate.value.focus();
         animate.dropDownOpen(rdInputDate.value);
@@ -398,11 +464,21 @@
         });
       }, 100);
     } else {
+      window.removeEventListener("mousedown", closeHandler);
+      window.removeEventListener("touchstart", closeHandler);
       if (dropDownOpened.value) {
         animate.dropDownClose(rdInputDate.value, () => {
           dropDownOpened.value = false;
         });
       }
+    }
+  }
+  function closeHandler(e: MouseEvent | TouchEvent): void {
+    if (
+      !e.target ||
+      (e.target instanceof HTMLElement && e.target.dataset.id !== inputId.value)
+    ) {
+      dropDownHandler("close");
     }
   }
 
@@ -582,6 +658,10 @@
       };
     }
   });
+  onBeforeUnmount(() => {
+    window.removeEventListener("mousedown", closeHandler);
+    window.removeEventListener("touchstart", closeHandler);
+  });
 </script>
 
 <style lang="scss" scoped>
@@ -604,7 +684,7 @@
       position: relative;
       width: 100%;
       height: 2rem;
-      background: var(--background-depth-three-color);
+      background: var(--background-depth-one-color);
       border-radius: 0.5rem;
       display: flex;
       .rd-input-icon-container {
@@ -808,6 +888,7 @@
                   &.rd-input-date-week-day-date-selected {
                     opacity: 1;
                     background: var(--primary-color);
+                    color: var(--font-secondary-color);
                   }
                 }
                 span.rd-input-date-week-day-dot {

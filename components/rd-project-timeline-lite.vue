@@ -1,6 +1,6 @@
 <template>
   <div class="rd-component">
-    <div v-if="!loading" class="rd-day-container">
+    <div v-if="!init" class="rd-day-container">
       <div v-for="(day, i) in days" :key="i" class="rd-day">
         <div class="rd-day-date">
           <span class="rd-day-date-value rd-headline-3">{{
@@ -13,7 +13,7 @@
         <div class="rd-day-body"></div>
       </div>
     </div>
-    <div v-if="!loading" class="rd-data-container">
+    <div v-if="!init" class="rd-data-container">
       <div
         v-for="(data, i) in datas"
         :key="i"
@@ -23,55 +23,53 @@
         }rem; top: ${
           (data.position?.y || 0) * 3.5 + ((data.position?.y || 0) + 1) * 0.75
         }rem`"
-      ></div>
+      >
+        <div class="rd-data-name-container">
+          <span class="rd-data-name rd-headline-5">{{ data.name }}</span>
+          <span class="rd-data-period rd-caption-text">{{
+            `${formatDate(data.period.start)} - ${formatDate(data.period.end)}`
+          }}</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+  import { ProjectResponse } from "~~/types/project";
+  import {
+    ProjectTaskMinResponse,
+    ProjectTaskStatusKind,
+  } from "~~/types/project-task";
+
   type DataTimeline = {
     name: string;
-    period: [Date, Date];
-    status: string;
+    period: {
+      start: string;
+      end: string;
+    };
+    status: ProjectTaskStatusKind;
     position?: {
       w: number;
       x: number;
       y: number;
     };
   };
+  type Period = {
+    start: Date;
+    end: Date;
+  };
 
-  const datas = ref<DataTimeline[]>([
-    {
-      name: "Some task#1",
-      period: [new Date(), new Date(new Date().getTime() + 86400000)],
-      status: "",
-    },
-    {
-      name: "Some task#2",
-      period: [
-        new Date(new Date().getTime() + 86400000),
-        new Date(new Date().getTime() + 4 * 86400000),
-      ],
-      status: "",
-    },
-    {
-      name: "Some task#3",
-      period: [new Date(), new Date(new Date().getTime() + 86400000)],
-      status: "",
-    },
-    {
-      name: "Some task#4",
-      period: [
-        new Date(new Date().getTime() + 3 * 86400000),
-        new Date(new Date().getTime() + 10 * 86400000),
-      ],
-      status: "",
-    },
-  ]);
+  const props = defineProps<{
+    project: ProjectResponse;
+    data: ProjectTaskMinResponse[];
+  }>();
 
-  const period = ref<DataTimeline["period"]>([null, null]);
+  const datas = ref<DataTimeline[]>([]);
+
+  const period = ref<Period>(null);
   const days = ref<Date[]>([]);
-  const loading = ref<boolean>(true);
+  const init = ref<boolean>(true);
 
   const months = [
     "January",
@@ -88,37 +86,43 @@
     "December",
   ];
 
-  function setPeriod(datas: DataTimeline[]): void {
-    const allPeriod: [number[], number[]] = datas.reduce(
+  function setPeriod(tasks: ProjectTaskMinResponse[]): void {
+    const allPeriod: [number[], number[]] = tasks.reduce(
       (a, b) => {
-        a[0].push(b.period[0].getTime());
-        a[1].push(b.period[1].getTime());
+        if (b.period) {
+          a[0].push(new Date(b.period.start).getTime());
+          a[1].push(new Date(b.period.end).getTime());
+        }
         return a;
       },
       [[], []]
     );
 
-    period.value[0] = new Date(Math.min(...allPeriod[0]));
-    period.value[1] = new Date(Math.max(...allPeriod[1]));
+    period.value = {
+      start: new Date(Math.min(...allPeriod[0])),
+      end: new Date(Math.max(...allPeriod[1])),
+    };
 
     const diff =
       Math.ceil(
-        (period.value[1].getTime() - period.value[0].getTime()) / 86400000
+        (period.value.end.getTime() - period.value.start.getTime()) / 86400000
       ) + 1;
-    for (var i: number = 0; i < diff; i++) {
-      days.value.push(
-        new Date(period.value[0].setHours(0, 0, 0, 0) + 86400000 * i)
-      );
+    if (!days.value.length) {
+      for (var i: number = 0; i < diff; i++) {
+        days.value.push(
+          new Date(period.value.start.setHours(0, 0, 0, 0) + 86400000 * i)
+        );
+      }
     }
   }
   function getPosition(data: DataTimeline): DataTimeline["position"] {
-    const start = new Date(data.period[0]);
-    const end = new Date(data.period[1]);
+    const start = new Date(data.period.start);
+    const end = new Date(data.period.end);
 
-    const w: number =
-      Math.ceil((end.getTime() - start.getTime()) / 86400000) + 1;
-    const x: number =
-      Math.ceil((start.getTime() - period.value[0].getTime()) / 86400000) - 1;
+    const w: number = Math.ceil((end.getTime() - start.getTime()) / 86400000);
+    const x: number = Math.ceil(
+      (start.getTime() - period.value.start.getTime()) / 86400000
+    );
     let y: number = 0;
 
     const settled = datas.value
@@ -141,12 +145,39 @@
       y,
     };
   }
+  function formatDate(str: string): string {
+    const date = new Date(str);
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  }
+
+  watch(
+    () => props.data,
+    (val) => {
+      if (val?.length) {
+        setPeriod(val);
+        datas.value = val
+          .filter((a) => !!a.period)
+          .map<DataTimeline>((a) => ({
+            name: a.name,
+            period: a.period,
+            status: a.status[0].kind,
+            position: null,
+          }));
+
+        for (var i: number = 0; i < datas.value.length; i++) {
+          datas.value[i].position = getPosition(datas.value[i]);
+          if (i === datas.value.length - 1) init.value = false;
+        }
+        init.value = false;
+      }
+    },
+    { immediate: true }
+  );
 
   onMounted(() => {
-    setPeriod(datas.value);
     for (var i: number = 0; i < datas.value.length; i++) {
       datas.value[i].position = getPosition(datas.value[i]);
-      if (i === datas.value.length - 1) loading.value = false;
+      if (i === datas.value.length - 1) init.value = false;
     }
   });
 </script>
@@ -233,6 +264,24 @@
         padding: 0.75rem;
         box-sizing: border-box;
         background: var(--background-depth-one-color);
+        .rd-data-name-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          span.rd-data-name {
+            position: relative;
+            margin-bottom: 0.25rem;
+          }
+          span.rd-data-period {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+        }
       }
     }
   }

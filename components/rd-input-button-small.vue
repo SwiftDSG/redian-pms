@@ -6,7 +6,9 @@
     @keydown.space.enter="keyDownHandler"
     :class="`${
       disabled ? 'rd-input-component-disabled' : ''
-    } rd-input-component-${type || 'default'}`"
+    } rd-input-component-${type || 'default'} ${
+      side ? `rd-input-component-${side}` : ''
+    }`"
     :disabled="disabled"
   >
     <div v-if="icon" class="rd-input-icon-container">
@@ -38,6 +40,7 @@
     color?: string;
     disabled?: boolean;
     type?: "default" | "primary" | "secondary";
+    side?: "left" | "right";
     tooltip?: string;
   }>();
   const emits = defineEmits(["clicked"]);
@@ -266,6 +269,28 @@
     &.rd-input-component-primary {
       background: var(--primary-color);
       border-color: var(--primary-color);
+    }
+    &.rd-input-component-left {
+      .rd-input-overlay {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      .rd-input-border {
+        border-right: 0.5px solid var(--border-color);
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+    }
+    &.rd-input-component-right {
+      .rd-input-overlay {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+      .rd-input-border {
+        border-left: 0.5px solid var(--border-color);
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
     }
     &:hover {
       z-index: 10;
