@@ -58,6 +58,14 @@
       @changing-done="projectMenuState = 'idle'"
       @add-task="openAddTask"
     />
+    <rd-project-reports
+      v-if="projectMenu === 'reports'"
+      :project="project"
+      :data="projectDataAreas"
+      :state="projectMenuState"
+      @changing-done="projectMenuState = 'idle'"
+      @add-task="openAddTask"
+    />
   </div>
 </template>
 
