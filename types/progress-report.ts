@@ -5,8 +5,8 @@ export type ProjectProgressReportWeatherKind =
   | "Snowy";
 
 export type ProjectProgressReportRequest = {
-  time: number;
-  actual?: ProjectProgressReportActual;
+  time?: [[number, number], [number, number]];
+  actual?: ProjectProgressReportActual[];
   plan?: ProjectProgressReportPlan;
   weather?: ProjectProgressReportWeather;
   documentation?: ProjectProgressReportDocumentation;

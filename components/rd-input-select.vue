@@ -2,7 +2,11 @@
   <div
     ref="rdInputComponent"
     class="rd-input-component"
-    :class="props.input.error ? 'rd-input-error-active' : ''"
+    :class="`${props.input.error ? 'rd-input-error-active' : ''} ${
+      props.input.disabled || !props.input.options?.length
+        ? 'rd-input-disabled'
+        : ''
+    }`"
   >
     <label v-if="props.input.label" class="rd-input-label rd-headline-6">{{
       props.input.label
@@ -18,6 +22,7 @@
         readonly
         :name="props.input.name"
         :type="props.input.type"
+        :disabled="props.input.disabled || !props.input.options?.length"
         @focus="dropDownHandler('open')"
         @blur="dropDownHandler('close')"
         @keydown.up.prevent="
@@ -189,6 +194,11 @@
             selectOption();
           }
         }, 100);
+      } else {
+        dropDownIndex.value = -1;
+        inputModel.value = "";
+        inputValue.value = "";
+        rdInput.value.value = "";
       }
     }
   );
@@ -241,6 +251,9 @@
         align-items: center;
         ~ input.rd-input {
           padding: 0 2rem;
+          width: calc(100% - 2rem);
+          border-top-left-radius: 0;
+          border-bottom-right-radius: 0;
         }
       }
       input.rd-input {
@@ -250,8 +263,7 @@
         height: 100%;
         padding: 0 2rem 0 0.5rem;
         border: none;
-        border-top-right-radius: 0.5rem;
-        border-bottom-right-radius: 0.5rem;
+        border-radius: 0.5rem;
         box-sizing: border-box;
         color: var(--font-main-color);
         background: rgba(0, 0, 0, 0);
@@ -357,6 +369,7 @@
       }
       .rd-input-chevron-container {
         z-index: 2;
+        pointer-events: none;
         position: absolute;
         right: 0;
         width: 2rem;
@@ -398,6 +411,11 @@
           }
         }
       }
+    }
+    &.rd-input-disabled {
+      pointer-events: none;
+      filter: grayscale(0.75);
+      opacity: 0.5;
     }
   }
 </style>

@@ -163,6 +163,10 @@ export type InputDateOption = {
   threshold?: Date
   available?: number[]
 }
+export type InputTimeOption = {
+  model: [number, number]
+  label?: string
+}
 export type InputCodeOption = {
   name: string
   length: number

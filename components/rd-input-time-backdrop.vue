@@ -28,7 +28,7 @@
 
 <script lang="ts" setup>
   import { ComputedRef } from "vue";
-  import { InputOption, InputTimeOption } from "~~/interfaces/general";
+  import { InputOption, InputTimeOption } from "~~/types/general";
 
   const emits = defineEmits(["exit"]);
   const props = defineProps<{

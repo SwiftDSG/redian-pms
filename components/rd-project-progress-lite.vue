@@ -70,12 +70,21 @@
             viewBox="0 0 12 12"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            :style="`bottom: ${
+              dataHoverIndex > 0 ? datas[dataHoverIndex].y[1] : 0
+            }%;`"
           >
             <rect
               width="12"
               height="12"
               rx="6"
-              style="fill: var(--primary-color)"
+              :style="`fill: ${
+                dataHoverIndex > 0
+                  ? datas[dataHoverIndex].y[1] > datas[dataHoverIndex].y[0]
+                    ? 'var(--success-color)'
+                    : 'var(--error-color)'
+                  : 'var(--primary-color)'
+              }`"
             />
             <rect x="3" y="3" width="6" height="6" rx="3" fill="white" />
           </svg>
@@ -112,27 +121,53 @@
     const xStep = width / xLen;
 
     for (let i: number = 0; i < xLen; i++) {
-      const rdLine: SVGLineElement = document.createElementNS(
+      const rdLine1: SVGLineElement = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "line"
       );
 
       const x = (i + 1) * xStep;
-      const y = height - (datas.value[i + 1].y[0] / 100) * height;
+      const y1 = height - (datas.value[i + 1].y[0] / 100) * height;
+      const y2 = height - (datas.value[i + 1].y[1] / 100) * height;
 
-      rdLine.setAttributeNS(null, "x1", (i * xStep).toString());
-      rdLine.setAttributeNS(
+      rdLine1.setAttributeNS(null, "x1", (i * xStep).toString());
+      rdLine1.setAttributeNS(
         null,
         "y1",
         (height - (datas.value[i].y[0] / 100) * height).toString()
       );
-      rdLine.setAttributeNS(null, "x2", x.toString());
-      rdLine.setAttributeNS(null, "y2", y.toString());
+      rdLine1.setAttributeNS(null, "x2", x.toString());
+      rdLine1.setAttributeNS(null, "y2", y1.toString());
 
-      rdLine.setAttributeNS(null, "stroke", "#000");
-      rdLine.setAttributeNS(null, "stroke-width", "2");
+      rdLine1.setAttributeNS(null, "stroke", "#ffc904");
+      rdLine1.setAttributeNS(null, "stroke-width", "2");
 
-      rdSparkline.value.appendChild(rdLine);
+      rdSparkline.value.appendChild(rdLine1);
+
+      const rdLine2: SVGLineElement = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line"
+      );
+
+      rdLine2.setAttributeNS(null, "x1", (i * xStep).toString());
+      rdLine2.setAttributeNS(
+        null,
+        "y1",
+        (height - (datas.value[i].y[1] / 100) * height).toString()
+      );
+      rdLine2.setAttributeNS(null, "x2", x.toString());
+      rdLine2.setAttributeNS(null, "y2", y2.toString());
+
+      rdLine2.setAttributeNS(
+        null,
+        "stroke",
+        datas.value[i + 1].y[1] > datas.value[i + 1].y[0]
+          ? "#6bc785"
+          : "#ff584c"
+      );
+      rdLine2.setAttributeNS(null, "stroke-width", "2");
+
+      rdSparkline.value.appendChild(rdLine2);
       if (i === xLen - 1) {
         gsap.to([rdSparkline.value.parentElement, rdSparkline.value], {
           x: 0,

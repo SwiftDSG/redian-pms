@@ -37,7 +37,7 @@
         </div>
       </div>
       <span class="rd-input-text rd-caption-text"
-        >Drop files here or
+        >Drop images here or
         <span class="rd-input-text-highlight rd-headline-6">select files</span>
       </span>
       <div class="rd-input-border"></div>
@@ -76,7 +76,7 @@
   import gsap from "gsap";
   import { ComputedRef } from "vue";
 
-  import { InputImageOption } from "~~/interfaces/general.js";
+  import { InputImageOption } from "~~/types/general.js";
 
   interface ImageFile {
     name: string;
@@ -321,7 +321,7 @@
       position: relative;
       width: 100%;
       height: 1rem;
-      padding: 0 1rem;
+      padding: 0 2rem;
       box-sizing: border-box;
       color: var(--font-primary-color);
       opacity: 0.5;
@@ -331,10 +331,10 @@
     }
     label.rd-input-area {
       position: relative;
-      width: calc(100% - 2rem);
+      width: calc(100% - 4rem);
       height: 13rem;
-      margin: 0 1rem;
-      background: var(--background-depth-three-color);
+      margin: 0 2rem;
+      background: var(--background-depth-one-color);
       border-radius: 0.5rem;
       box-sizing: border-box;
       display: flex;
@@ -348,7 +348,7 @@
         height: 2rem;
         margin-bottom: 0.75rem;
         border-radius: 0.5rem;
-        background: rgba(0, 0, 0, 0.05);
+        background: rgba(0, 0, 0, 0.1);
         padding: 0 0.5rem;
         box-sizing: border-box;
         display: flex;
@@ -496,7 +496,7 @@
       left: 0;
       width: 100%;
       height: 3rem;
-      padding-left: 1rem;
+      padding-left: 2rem;
       box-sizing: border-box;
       overflow-x: auto;
       display: flex;
@@ -582,9 +582,12 @@
       &::after {
         content: "";
         position: relative;
-        width: 1rem;
+        width: 2rem;
         flex-shrink: 0;
         margin-left: -1rem;
+      }
+      &::-webkit-scrollbar {
+        display: none;
       }
     }
     @media only screen and (max-width: 1024px) {

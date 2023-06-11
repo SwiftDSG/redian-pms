@@ -264,7 +264,7 @@
     &.rd-input-component-disabled {
       pointer-events: none;
       filter: grayscale(0.75);
-      opacity: 0.5;
+      opacity: 0.25;
     }
     &.rd-input-component-primary {
       background: var(--primary-color);

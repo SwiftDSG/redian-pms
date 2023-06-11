@@ -3,7 +3,6 @@
     class="rd-panel"
     label="Add task"
     :state="panelState"
-    :loading="loading"
     @exit="emits('exit')"
   >
     <div class="rd-panel-body">
@@ -48,8 +47,6 @@
   const { createProjectTask } = useProject();
 
   const panelState = ref<"idle" | "hide">("idle");
-
-  const loading = ref<boolean>(true);
 
   const nameInput = ref<InputOption>({
     label: "Task name",

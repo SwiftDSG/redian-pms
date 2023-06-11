@@ -1,5 +1,6 @@
+import { ProjectProgressReportRequest } from "~~/types/progress-report";
 import { Project, ProjectAreaRequest, ProjectAreaResponse, ProjectProgressResponse, ProjectResponse } from "~~/types/project";
-import { ProjectTask, ProjectTaskMinResponse, ProjectTaskPeriodRequest, ProjectTaskRequest } from "~~/types/project-task";
+import { ProjectTask, ProjectTaskMinResponse, ProjectTaskPeriodRequest, ProjectTaskRequest, ProjectTaskStatusKind } from "~~/types/project-task";
 
 export default () => {
   const { $fetch } = useNuxtApp();
@@ -38,10 +39,14 @@ export default () => {
       return null;
     }
   };
-  const getProjectTasks = async (payload: { _id: string }): Promise<ProjectTaskMinResponse[]> => {
+  const getProjectTasks = async (payload: {
+    _id: string, query?: {
+      status?: ProjectTaskStatusKind
+    }
+  }): Promise<ProjectTaskMinResponse[]> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/projects/${payload._id}/tasks`,
+        `${config.public.apiBase}/projects/${payload._id}/tasks?${payload.query?.status ? `status=${payload.query.status}&` : ''}`,
         "get"
       );
       if (response.status !== 200) throw new Error("");
@@ -103,6 +108,24 @@ export default () => {
       return null;
     }
   };
+  const createProjectReport = async (payload: {
+    project_id: string;
+    request: ProjectProgressReportRequest;
+  }): Promise<ProjectTask> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/projects/${payload.project_id}/reports`,
+        "post",
+        JSON.stringify(payload.request)
+      );
+      if (response.status !== 201) throw new Error("");
+
+      const result = await response.json();
+      return result;
+    } catch (e) {
+      return null;
+    }
+  };
   const updateProjectTaskPeriod = async (payload: {
     task_id: string;
     project_id: string;
@@ -151,6 +174,7 @@ export default () => {
     getProjectProgress,
     addProjectArea,
     createProjectTask,
+    createProjectReport,
     updateProjectTaskPeriod
   };
 };

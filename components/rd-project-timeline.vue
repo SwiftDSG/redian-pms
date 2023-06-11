@@ -15,28 +15,34 @@
           class="rd-panel-task"
           :class="`rd-panel-task-${task.status[0].kind}`"
         >
-          <div class="rd-panel-task-detail">
-            <span class="rd-panel-task-name rd-headline-5">{{
-              task.name
-            }}</span>
-            <span
-              class="rd-panel-task-period rd-caption-text"
-              @click="editTask(task)"
-              >{{
-                task.period
-                  ? `${formatDate(task.period.start)} - ${formatDate(
-                      task.period.end
-                    )}`
-                  : "Unassigned"
-              }}</span
-            >
+          <div class="rd-panel-task-plan">
+            <div class="rd-panel-task-detail">
+              <span class="rd-panel-task-name rd-headline-5">{{
+                task.name
+              }}</span>
+              <span
+                class="rd-panel-task-period rd-caption-text"
+                @click="editTask(task)"
+                >{{
+                  task.period
+                    ? `${formatDate(task.period.start)} - ${formatDate(
+                        task.period.end
+                      )}`
+                    : "Unassigned"
+                }}</span
+              >
+            </div>
+            <div class="rd-panel-task-value-container">
+              <span class="rd-panel-task-value rd-headline-5">{{
+                `${task.value}%`
+              }}</span>
+              <div class="rd-panel-task-value-dot"></div>
+            </div>
           </div>
-          <div class="rd-panel-task-value-container">
-            <span class="rd-panel-task-value rd-headline-5">{{
-              `${task.value}%`
-            }}</span>
-            <div class="rd-panel-task-value-dot"></div>
-          </div>
+          <div
+            v-if="task.status[0].kind !== 'pending'"
+            class="rd-panel-task-actual"
+          ></div>
         </div>
       </div>
     </div>
@@ -82,26 +88,35 @@
             ref="rdPanelTimelineDataContainer"
           >
             <div
-              v-for="(data, i) in datas"
+              v-for="(task, i) in datas"
               :key="i"
               class="rd-panel-timeline-data"
-              :style="`width: ${(data.position?.w || 0) * 3}rem; left: ${
-                (data.position?.x || 0) * 3
-              }rem; top: ${
-                (data.position?.y || 0) * 3.5 +
-                ((data.position?.y || 0) + 1) * 0.75
-              }rem`"
+              :class="`rd-panel-timeline-data-${task.status}`"
             >
-              <div class="rd-panel-timeline-data-name-container">
-                <span class="rd-panel-timeline-data-name rd-headline-5">{{
-                  data.name
-                }}</span>
-                <span class="rd-panel-timeline-data-period rd-caption-text">{{
-                  `${formatDate(data.period.start)} - ${formatDate(
-                    data.period.end
-                  )}`
-                }}</span>
+              <div
+                class="rd-panel-timeline-data-plan"
+                :style="`width: ${
+                  (task.period.position?.w || 0) * 3
+                }rem; left: ${(task.period.position?.x || 0) * 3}rem;`"
+              >
+                <div class="rd-panel-timeline-data-name-container">
+                  <span class="rd-panel-timeline-data-name rd-headline-5">{{
+                    task.name
+                  }}</span>
+                  <span class="rd-panel-timeline-data-period rd-caption-text">{{
+                    `${formatDate(task.period.start)} - ${formatDate(
+                      task.period.end
+                    )}`
+                  }}</span>
+                </div>
               </div>
+              <div
+                v-if="task.actual"
+                class="rd-panel-timeline-data-actual"
+                :style="`width: ${
+                  (task.actual?.position?.w || 0) * 3
+                }rem; left: ${(task.actual?.position?.x || 0) * 3}rem;`"
+              ></div>
             </div>
           </div>
         </div>
@@ -150,13 +165,20 @@
     period: {
       start: string;
       end: string;
+      position?: {
+        w: number;
+        x: number;
+      };
+    };
+    actual?: {
+      start: string;
+      end: string;
+      position?: {
+        w: number;
+        x: number;
+      };
     };
     status: ProjectTaskStatusKind;
-    position?: {
-      w: number;
-      x: number;
-      y: number;
-    };
   };
   type Period = {
     start: Date;
@@ -277,20 +299,20 @@
 
     resetDays();
   }
-  function getPosition(data: ProjectTaskMinResponse): DataTimeline["position"] {
-    const start = new Date(data.period.start);
-    const end = new Date(data.period.end);
+  function getPosition(
+    data: DataTimeline["actual"] | DataTimeline["period"]
+  ): DataTimeline["period"]["position"] {
+    const start = new Date(data.start).setHours(0, 0, 0, 0);
+    const end = new Date(data.end).setHours(23, 59, 59, 999);
 
-    const w: number = Math.ceil((end.getTime() - start.getTime()) / 86400000);
+    const w: number = Math.ceil((end - start) / 86400000);
     const x: number = Math.ceil(
-      (start.getTime() - period.value.start.getTime()) / 86400000
+      (start - period.value.start.getTime()) / 86400000
     );
-    const y: number = props.data.findIndex((a) => a._id === data._id);
 
     return {
       w,
       x,
-      y,
     };
   }
   function timelineIntersector(entries: IntersectionObserverEntry[]): void {
@@ -341,12 +363,23 @@
         setPeriod(val);
         datas.value = val
           .filter((a) => !!a.period)
-          .map<DataTimeline>((a) => ({
-            name: a.name,
-            period: a.period,
-            status: a.status[0].kind,
-            position: getPosition(a),
-          }));
+          .map<DataTimeline>((a) => {
+            const payload: DataTimeline = {
+              name: a.name,
+              period: {
+                ...a.period,
+                position: getPosition(a.period),
+              },
+              status: a.status[0].kind,
+            };
+            if (a.actual) {
+              payload.actual = {
+                ...a.actual,
+                position: getPosition(a.actual),
+              };
+            }
+            return payload;
+          });
         setTimeout(() => {
           rdPanelTimelineDataContainer.value.style.height = `${
             3.5 * val.length + 0.75 * (val.length - 1) + 1.5
@@ -425,78 +458,119 @@
         flex-direction: column;
         overflow-y: auto;
         .rd-panel-task {
-          cursor: pointer;
           position: relative;
           width: 100%;
-          height: 3.5rem;
-          padding: 0.75rem;
-          border-radius: 0.75rem;
-          border: var(--border);
-          box-sizing: border-box;
+          height: 5.75rem;
           display: flex;
-          justify-content: space-between;
-          align-items: center;
-          .rd-panel-task-detail {
+          flex-shrink: 0;
+          .rd-panel-task-plan {
+            cursor: pointer;
+            z-index: 1;
             position: relative;
-            height: 100%;
+            width: 100%;
+            height: 3.5rem;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            border: var(--border);
+            background: var(--background-depth-one-color);
+            box-sizing: border-box;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            span.rd-panel-task-name {
-              position: relative;
-              margin-bottom: 0.25rem;
-            }
-            span.rd-panel-task-period {
-              cursor: pointer;
-              position: relative;
-              transition: 0.125s opacity;
-              &:hover {
-                opacity: 1;
-              }
-            }
-          }
-          .rd-panel-task-value-container {
-            position: relative;
-            height: 100%;
-            display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
-            .rd-panel-task-value-dot {
+            .rd-panel-task-detail {
               position: relative;
-              width: 1rem;
-              height: 1rem;
-              margin-left: 0.5rem;
+              height: 100%;
               display: flex;
+              flex-direction: column;
               justify-content: center;
-              align-items: center;
-              &::before {
-                content: "";
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                border-radius: 50%;
-                background: var(--font-main-color);
-                opacity: 0.1;
-              }
-              &::after {
-                content: "";
+              span.rd-panel-task-name {
                 position: relative;
-                width: 50%;
-                height: 50%;
-                border-radius: 50%;
-                background: var(--font-main-color);
+                margin-bottom: 0.25rem;
+              }
+              span.rd-panel-task-period {
+                cursor: pointer;
+                position: relative;
+                transition: 0.125s opacity;
+                &:hover {
+                  opacity: 1;
+                }
               }
             }
-          }
-          &.rd-panel-task-finished {
             .rd-panel-task-value-container {
+              position: relative;
+              height: 100%;
+              display: flex;
+              justify-content: flex-end;
+              align-items: center;
               .rd-panel-task-value-dot {
+                position: relative;
+                width: 1rem;
+                height: 1rem;
+                margin-left: 0.5rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
                 &::before {
-                  background: var(--success-color);
+                  content: "";
+                  position: absolute;
+                  width: 100%;
+                  height: 100%;
+                  border-radius: 50%;
+                  background: var(--font-main-color);
+                  opacity: 0.1;
                 }
                 &::after {
-                  background: var(--success-color);
+                  content: "";
+                  position: relative;
+                  width: 50%;
+                  height: 50%;
+                  border-radius: 50%;
+                  background: var(--font-main-color);
                 }
+              }
+            }
+          }
+          .rd-panel-task-actual {
+            z-index: 0;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 0.75rem;
+            border: var(--border);
+            border-color: var(--primary-color);
+            box-sizing: border-box;
+            &::before {
+              content: "";
+              position: absolute;
+              width: 100%;
+              height: 100%;
+              border-radius: 0.75rem;
+              background: var(--primary-color);
+              opacity: 0.1;
+            }
+          }
+          &.rd-panel-task-pending {
+            height: 3.5rem;
+          }
+          &.rd-panel-task-finished {
+            .rd-panel-task-plan {
+              .rd-panel-task-value-container {
+                .rd-panel-task-value-dot {
+                  &::before {
+                    background: var(--success-color);
+                  }
+                  &::after {
+                    background: var(--success-color);
+                  }
+                }
+              }
+            }
+            .rd-panel-task-actual {
+              border-color: var(--success-color);
+              &::before {
+                background: var(--success-color);
               }
             }
           }
@@ -619,32 +693,70 @@
             position: relative;
             width: 100%;
             height: 100%;
+            padding: 0.75rem 0;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
             .rd-panel-timeline-data {
-              position: absolute;
-              height: 3.5rem;
-              border-radius: 0.5rem;
-              border: var(--border);
-              padding: 0.75rem;
-              box-sizing: border-box;
-              background: var(--background-depth-one-color);
+              position: relative;
+              width: 100%;
+              height: 5.75rem;
               display: flex;
-              .rd-panel-timeline-data-name-container {
-                position: relative;
-                width: 100%;
-                height: 100%;
+              flex-shrink: 0;
+              .rd-panel-timeline-data-plan {
+                z-index: 1;
+                position: absolute;
+                top: 0;
+                height: 3.5rem;
+                border-radius: 0.75rem;
+                border: var(--border);
+                padding: 0.75rem;
+                box-sizing: border-box;
+                background: var(--background-depth-one-color);
                 display: flex;
-                flex-direction: column;
-                span.rd-panel-timeline-data-name {
-                  position: relative;
-                  margin-bottom: 0.25rem;
-                }
-                span.rd-panel-timeline-data-period {
+                .rd-panel-timeline-data-name-container {
                   position: relative;
                   width: 100%;
-                  overflow: hidden;
-                  text-overflow: ellipsis;
-                  white-space: nowrap;
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  span.rd-panel-timeline-data-name {
+                    position: relative;
+                    margin-bottom: 0.25rem;
+                  }
+                  span.rd-panel-timeline-data-period {
+                    position: relative;
+                    width: 100%;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                  }
                 }
+              }
+              .rd-panel-timeline-data-actual {
+                z-index: 0;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: 0.75rem;
+                border: var(--border);
+                border-color: var(--primary-color);
+                box-sizing: border-box;
+                &::before {
+                  content: "";
+                  position: absolute;
+                  width: 100%;
+                  height: 100%;
+                  border-radius: 0.75rem;
+                  background: var(--primary-color);
+                  opacity: 0.1;
+                }
+              }
+              &.rd-panel-timeline-data-pending {
+                height: 3.5rem;
               }
             }
           }
@@ -653,6 +765,7 @@
           }
         }
         .rd-panel-timeline-counter-container {
+          z-index: 2;
           position: absolute;
           bottom: 0;
           left: 0;

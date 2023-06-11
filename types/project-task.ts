@@ -62,7 +62,9 @@ export type ProjectTaskMinResponse = {
   }[];
   name: string;
   period?: ProjectTaskPeriodResponse;
+  actual?: ProjectTaskPeriodResponse;
   status: ProjectTaskStatus[];
   volume?: ProjectTaskVolume;
   value: number;
+  progress: number;
 };
