@@ -208,7 +208,6 @@
   const period = ref<Period>(null);
   const today = ref<number>(new Date().setHours(0, 0, 0, 0));
   const days = ref<Date[]>([]);
-  const daysCount = ref<number>(0);
   const daysAnim = ref<GSAPAnimation>(null);
 
   const months = [
@@ -254,19 +253,12 @@
   function editTask(task: ProjectTaskMinResponse): void {
     emits("edit-task", task);
   }
-  function resetDays(): void {
-    if (days.value.length && period.value.start) {
-      let date = period.value.start.setHours(0, 0, 0, 0);
-      days.value = days.value.map((a, i) => new Date(date + i * 86400000));
-      initCounter();
-    }
-  }
   function addDays(): void {
-    for (var i: number = 0; i < 30; i++) {
-      days.value.push(
-        new Date(new Date().getTime() + 86400000 * daysCount.value)
-      );
-      daysCount.value++;
+    const diff =
+      (period.value.end.getTime() - period.value.start.getTime()) / 86400000;
+    const date = period.value.start.setHours(0, 0, 0, 0);
+    for (var i: number = 0; i < diff; i++) {
+      days.value.push(new Date(date + 86400000 * i));
     }
     setTimeout(() => {
       if (rdPanelTimelineDataWrapper.value) {
@@ -274,6 +266,7 @@
           rdPanelTimelineDayContainer.value.getBoundingClientRect().width
         }px`;
       }
+      initCounter();
     }, 100);
   }
   function formatDate(str: string): string {
@@ -292,12 +285,15 @@
       [[], []]
     );
 
+    allPeriod[0].push(new Date(props.project.period.start).getTime());
+    allPeriod[1].push(new Date(props.project.period.end).getTime());
+
     period.value = {
       start: new Date(Math.min(...allPeriod[0])),
       end: new Date(Math.max(...allPeriod[1])),
     };
 
-    resetDays();
+    if (!days.value?.length) addDays();
   }
   function getPosition(
     data: DataTimeline["actual"] | DataTimeline["period"]
@@ -314,11 +310,6 @@
       w,
       x,
     };
-  }
-  function timelineIntersector(entries: IntersectionObserverEntry[]): void {
-    for (const entry of entries) {
-      if (entry.isIntersecting) addDays();
-    }
   }
   function bindScroll(e: Event): void {
     if (e.target instanceof HTMLElement) {
@@ -381,20 +372,14 @@
             return payload;
           });
         setTimeout(() => {
-          rdPanelTimelineDataContainer.value.style.height = `${
-            3.5 * val.length + 0.75 * (val.length - 1) + 1.5
-          }rem`;
-          rdPanelTimelineDataWrapper.value.style.width = `${
-            rdPanelTimelineDayContainer.value.getBoundingClientRect().width
-          }px`;
-          timelineObserver.value = new IntersectionObserver(
-            timelineIntersector,
-            {
-              root: rdPanelTimeline.value,
-              threshold: 0,
-            }
-          );
-          timelineObserver.value.observe(rdPanelTimelineIntersector.value);
+          if (rdPanelTimelineDataContainer.value) {
+            rdPanelTimelineDataContainer.value.style.height = `${
+              3.5 * val.length + 0.75 * (val.length - 1) + 1.5
+            }rem`;
+            rdPanelTimelineDataWrapper.value.style.width = `${
+              rdPanelTimelineDayContainer.value.getBoundingClientRect().width
+            }px`;
+          }
         }, 50);
       }
     },
@@ -402,8 +387,6 @@
   );
 
   onMounted(() => {
-    addDays();
-
     animate.init(rdPanel.value, () => {
       emits("changing-done");
     });

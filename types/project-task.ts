@@ -51,11 +51,7 @@ export type ProjectTaskPeriodResponse = {
 
 export type ProjectTaskMinResponse = {
   _id: string;
-  user?: {
-    _id: string;
-    name: string;
-    image_url?: string;
-  }[];
+  user?: ProjectTaskUserResponse[];
   task?: {
     _id: string;
     name: string;
@@ -68,3 +64,36 @@ export type ProjectTaskMinResponse = {
   value: number;
   progress: number;
 };
+export type ProjectTaskResponse = {
+  _id: string;
+  project: {
+    _id: string;
+    name: string;
+  };
+  area: {
+    _id: string;
+    name: string;
+  };
+  user?: ProjectTaskUserResponse[];
+  task?: ProjectTaskTaskResponse[];
+  name: string;
+  description?: string;
+  period?: ProjectTaskPeriodResponse;
+  actual?: ProjectTaskPeriodResponse;
+  status: ProjectTaskStatus[];
+  volume?: ProjectTaskVolume;
+  value: number;
+  progress: number;
+};
+export type ProjectTaskTaskResponse = {
+  _id: string;
+  name: string;
+  period?: ProjectTaskPeriodResponse;
+  status: ProjectTaskStatus[];
+  volume?: ProjectTaskVolume;
+}
+export type ProjectTaskUserResponse = {
+  _id: string;
+  name: string;
+  image_url?: string;
+}

@@ -1,7 +1,10 @@
 <template>
   <div ref="rdComponent" class="rd-component rd-component-overview">
     <div class="rd-panel rd-panel-chart">
-      <div class="rd-panel-header"></div>
+      <div class="rd-panel-header">
+        <span class="rd-panel-name rd-headline-3">Progress chart</span>
+        <rd-input-button label="See all" />
+      </div>
       <rd-project-progress-lite
         class="rd-panel-body"
         :data="data.projectProgress"
@@ -9,7 +12,10 @@
       />
     </div>
     <div class="rd-panel rd-panel-chart">
-      <div class="rd-panel-header"></div>
+      <div class="rd-panel-header">
+        <span class="rd-panel-name rd-headline-3">Timeline</span>
+        <rd-input-button label="See all" />
+      </div>
       <rd-project-timeline-lite
         class="rd-panel-body"
         :data="data.projectTimeline"

@@ -251,9 +251,6 @@
         align-items: center;
         ~ input.rd-input {
           padding: 0 2rem;
-          width: calc(100% - 2rem);
-          border-top-left-radius: 0;
-          border-bottom-right-radius: 0;
         }
       }
       input.rd-input {

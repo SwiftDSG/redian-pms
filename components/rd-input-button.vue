@@ -423,8 +423,10 @@
     }
     &.rd-input-component-error {
       background: transparent;
-      border: 1px solid var(--error-color);
-      box-sizing: border-box;
+      .rd-input-border {
+        box-sizing: border-box;
+        border: 1px solid var(--error-color);
+      }
       .rd-input-label-container {
         label.rd-input-label {
           color: var(--error-color);

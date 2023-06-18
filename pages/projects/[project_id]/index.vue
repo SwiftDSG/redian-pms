@@ -14,7 +14,7 @@
       <div class="rd-project-menu-section">
         <rd-input-button
           v-if="projectMenu === 'tasks'"
-          label="Add area"
+          label="Add stage"
           @clicked="openAddArea"
         />
         <rd-input-button
@@ -29,9 +29,30 @@
         <rd-input-select v-else :input="areaInput" />
       </div>
     </div>
+    <div v-if="projectWarning" class="rd-project-warning">
+      <div class="rd-project-warning-detail">
+        <div class="rd-project-warning-icon-container">
+          <rd-svg class="rd-project-warning-icon" name="warning" />
+        </div>
+        <div class="rd-project-warning-message-container">
+          <span class="rd-project-warning-name rd-headline-5">{{
+            projectWarningName()
+          }}</span>
+          <span class="rd-project-warning-message rd-caption-text">{{
+            projectWarningMessage()
+          }}</span>
+        </div>
+      </div>
+      <rd-input-button-small
+        class="rd-project-warning-action"
+        icon="chevron-right"
+        type="primary"
+        @clicked="projectMenuChange('tasks')"
+      />
+    </div>
     <rd-project-overview
-      v-if="projectMenu === 'overview'"
-      :project="project"
+      v-if="projectMenu === 'overview' && project"
+      :project="project.data"
       :state="projectMenuState"
       :data="{
         projectProgress: projectDataProgress,
@@ -40,39 +61,41 @@
       @changing-done="projectMenuState = 'idle'"
     />
     <rd-project-progress
-      v-if="projectMenu === 'progress'"
-      :project="project"
-      :data="projectDataProgress"
+      v-if="projectMenu === 'progress' && project"
+      :project="project.data"
+      :data="projectProgress"
       :state="projectMenuState"
       @changing-done="projectMenuState = 'idle'"
     />
     <rd-project-timeline
-      v-if="projectMenu === 'timeline'"
-      :project="project"
-      :data="projectDataTimeline"
+      v-if="projectMenu === 'timeline' && project"
+      :project="project.data"
+      :data="projectTimeline"
       :state="projectMenuState"
       @changing-done="projectMenuState = 'idle'"
       @edit-task="openPeriodTask"
     />
     <rd-project-tasks
-      v-if="projectMenu === 'tasks'"
-      :project="project"
-      :data="projectDataAreas"
+      v-if="projectMenu === 'tasks' && project"
+      :project="project.data"
+      :data="projectAreas"
       :state="projectMenuState"
       @changing-done="projectMenuState = 'idle'"
       @add-task="openAddTask"
+      @open-task="openTask"
+      @remove-area="openRemoveArea"
     />
     <rd-project-reports
-      v-if="projectMenu === 'reports'"
-      :project="project"
+      v-if="projectMenu === 'reports' && project"
+      :project="project.data"
       :state="projectMenuState"
       @changing-done="projectMenuState = 'idle'"
       @add-task="openAddTask"
     />
     <rd-project-users
-      v-if="projectMenu === 'users'"
-      :project="project"
-      :data="projectDataTimeline"
+      v-if="projectMenu === 'users' && project"
+      :project="project.data"
+      :data="projectUsers"
       :state="projectMenuState"
       @changing-done="projectMenuState = 'idle'"
       @edit-task="openPeriodTask"
@@ -85,7 +108,7 @@
   import {
     ProjectAreaResponse,
     ProjectProgressResponse,
-    ProjectResponse,
+    ProjectUserResponse,
   } from "~~/types/project";
   import { ProjectTaskMinResponse } from "~~/types/project-task";
 
@@ -101,13 +124,18 @@
     name: ProjectMenuKind;
     icon: string;
   };
+  type ProjectWarning = "empty-area" | "empty-task" | "incomplete-value";
 
   const emits = defineEmits(["open-panel", "change-page"]);
-  const { getProject, getProjectProgress, getProjectAreas, getProjectTasks } =
-    useProject();
+  const {
+    project,
+    getProject,
+    getProjectProgress,
+    getProjectAreas,
+    getProjectTasks,
+    getProjectUsers,
+  } = useProject();
   const route = useRoute();
-
-  const project = ref<ProjectResponse>(null);
 
   const projectInput = ref<InputOption>({
     name: "project",
@@ -126,11 +154,11 @@
   });
   const areaInput = ref<InputOption>({
     name: "area",
-    placeholder: "Area",
-    model: "All area",
+    placeholder: "Stage",
+    model: "All stages",
     options: [
       {
-        name: "All area",
+        name: "All stages",
         value: "all",
       },
     ],
@@ -149,9 +177,20 @@
 
   const projectMenu = ref<ProjectMenuKind>(null);
   const projectMenuState = ref<"idle" | "changing">("idle");
-  const projectDataTimeline = ref<ProjectTaskMinResponse[]>(null);
-  const projectDataProgress = ref<ProjectProgressResponse[]>(null);
-  const projectDataAreas = ref<ProjectAreaResponse[]>(null);
+  const projectWarning = ref<ProjectWarning>(null);
+
+  const projectUsers = computed<ProjectUserResponse>(
+    () => project.value?.users
+  );
+  const projectAreas = computed<ProjectAreaResponse[]>(
+    () => project.value?.areas
+  );
+  const projectTimeline = computed<ProjectTaskMinResponse[]>(
+    () => project.value?.timeline
+  );
+  const projectProgress = computed<ProjectProgressResponse[]>(
+    () => project.value?.progress
+  );
 
   const projectMenus: ProjectMenu[] = [
     {
@@ -186,39 +225,62 @@
     },
   ];
 
+  function projectWarningName(): string {
+    let str = "";
+
+    if (projectWarning.value === "empty-area") str = "Empty project stage";
+    if (projectWarning.value === "empty-task") str = "Empty project task";
+    if (projectWarning.value === "incomplete-value")
+      str = "Invalid tasks values";
+
+    return str;
+  }
+  function projectWarningMessage(): string {
+    let str = "";
+
+    if (projectWarning.value === "empty-area")
+      str =
+        "You need to add at last one stage to begin adding task to the project";
+    if (projectWarning.value === "empty-task")
+      str = "You need to add at least one task to start the project";
+    if (projectWarning.value === "incomplete-value")
+      str = "The sum of tasks values need to be 100% to start the project";
+
+    return str;
+  }
   function projectMenuChange(name: ProjectMenuKind): void {
     projectMenuState.value = "changing";
     setTimeout(async () => {
       projectMenu.value = name;
       switch (name) {
         case "overview":
-          projectDataProgress.value = await getProjectProgress({
-            _id: project.value._id,
+          project.value.progress = await getProjectProgress({
+            _id: project.value.data._id,
           });
-          projectDataTimeline.value = await getProjectTasks({
-            _id: project.value._id,
+          project.value.timeline = await getProjectTasks({
+            _id: project.value.data._id,
           });
           break;
         case "progress":
-          projectDataProgress.value = await getProjectProgress({
-            _id: project.value._id,
+          project.value.progress = await getProjectProgress({
+            _id: project.value.data._id,
           });
           break;
         case "reports":
           break;
         case "tasks":
-          projectDataAreas.value = await getProjectAreas({
-            _id: project.value._id,
+          project.value.areas = await getProjectAreas({
+            _id: project.value.data._id,
           });
           break;
         case "timeline":
-          projectDataTimeline.value = await getProjectTasks({
-            _id: project.value._id,
+          project.value.timeline = await getProjectTasks({
+            _id: project.value.data._id,
           });
           break;
         case "users":
-          projectDataTimeline.value = await getProjectTasks({
-            _id: project.value._id,
+          project.value.users = await getProjectUsers({
+            _id: project.value.data._id,
           });
           break;
       }
@@ -229,7 +291,7 @@
       state: "show",
       type: "project-area-add",
       data: {
-        project_id: project.value._id,
+        project_id: project.value.data._id,
       },
     });
   }
@@ -238,7 +300,7 @@
       state: "show",
       type: "project-report-add",
       data: {
-        project_id: project.value._id,
+        project_id: project.value.data._id,
       },
     });
   }
@@ -247,7 +309,27 @@
       state: "show",
       type: "project-task-add",
       data: {
-        project_id: project.value._id,
+        project_id: project.value.data._id,
+        area_id,
+      },
+    });
+  }
+  function openTask(task_id: string): void {
+    emits("open-panel", {
+      state: "show",
+      type: "project-task",
+      data: {
+        project_id: project.value.data._id,
+        task_id,
+      },
+    });
+  }
+  function openRemoveArea(area_id: string): void {
+    emits("open-panel", {
+      state: "show",
+      type: "project-area-remove",
+      data: {
+        project_id: project.value.data._id,
         area_id,
       },
     });
@@ -257,25 +339,57 @@
       state: "show",
       type: "project-task-period",
       data: {
-        project_id: project.value._id,
+        project_id: project.value.data._id,
         task,
       },
     });
   }
 
+  watch(
+    () => projectAreas.value,
+    (val) => {
+      if (!val?.length) projectWarning.value = "empty-area";
+      else {
+        const count = val.reduce((a, b) => a + b.task?.length, 0);
+        if (!count) projectWarning.value = "empty-task";
+        else {
+          const count = val.reduce(
+            (a, b) => a + b.task?.reduce((c, d) => c + d.value, 0),
+            0
+          );
+          if (count !== 100) projectWarning.value = "incomplete-value";
+        }
+      }
+    },
+    {
+      deep: true,
+    }
+  );
+
   onMounted(async () => {
-    project.value = await getProject({
-      _id: route.params.project_id.toString(),
-    });
+    project.value = {
+      data: await getProject({
+        _id: route.params.project_id.toString(),
+      }),
+      areas: await getProjectAreas({
+        _id: route.params.project_id.toString(),
+      }),
+      timeline: null,
+      progress: null,
+      users: null,
+    };
 
     projectMenuChange("overview");
 
-    areaInput.value.options.push(
-      ...(project.value.area?.map((a) => ({
-        name: a.name,
-        value: a._id,
-      })) || [])
-    );
+    if (!project.value?.areas?.length) projectWarning.value = "empty-area";
+    else {
+      areaInput.value.options.push(
+        ...(project.value.areas?.map((a) => ({
+          name: a.name,
+          value: a._id,
+        })) || [])
+      );
+    }
   });
 </script>
 
@@ -302,6 +416,41 @@
         height: 100%;
         display: flex;
         gap: 0.75rem;
+      }
+    }
+    .rd-project-warning {
+      position: relative;
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 1rem;
+      box-sizing: border-box;
+      background: var(--warning-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .rd-project-warning-detail {
+        position: relative;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        .rd-project-warning-icon-container {
+          position: relative;
+          width: 2.5rem;
+          height: 2.5rem;
+          border-radius: 0.75rem;
+          padding: 0.5rem;
+          box-sizing: border-box;
+          background: rgba(0, 0, 0, 0.05);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .rd-project-warning-message-container {
+          position: relative;
+          gap: 0.25rem;
+          display: flex;
+          flex-direction: column;
+        }
       }
     }
   }

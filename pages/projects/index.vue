@@ -11,7 +11,7 @@
             class="rd-project-panel-query-section"
           >
             <rd-input-select :input="sortInput" />
-            <rd-input-button label="new project" />
+            <rd-input-button label="new project" @clicked="openProjectPanel" />
           </div>
         </div>
         <rd-input-tabs
@@ -39,6 +39,7 @@
       v-if="viewMode !== 'desktop'"
       class="rd-project-add-button"
       label="new project"
+      @clicked="openProjectPanel"
     />
   </div>
 </template>
@@ -52,14 +53,13 @@
 
   const { viewMode } = useMain();
   const { projects, getProjects } = useProject();
-  const emits = defineEmits(["change-page"]);
+  const emits = defineEmits(["change-page", "open-panel"]);
 
   const tabsInput = ref<InputSwitchOption>({
     options: [
       "All",
       "Completed",
       "On Hold",
-      "On Time",
       "Behind Schedule",
       "Ahead Schedule",
     ],
@@ -87,6 +87,13 @@
       },
     ],
   });
+
+  function openProjectPanel(): void {
+    emits("open-panel", {
+      state: "show",
+      type: "project-add",
+    });
+  }
 
   onMounted(async () => {
     await getProjects();

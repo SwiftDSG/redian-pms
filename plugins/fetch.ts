@@ -36,7 +36,6 @@ export default defineNuxtPlugin(() => {
 
         if (response.status === 401) {
           const user: User = await refresh();
-          console.log(user);
           if (user) response = await fetch(url, option);
         }
 

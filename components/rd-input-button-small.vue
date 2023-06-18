@@ -269,6 +269,9 @@
     &.rd-input-component-primary {
       background: var(--primary-color);
       border-color: var(--primary-color);
+      .rd-input-border {
+        border-color: var(--primary-color);
+      }
     }
     &.rd-input-component-left {
       .rd-input-overlay {

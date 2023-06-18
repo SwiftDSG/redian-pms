@@ -1,20 +1,22 @@
 <template>
   <rd-panel
     class="rd-panel"
-    label="Add stage"
+    label="Remove stage"
     :state="panelState"
     @exit="emits('exit')"
   >
     <div class="rd-panel-body">
-      <div class="rd-panel-input-wrapper">
-        <rd-input-text :input="nameInput" class="rd-panel-input" />
-      </div>
+      <span class="rd-panel-message rd-caption-text"
+        >Are you sure about removing the stage you selected? this will also
+        delete all the tasks corresponding this stage, this action cannot be
+        undone.</span
+      >
     </div>
     <div class="rd-panel-footer">
       <rd-input-button
         class="rd-panel-button"
-        label="submit"
-        :disabled="!project || !name"
+        label="remove"
+        type="error"
         :loading="loading"
         @clicked="submit"
       />
@@ -23,43 +25,29 @@
 </template>
 
 <script lang="ts" setup>
-  import { InputOption } from "~~/types/general";
-  import { ProjectAreaRequest } from "~~/types/project";
-
   const props = defineProps<{
     state: "idle" | "hide";
     data: {
       project_id: string;
+      area_id: string;
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
-  const { project, addProjectArea, getProjectAreas } = useProject();
+  const { project, removeProjectArea, getProjectAreas } = useProject();
 
   const panelState = ref<"idle" | "hide">("idle");
 
   const loading = ref<boolean>(false);
 
-  const nameInput = ref<InputOption>({
-    label: "Area name",
-    name: "name",
-    model: "",
-    error: "",
-    placeholder: "Some Area",
-  });
-
-  const name = computed<ProjectAreaRequest["name"]>(
-    () => nameInput.value.model
-  );
-
   async function submit(): Promise<void> {
     if (project.value) {
       loading.value = true;
       const payload = {
-        request: { name: name.value },
         project_id: props.data.project_id,
+        area_id: props.data.area_id,
       };
 
-      await addProjectArea(payload);
+      await removeProjectArea(payload);
 
       project.value.areas = await getProjectAreas({
         _id: props.data.project_id,
@@ -79,6 +67,14 @@
 
 <style lang="scss" scoped>
   .rd-panel {
+    .rd-panel-body {
+      position: relative;
+      display: flex;
+      .rd-panel-message {
+        position: relative;
+        line-height: 2;
+      }
+    }
     .rd-panel-footer {
       position: fixed;
       bottom: 0;

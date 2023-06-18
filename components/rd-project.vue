@@ -1,21 +1,55 @@
 <template>
-  <div class="rd-project">
+  <div class="rd-project" :class="`rd-project-${status}`">
     <div class="rd-project-data rd-project-data-main">
-      <div class="rd-project-data-status"></div>
+      <div class="rd-project-data-status">
+        <rd-svg
+          v-if="status === 'pending'"
+          class="rd-project-data-status-icon"
+          name="minus"
+        />
+        <rd-svg
+          v-if="status === 'finished'"
+          color="success"
+          class="rd-project-data-status-icon"
+          name="check"
+        />
+        <rd-svg
+          v-if="status === 'paused'"
+          color="warning"
+          class="rd-project-data-status-icon"
+          name="pause"
+        />
+        <rd-svg
+          v-if="status === 'behind'"
+          color="error"
+          class="rd-project-data-status-icon"
+          name="chevron-down"
+        />
+        <rd-svg
+          v-if="status === 'ahead'"
+          color="success"
+          class="rd-project-data-status-icon"
+          name="chevron-up"
+        />
+      </div>
       <div class="rd-project-data-container">
         <span class="rd-project-data-value rd-headline-4">{{
           project.name
         }}</span>
-        <span class="rd-project-data-placeholder rd-body-text"
-          >18 April 2023 - 20 July 2023</span
-        >
+        <span class="rd-project-data-placeholder rd-body-text">{{
+          `${formatDate(project.period.start)} - ${formatDate(
+            project.period.end
+          )}`
+        }}</span>
       </div>
     </div>
     <div
       v-if="viewMode === 'desktop'"
       class="rd-project-data rd-project-data-person"
     >
-      <span class="rd-project-data-value rd-headline-4">Fly Over Aloha</span>
+      <span class="rd-project-data-value rd-headline-4">{{
+        project.user?.name || "N/A"
+      }}</span>
       <span class="rd-project-data-placeholder rd-body-text"
         >person in charge</span
       >
@@ -24,25 +58,77 @@
       v-if="viewMode === 'desktop'"
       class="rd-project-data rd-project-data-customer"
     >
-      <span class="rd-project-data-value rd-headline-4">Fly Over Aloha</span>
+      <span class="rd-project-data-value rd-headline-4">{{
+        project.customer.name
+      }}</span>
       <span class="rd-project-data-placeholder rd-body-text">customer</span>
     </div>
     <div class="rd-project-data rd-project-data-progress">
-      <span class="rd-project-data-value rd-headline-5">75% completed</span>
+      <span class="rd-project-data-value rd-headline-5">{{
+        `${project.progress.actual.toFixed(2)}% completed`
+      }}</span>
       <div class="rd-project-data-bar-outer">
-        <div class="rd-project-data-bar-inner" style="width: 75%"></div>
+        <div
+          class="rd-project-data-bar-inner"
+          :style="`width: ${project.progress.actual}%`"
+        ></div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { Project } from "~~/types/project";
+  import { ProjectMinResponse } from "~~/types/project";
 
   const props = defineProps<{
-    project: Project;
+    project: ProjectMinResponse;
   }>();
   const { viewMode } = useMain();
+
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const status = computed<
+    "pending" | "finished" | "paused" | "pending" | "ahead" | "behind"
+  >(() => {
+    let str:
+      | "pending"
+      | "finished"
+      | "paused"
+      | "pending"
+      | "ahead"
+      | "behind" = "pending";
+
+    if (props.project.status[0].kind === "finished") str = "finished";
+    else if (props.project.status[0].kind === "paused") str = "paused";
+    else if (props.project.status[0].kind === "pending") str = "pending";
+    else if (props.project.progress.actual >= props.project.progress.plan)
+      str = "ahead";
+    else if (props.project.progress.actual < props.project.progress.plan)
+      str = "behind";
+
+    return str;
+  });
+
+  function formatDate(x: string): string {
+    const date = new Date(x);
+
+    return `${date.getDate().toString().padStart(2, "0")} ${
+      months[date.getMonth()]
+    } ${date.getFullYear()}`;
+  }
 </script>
 
 <style lang="scss" scoped>
@@ -70,6 +156,8 @@
         height: 2.5rem;
         border-radius: 0.5rem;
         margin-right: 0.75rem;
+        padding: 0.5rem;
+        box-sizing: border-box;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -84,7 +172,7 @@
         }
       }
       &.rd-project-data-main {
-        width: calc(50% - 12.5rem);
+        width: calc(55% - 12.5rem);
         flex-direction: row;
         justify-content: flex-start;
         align-items: center;
@@ -97,10 +185,10 @@
         }
       }
       &.rd-project-data-person {
-        width: 25%;
+        width: 17.5%;
       }
       &.rd-project-data-customer {
-        width: 25%;
+        width: 27.5%;
       }
       &.rd-project-data-progress {
         width: 10rem;
@@ -124,6 +212,24 @@
       span.rd-project-data-placeholder {
         margin-top: 0.25rem;
         color: var(--font-sub-color);
+      }
+    }
+    &.rd-project-pending {
+      .rd-project-data {
+        .rd-project-data-status {
+          &::before {
+            background: var(--font-main-color);
+          }
+        }
+      }
+    }
+    &.rd-project-behind {
+      .rd-project-data {
+        .rd-project-data-status {
+          &::before {
+            background: var(--error-color);
+          }
+        }
       }
     }
     @media only screen and (max-width: 1024px) {

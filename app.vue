@@ -57,6 +57,14 @@
         <nuxt-page @open-panel="panelHandler" @change-page="changeHandler" />
       </main>
     </section>
+    <rd-project-add-panel
+      v-if="panelOpened === 'project-add'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
     <rd-project-area-add-panel
       v-if="panelOpened === 'project-area-add'"
       :state="panelState"
@@ -65,8 +73,24 @@
       @open-panel="panelHandler"
       @change-page="changeHandler"
     />
+    <rd-project-area-remove-panel
+      v-if="panelOpened === 'project-area-remove'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
     <rd-project-report-add-panel
       v-if="panelOpened === 'project-report-add'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
+    <rd-project-task-panel
+      v-if="panelOpened === 'project-task'"
       :state="panelState"
       :data="panelData[0]"
       @exit="panelHandler({ state: 'hide' })"
@@ -114,7 +138,10 @@
     data?: any;
   };
   type PanelType =
+    | "project-add"
     | "project-area-add"
+    | "project-area-remove"
+    | "project-task"
     | "project-task-add"
     | "project-task-period"
     | "project-report-add";
@@ -161,6 +188,11 @@
       name: "projects-project_id",
       href: "/projects/[]",
     },
+    {
+      title: "Users",
+      name: "users",
+      href: "/users",
+    },
   ];
 
   const route = useRoute();
@@ -168,9 +200,9 @@
   const { viewMode, rem } = useMain();
   const { refresh } = useUser();
 
-  const routeCurrent = computed<Route>(() => {
-    return routes.find((a) => a.name === route.name);
-  });
+  const routeCurrent = computed<Route>(() =>
+    routes.find((a) => a.name === route.name)
+  );
   const routeChanging = ref<Route>(null);
 
   const rdMain = ref<HTMLDivElement>(null);
@@ -237,7 +269,6 @@
   };
 
   function panelHandler({ state, type, data }: PanelHandlerOption): void {
-    console.log(state);
     if (state === "show") {
       if (panelSequence.value.length === 0) {
         panelState.value = "idle";
@@ -490,7 +521,6 @@
         width: 100vw;
         height: 100vh;
       }
-
       section.rd-section {
         header.rd-header {
           position: relative;

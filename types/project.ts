@@ -1,4 +1,6 @@
+import { ProjectRoleResponse } from "./project-role";
 import { ProjectTaskMinResponse } from "./project-task";
+import { UserImage } from "./user";
 
 export type ProjectStatusKind =
   | "running"
@@ -47,6 +49,15 @@ export type ProjectMember = {
   role_id: string[];
 };
 
+export type ProjectRequest = {
+  customer_id: string;
+  name: string;
+  code: string;
+  period: {
+    start: number,
+    end: number
+  }
+};
 export type ProjectResponse = {
   _id: string;
   customer: {
@@ -55,7 +66,43 @@ export type ProjectResponse = {
   };
   name: string;
   code: string;
+  period: {
+    start: string;
+    end: string;
+  };
   status: ProjectStatus[];
   area?: ProjectArea[];
-  holiday?: Date[];
+  leave?: Date[];
 };
+export type ProjectMinResponse = {
+  _id: string;
+  customer: {
+    _id: string;
+    name: string;
+  };
+  user?: {
+    _id: string;
+    name: string;
+  };
+  name: string;
+  code: string;
+  period: {
+    start: string;
+    end: string;
+  };
+  status: ProjectStatus[];
+  progress: {
+    plan: number;
+    actual: number;
+  };
+};
+export type ProjectUserResponse = {
+  user: {
+    _id: string;
+    name: string;
+    kind: ProjectMemberKind;
+    role: ProjectRoleResponse[];
+    image?: UserImage;
+  }[];
+  role: ProjectRoleResponse[];
+}

@@ -1,14 +1,18 @@
 export type User = {
   _id: string;
+  role_id: string[];
   name: string;
   email: string;
   password: string;
-  role: [];
+  image?: UserImage;
 };
-
 export type UserRequest = {
   name: string;
   email: string;
   password: string;
-  role: [];
+  role_id: [];
 };
+export type UserImage = {
+  _id: string;
+  extension: string;
+}

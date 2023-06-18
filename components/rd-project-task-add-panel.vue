@@ -44,9 +44,11 @@
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
-  const { createProjectTask } = useProject();
+  const { project, createProjectTask, getProjectAreas } = useProject();
 
   const panelState = ref<"idle" | "hide">("idle");
+
+  const loading = ref<boolean>(false);
 
   const nameInput = ref<InputOption>({
     label: "Task name",
@@ -95,11 +97,12 @@
     parseFloat(valueInput.value.model)
   );
   const volume = computed<ProjectTaskRequest["volume"]>(() => ({
-    unit: volumeUnitInput.value.model,
-    value: parseInt(volumeValueInput.value.model.split(".").join("")),
+    unit: volumeUnitInput.value.model?.toLowerCase() || "pcs",
+    value: parseInt(volumeValueInput.value.model.split(".").join("") || "1"),
   }));
 
   async function submit(): Promise<void> {
+    loading.value = true;
     const payload: ProjectTaskRequest = {
       name: name.value,
       description: description.value,
@@ -113,7 +116,19 @@
       task_id: props.data.task_id,
       request: payload,
     });
+
+    project.value.areas = await getProjectAreas({ _id: props.data.project_id });
+
+    loading.value = false;
+    panelState.value = "hide";
   }
+
+  watch(
+    () => props.state,
+    (val) => {
+      if (val === "hide") panelState.value = "hide";
+    }
+  );
 </script>
 
 <style lang="scss" scoped>
