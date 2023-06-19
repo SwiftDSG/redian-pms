@@ -55,8 +55,8 @@
       :project="project.data"
       :state="projectMenuState"
       :data="{
-        projectProgress: projectDataProgress,
-        projectTimeline: projectDataTimeline,
+        projectProgress,
+        projectTimeline,
       }"
       @changing-done="projectMenuState = 'idle'"
     />
