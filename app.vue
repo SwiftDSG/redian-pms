@@ -211,6 +211,11 @@
       name: "users",
       href: "/users",
     },
+    {
+      title: "Customers",
+      name: "customers",
+      href: "/customers",
+    },
   ];
 
   const route = useRoute();
@@ -539,6 +544,7 @@
         width: 100vw;
         height: 100vh;
       }
+
       section.rd-section {
         header.rd-header {
           position: relative;

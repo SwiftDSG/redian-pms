@@ -17,7 +17,6 @@ export default () => {
 
       const result = await response.json();
       customers.value = result;
-
       return result;
     } catch (e) {
       return null;

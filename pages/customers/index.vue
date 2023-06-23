@@ -1,36 +1,16 @@
 <template>
   <div class="rd-panel-container">
-    <div class="rd-panel-role-container">
-      <div class="rd-panel-role-header">
-        <span class="rd-panel-role-header-title rd-headline-3">Role list</span>
-        <rd-input-button-small :icon="'plus'" :type="'primary'" />
-      </div>
-      <div class="rd-panel-role-body">
-        <div class="rd-panel-role">
-          <div class="rd-panel-role-detail">
-            <span class="rd-panel-role-name rd-headline-5">nama role </span>
-            <span class="rd-panel-role-permissions rd-caption-text">
-              permission
-            </span>
-          </div>
-          <div class="rd-panel-role-action-container">
-            <rd-input-button-small :icon="'dots'" />
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="rd-panel-user-container">
       <div class="rd-panel-user-header">
-        <span class="rd-panel-role-header-title rd-headline-3">Users list</span>
+        <span class="rd-panel-role-header-title rd-headline-3">Customers list</span>
         <rd-input-button-small :icon="'plus'" :type="'primary'" />
       </div>
-      <div v-if="usersData" class="rd-panel-user-body">
-        <div v-for="user in usersData" :key="user._id" class="rd-panel-user">
+      <div v-if="customersData" class="rd-panel-user-body">
+        <div v-for="cust in customersData" :key="cust._id" class="rd-panel-user">
           <div class="rd-panel-user-image"></div>
           <div class="rd-panel-user-detail">
-            <span class="rd-panel-user-name rd-headline-4">{{ user.name }}</span>
-            <span class="rd-panel-user-role rd-caption-text">{{ user.role_id }}</span>
+            <span class="rd-panel-user-name rd-headline-4">{{ cust.name }}</span>
+            <span class="rd-panel-user-role rd-caption-text">{{ ` ${cust.person.length} contact` }}</span>
           </div>
         </div>
       </div>
@@ -42,15 +22,16 @@
 import { gsap } from "gsap";
 import { ProjectResponse, ProjectUserResponse } from "~~/types/project";
 
-const emits = defineEmits(["change-menu", "changing-done", "edit-task"]);
-const { getUsers } = useUser();
 
-const usersData = ref<any>(null);
+const { getCustomers } = useCustomer();
+const emits = defineEmits(["change-menu", "changing-done", "edit-task"]);
+
+// let customersData = [];
+
+const customersData = ref<any>(null);
 const rdPanel = ref<HTMLDivElement>(null);
 const rdPanelRoleBody = ref<HTMLDivElement>(null);
 const rdPanelUserBody = ref<HTMLDivElement>(null);
-
-// let userData = []
 
 const animate = {
   init(rdComponent: HTMLElement, cb: () => void): void {
@@ -77,20 +58,14 @@ const animate = {
   },
 };
 
-// watch(
-//   () => props.state,
-//   (val) => {
-//     if (val === "changing") {
-//       animate.exit(rdPanel.value);
-//     }
-//   }
-// );
+
 
 onMounted(async () => {
-  usersData.value = await getUsers()
+  customersData.value = await getCustomers();
   animate.init(rdPanel.value, () => {
     emits("changing-done");
   });
+  console.log(customersData)
 });
 </script>
 
@@ -194,7 +169,7 @@ onMounted(async () => {
 
   .rd-panel-user-container {
     position: relative;
-    width: calc(100% - 20rem);
+    width: 100%;
     height: 100%;
     box-sizing: border-box;
     display: flex;
@@ -215,18 +190,17 @@ onMounted(async () => {
     .rd-panel-user-body {
       position: relative;
       width: 100%;
-      height: 100%;
       padding: 0.75rem;
       border-radius: 0.75rem;
       box-sizing: border-box;
       display: flex;
-      justify-content: space-between;
       flex-wrap: wrap;
       gap: 0.75rem;
+      // align-items: flex-start;
 
       .rd-panel-user {
         position: relative;
-        width: calc((100% - 0.75rem) / 2);
+        width: calc((100% - 1.5rem) / 3);
         height: 4rem;
         padding: 0.75rem;
         border-radius: 0.75rem;

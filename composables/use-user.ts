@@ -12,7 +12,24 @@ export default () => {
   });
 
   const user = useState<User>("user", () => null);
+  const users = useState<User[]>("user", () => null);
 
+  const getUsers = async (): Promise<User[]> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/users`,
+        "get"
+      );
+      if (response.status !== 200) throw new Error("");
+
+      const result = await response.json();
+      users.value = result;
+      console.log(users.value);
+      return result;
+    } catch (e) {
+      return null;
+    }
+  };
   const login = async (email: string, password: string): Promise<User> => {
     try {
       const response: Response = await $fetch(
@@ -74,5 +91,5 @@ export default () => {
     user.value = null;
   };
 
-  return { user, login, logout, refresh };
+  return { user, users, getUsers, login, logout, refresh };
 };
