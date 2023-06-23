@@ -13,6 +13,14 @@
           @clicked="exit"
         />
         <h2 v-if="label" class="rd-panel-title rd-headline-5">{{ label }}</h2>
+        <rd-input-button-small
+          v-if="action"
+          class="rd-panel-button"
+          :icon="action"
+          :disabled="disabled"
+          type="primary"
+          @clicked="emits('clicked')"
+        />
       </div>
       <div
         class="rd-panel-body"
@@ -41,10 +49,12 @@
   const { viewMode } = useMain();
   const props = defineProps<{
     label?: string;
+    action?: string;
+    disabled?: boolean;
     state: "idle" | "hide";
     loading?: boolean;
   }>();
-  const emits = defineEmits(["exit"]);
+  const emits = defineEmits(["exit", "clicked"]);
 
   const rdBackground = ref<HTMLDivElement>(null);
   const rdPanel = ref<HTMLDivElement>(null);
@@ -194,6 +204,10 @@
           position: absolute;
           top: 1rem;
           left: 1rem;
+          &:last-child {
+            left: auto;
+            right: 1rem;
+          }
         }
         .rd-panel-title {
           position: relative;
@@ -313,6 +327,10 @@
           .rd-panel-button {
             top: 2rem;
             left: 2rem;
+            &:last-child {
+              left: auto;
+              right: 2rem;
+            }
           }
         }
         .rd-panel-body {

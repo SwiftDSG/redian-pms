@@ -3,12 +3,13 @@ export type ProjectRolePermission =
   'get_roles' |
   'get_role' |
   'create_role' |
-  'delete_role' |
   'update_role' |
+  'delete_role' |
   'get_tasks' |
   'get_task' |
   'create_task' |
   'update_task' |
+  'delete_task' |
   'create_report' |
   'create_incident';
 export type ProjectRole = {

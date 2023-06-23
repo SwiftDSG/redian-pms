@@ -89,6 +89,14 @@
       @open-panel="panelHandler"
       @change-page="changeHandler"
     />
+    <rd-project-role-panel
+      v-if="panelOpened === 'project-role'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
     <rd-project-task-panel
       v-if="panelOpened === 'project-task'"
       :state="panelState"
@@ -107,6 +115,14 @@
     />
     <rd-project-task-period-panel
       v-if="panelOpened === 'project-task-period'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
+    <rd-project-user-panel
+      v-if="panelOpened === 'project-user'"
       :state="panelState"
       :data="panelData[0]"
       @exit="panelHandler({ state: 'hide' })"
@@ -144,7 +160,9 @@
     | "project-task"
     | "project-task-add"
     | "project-task-period"
-    | "project-report-add";
+    | "project-report-add"
+    | "project-role"
+    | "project-user";
 
   const links: Link[] = [
     {

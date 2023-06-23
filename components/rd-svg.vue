@@ -140,5 +140,25 @@
         }
       }
     }
+    &.rd-color-success {
+      svg {
+        &.rd-svg-filled {
+          .rd-svg-filled-main {
+            fill: var(--success-color);
+          }
+          .rd-svg-filled-secondary {
+            fill: var(--secondary-color);
+          }
+        }
+        &.rd-svg-outlined {
+          .rd-svg-outlined-main {
+            stroke: var(--success-color);
+          }
+          .rd-svg-outlined-secondary {
+            stroke: var(--secondary-color);
+          }
+        }
+      }
+    }
   }
 </style>

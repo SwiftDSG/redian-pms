@@ -98,7 +98,10 @@
       :data="projectUsers"
       :state="projectMenuState"
       @changing-done="projectMenuState = 'idle'"
-      @edit-task="openPeriodTask"
+      @add-role="openRole"
+      @edit-role="openRole"
+      @add-user="openUser"
+      @edit-user="openUser"
     />
   </div>
 </template>
@@ -107,9 +110,11 @@
   import { InputOption } from "~~/types/general";
   import {
     ProjectAreaResponse,
+    ProjectMemberResponse,
     ProjectProgressResponse,
     ProjectUserResponse,
   } from "~~/types/project";
+  import { ProjectRoleResponse } from "~~/types/project-role";
   import { ProjectTaskMinResponse } from "~~/types/project-task";
 
   type ProjectMenuKind =
@@ -321,6 +326,26 @@
       data: {
         project_id: project.value.data._id,
         task_id,
+      },
+    });
+  }
+  function openRole(role?: ProjectRoleResponse): void {
+    emits("open-panel", {
+      state: "show",
+      type: "project-role",
+      data: {
+        project_id: project.value.data._id,
+        role,
+      },
+    });
+  }
+  function openUser(user?: ProjectMemberResponse): void {
+    emits("open-panel", {
+      state: "show",
+      type: "project-user",
+      data: {
+        project_id: project.value.data._id,
+        user,
       },
     });
   }

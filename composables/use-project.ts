@@ -1,5 +1,6 @@
 import { ProjectProgressReportRequest } from "~~/types/progress-report";
 import { ProjectMinResponse, ProjectAreaRequest, ProjectAreaResponse, ProjectProgressResponse, ProjectRequest, ProjectResponse, ProjectUserResponse } from "~~/types/project";
+import { ProjectRoleRequest } from "~~/types/project-role";
 import { ProjectTask, ProjectTaskMinResponse, ProjectTaskPeriodRequest, ProjectTaskRequest, ProjectTaskResponse, ProjectTaskStatusKind } from "~~/types/project-task";
 
 export default () => {
@@ -127,7 +128,7 @@ export default () => {
     } catch (e) {
       return null;
     }
-  }
+  };
   const createProject = async (payload: {
     request: ProjectRequest
   }): Promise<ProjectTask> => {
@@ -183,6 +184,24 @@ export default () => {
       return null;
     }
   };
+  const createProjectRole = async (payload: {
+    project_id: string;
+    request: ProjectRoleRequest;
+  }): Promise<ProjectTask> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/projects/${payload.project_id}/roles`,
+        "post",
+        JSON.stringify(payload.request)
+      );
+      if (response.status !== 201) throw new Error("");
+
+      const result = await response.json();
+      return result;
+    } catch (e) {
+      return null;
+    }
+  };
   const updateProjectTaskPeriod = async (payload: {
     task_id: string;
     project_id: string;
@@ -192,6 +211,25 @@ export default () => {
       const response: Response = await $fetch(
         `${config.public.apiBase}/projects/${payload.project_id}/tasks/${payload.task_id
         }/period`,
+        "put",
+        JSON.stringify(payload.request)
+      );
+      if (response.status !== 200) throw new Error("");
+
+      const result = await response.json();
+      return result;
+    } catch (e) {
+      return null;
+    }
+  };
+  const updateProjectRole = async (payload: {
+    project_id: string;
+    role_id: string;
+    request: ProjectRoleRequest;
+  }): Promise<ProjectTask> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/projects/${payload.project_id}/roles/${payload.role_id}`,
         "put",
         JSON.stringify(payload.request)
       );
@@ -254,6 +292,8 @@ export default () => {
     createProject,
     createProjectTask,
     createProjectReport,
-    updateProjectTaskPeriod
+    createProjectRole,
+    updateProjectTaskPeriod,
+    updateProjectRole
   };
 };

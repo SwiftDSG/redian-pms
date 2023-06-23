@@ -96,13 +96,14 @@ export type ProjectMinResponse = {
     actual: number;
   };
 };
+export type ProjectMemberResponse = {
+  _id: string;
+  name: string;
+  kind: ProjectMemberKind;
+  role: ProjectRoleResponse[];
+  image?: UserImage;
+}
 export type ProjectUserResponse = {
-  user: {
-    _id: string;
-    name: string;
-    kind: ProjectMemberKind;
-    role: ProjectRoleResponse[];
-    image?: UserImage;
-  }[];
+  user: ProjectMemberResponse[];
   role: ProjectRoleResponse[];
 }

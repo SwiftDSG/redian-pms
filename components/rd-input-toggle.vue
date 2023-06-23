@@ -14,7 +14,7 @@
 
 <script lang="ts" setup>
   import gsap from "gsap";
-  import { InputToggleOption } from "~~/interfaces/general";
+  import { InputToggleOption } from "~~/types/general";
 
   const props = defineProps<{
     input: InputToggleOption;

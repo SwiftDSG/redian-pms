@@ -3,7 +3,11 @@
     <div class="rd-panel-role-container">
       <div class="rd-panel-role-header">
         <span class="rd-panel-role-header-title rd-headline-3">Role list</span>
-        <rd-input-button-small :icon="'plus'" :type="'primary'" />
+        <rd-input-button-small
+          :icon="'plus'"
+          :type="'primary'"
+          @clicked="addRole"
+        />
       </div>
       <div v-if="data" class="rd-panel-role-body">
         <div v-for="role in data.role" :key="role._id" class="rd-panel-role">
@@ -23,7 +27,7 @@
             v-if="role.permission[0] !== 'owner'"
             class="rd-panel-role-action-container"
           >
-            <rd-input-button-small :icon="'dots'" />
+            <rd-input-button-small :icon="'dots'" @clicked="editRole(role)" />
           </div>
         </div>
       </div>
@@ -33,10 +37,19 @@
         <span class="rd-panel-role-header-title rd-headline-3"
           >Member list</span
         >
-        <rd-input-button-small :icon="'plus'" :type="'primary'" />
+        <rd-input-button-small
+          :icon="'plus'"
+          :type="'primary'"
+          @clicked="addUser"
+        />
       </div>
       <div class="rd-panel-user-body">
-        <div v-for="user in data.user" :key="user._id" class="rd-panel-user">
+        <div
+          v-for="user in data.user"
+          :key="user._id"
+          class="rd-panel-user"
+          @click="editUser(user)"
+        >
           <div class="rd-panel-user-image"></div>
           <div class="rd-panel-user-detail">
             <span class="rd-panel-user-name rd-headline-4">{{
@@ -54,18 +67,28 @@
 
 <script lang="ts" setup>
   import { gsap } from "gsap";
-  import { ProjectResponse, ProjectUserResponse } from "~~/types/project";
+  import {
+    ProjectMemberResponse,
+    ProjectResponse,
+    ProjectUserResponse,
+  } from "~~/types/project";
+  import { ProjectRoleResponse } from "~~/types/project-role";
 
   const props = defineProps<{
     project: ProjectResponse;
     state: "idle" | "changing";
     data: ProjectUserResponse;
   }>();
-  const emits = defineEmits(["change-menu", "changing-done", "edit-task"]);
+  const emits = defineEmits([
+    "change-menu",
+    "changing-done",
+    "edit-role",
+    "add-role",
+    "edit-user",
+    "add-user",
+  ]);
 
   const rdPanel = ref<HTMLDivElement>(null);
-  const rdPanelRoleBody = ref<HTMLDivElement>(null);
-  const rdPanelUserBody = ref<HTMLDivElement>(null);
 
   const animate = {
     init(rdComponent: HTMLElement, cb: () => void): void {
@@ -91,6 +114,19 @@
       });
     },
   };
+
+  function editRole(role: ProjectRoleResponse): void {
+    emits("edit-role", role);
+  }
+  function addRole(): void {
+    emits("add-role");
+  }
+  function editUser(user: ProjectMemberResponse): void {
+    emits("edit-user", user);
+  }
+  function addUser(): void {
+    emits("add-user");
+  }
 
   watch(
     () => props.state,
