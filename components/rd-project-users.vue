@@ -213,16 +213,6 @@
               position: relative;
               margin-bottom: 0.25rem;
             }
-
-            span.rd-panel-role-permissions {
-              cursor: pointer;
-              position: relative;
-              transition: 0.125s opacity;
-
-              &:hover {
-                opacity: 1;
-              }
-            }
           }
 
           .rd-panel-role-action-container {

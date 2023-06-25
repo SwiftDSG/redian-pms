@@ -54,9 +54,21 @@
         </div>
       </header>
       <main class="rd-main" ref="rdMain">
-        <nuxt-page @open-panel="panelHandler" @change-page="changeHandler" />
+        <nuxt-page
+          @open-panel="panelHandler"
+          @change-page="changeHandler"
+          @shake="shake"
+        />
       </main>
     </section>
+    <rd-customer-panel
+      v-if="panelOpened === 'customer'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
     <rd-project-add-panel
       v-if="panelOpened === 'project-add'"
       :state="panelState"
@@ -134,8 +146,6 @@
 
 <script lang="ts" setup>
   import { gsap } from "gsap";
-  import { User } from "~~/types/user.js";
-  const { user, login } = useUser();
 
   type Link = {
     title: string;
@@ -154,6 +164,7 @@
     data?: any;
   };
   type PanelType =
+    | "customer"
     | "project-add"
     | "project-area-add"
     | "project-area-remove"
@@ -221,13 +232,13 @@
   const route = useRoute();
   const router = useRouter();
   const { viewMode, rem } = useMain();
-  const { refresh } = useUser();
 
   const routeCurrent = computed<Route>(() =>
     routes.find((a) => a.name === route.name)
   );
   const routeChanging = ref<Route>(null);
 
+  const rdLayout = ref<HTMLDivElement>(null);
   const rdMain = ref<HTMLDivElement>(null);
   const rdHeaderTitle = ref<HTMLDivElement>(null);
 
@@ -261,7 +272,7 @@
         .to(
           rdHeaderTitleDecoy,
           {
-            top: "-=2rem",
+            filter: "blur(0)",
             opacity: 1,
             duration: 0.25,
             ease: "power2.inOut",
@@ -271,7 +282,7 @@
         .to(
           rdHeaderTitleActual,
           {
-            top: "-=2rem",
+            filter: "blur(0.5rem)",
             opacity: 0,
             duration: 0.25,
             ease: "power2.inOut",
@@ -336,17 +347,17 @@
     if (!routeChanging.value) {
       routeChanging.value = routes.find((a) => a.name === to.name);
       if (routeChanging.value) {
-        setTimeout(() => {
-          animate.leavePage(rdMain.value, rdHeaderTitle.value, () => {
-            if (route.path !== (to.href || "/")) {
+        if (route.path !== (to.href || "/")) {
+          setTimeout(() => {
+            animate.leavePage(rdMain.value, rdHeaderTitle.value, () => {
               router.push(to.href || "/");
               setTimeout(() => {
                 routeChanging.value = null;
                 animate.enterPage(rdMain.value);
-              }, 150);
-            }
-          });
-        }, 100);
+              }, 250);
+            });
+          }, 100);
+        }
       }
     }
     return e;
@@ -356,6 +367,12 @@
     else viewMode.value = "desktop";
     rem.value = parseInt(getComputedStyle?.(document.body)?.fontSize) || 24;
   }
+  function shake(): void {
+    rdLayout.value.classList.add("rd-layout-shake");
+    setTimeout(() => {
+      rdLayout.value.classList.remove("rd-layout-shake");
+    }, 500);
+  }
 
   watch(
     () => viewMode.value,
@@ -363,14 +380,10 @@
       if (val && oldVal) location.reload();
     }
   );
-  async function submit() {
-    // MUST DELETE LATER!!!
-    const user: User = await login("kdwiheldy@gmail.com", "bb2109wyt01");
-  }
+
   onMounted(() => {
     const mediaQuery: MediaQueryList = window.matchMedia("(max-width: 1024px)");
     mediaQuery.addEventListener("change", resizeHandler);
-    submit(); // MUST DELETE LATER!!!
     resizeHandler(mediaQuery);
   });
 </script>
@@ -492,8 +505,9 @@
             &.rd-header-title-decoy {
               pointer-events: none;
               position: absolute;
-              top: 100%;
+              top: 0;
               opacity: 0;
+              filter: blur(0.5rem);
             }
           }
         }
@@ -535,7 +549,9 @@
         display: flex;
       }
     }
-
+    &.rd-layout-shake {
+      animation: rd-shake 0.25s infinite;
+    }
     @media only screen and (max-width: 1024px) {
       nav.rd-navigation {
         position: absolute;

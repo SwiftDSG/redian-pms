@@ -47,7 +47,11 @@
         class="rd-project-warning-action"
         icon="chevron-right"
         type="primary"
-        @clicked="projectMenuChange('tasks')"
+        @clicked="
+          projectMenuChange(
+            projectWarning !== 'incomplete-period' ? 'tasks' : 'timeline'
+          )
+        "
       />
     </div>
     <rd-project-overview
@@ -74,6 +78,7 @@
       :state="projectMenuState"
       @changing-done="projectMenuState = 'idle'"
       @edit-task="openPeriodTask"
+      @open-task="openTask"
     />
     <rd-project-tasks
       v-if="projectMenu === 'tasks' && project"
@@ -129,7 +134,11 @@
     name: ProjectMenuKind;
     icon: string;
   };
-  type ProjectWarning = "empty-area" | "empty-task" | "incomplete-value";
+  type ProjectWarning =
+    | "empty-area"
+    | "empty-task"
+    | "incomplete-value"
+    | "incomplete-period";
 
   const emits = defineEmits(["open-panel", "change-page"]);
   const {
@@ -141,6 +150,10 @@
     getProjectUsers,
   } = useProject();
   const route = useRoute();
+
+  definePageMeta({
+    middleware: ["auth"],
+  });
 
   const projectInput = ref<InputOption>({
     name: "project",
@@ -237,6 +250,8 @@
     if (projectWarning.value === "empty-task") str = "Empty project task";
     if (projectWarning.value === "incomplete-value")
       str = "Invalid tasks values";
+    if (projectWarning.value === "incomplete-period")
+      str = "Tasks period incomplete";
 
     return str;
   }
@@ -250,6 +265,8 @@
       str = "You need to add at least one task to start the project";
     if (projectWarning.value === "incomplete-value")
       str = "The sum of tasks values need to be 100% to start the project";
+    if (projectWarning.value === "incomplete-period")
+      str = "Tasks period is not completed yet";
 
     return str;
   }
@@ -385,6 +402,16 @@
           if (count !== 100) projectWarning.value = "incomplete-value";
         }
       }
+    },
+    {
+      deep: true,
+    }
+  );
+  watch(
+    () => projectTimeline.value,
+    (val) => {
+      if (val?.length && !val.every((a) => !!a.period))
+        projectWarning.value = "incomplete-period";
     },
     {
       deep: true,

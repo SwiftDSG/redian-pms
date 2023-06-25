@@ -3,7 +3,6 @@
     class="rd-panel"
     label="Edit task period"
     :state="panelState"
-    :loading="loading"
     @exit="emits('exit')"
   >
     <div class="rd-panel-body">
@@ -41,7 +40,7 @@
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
-  const { updateProjectTaskPeriod } = useProject();
+  const { project, updateProjectTaskPeriod, getProjectTasks } = useProject();
 
   const panelState = ref<"idle" | "hide">("idle");
 
@@ -81,6 +80,13 @@
       task_id: props.data.task._id,
       request: payload,
     });
+
+    project.value.timeline = await getProjectTasks({
+      _id: project.value.data._id,
+    });
+
+    loading.value = false;
+    panelState.value = "hide";
   }
 
   watch(

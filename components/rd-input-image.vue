@@ -53,7 +53,7 @@
   import gsap from "gsap";
   import { ComputedRef } from "vue";
 
-  import { InputFileOption } from "~~/interfaces/general.js";
+  import { InputFileOption } from "~~/types/general.js";
 
   interface ImageFile {
     name: string;

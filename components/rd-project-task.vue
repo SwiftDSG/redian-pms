@@ -1,5 +1,5 @@
 <template>
-  <div class="rd-project-task" @click="emits('open-task', task._id)">
+  <div class="rd-project-task">
     <div class="rd-project-task-header">
       <span class="rd-project-task-name rd-headline-4">{{ task.name }}</span>
       <span
@@ -26,6 +26,22 @@
         }}</span>
       </div>
     </div>
+    <div class="rd-project-task-overlay">
+      <div v-if="edit" class="rd-project-task-icon-wrapper" @click="deleteTask">
+        <div class="rd-project-task-icon-container">
+          <rd-svg name="delete" />
+        </div>
+      </div>
+      <div
+        v-if="!disabled"
+        class="rd-project-task-icon-wrapper"
+        @click="openTask"
+      >
+        <div class="rd-project-task-icon-container">
+          <rd-svg name="eye" />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -37,8 +53,10 @@
 
   const props = defineProps<{
     task: ProjectTaskMinResponse;
+    edit?: boolean;
+    disabled?: boolean;
   }>();
-  const emits = defineEmits(["open-task"]);
+  const emits = defineEmits(["open-task", "delete-task"]);
 
   function getStatus(status: ProjectTaskStatusKind): string {
     let str = "";
@@ -59,6 +77,12 @@
     }
 
     return str;
+  }
+  function deleteTask(): void {
+    emits("delete-task", props.task._id);
+  }
+  function openTask(): void {
+    if (!props.disabled) emits("open-task", props.task._id);
   }
 </script>
 
@@ -129,6 +153,54 @@
         justify-content: flex-end;
         align-items: flex-end;
         display: flex;
+      }
+    }
+    .rd-project-task-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 0.5rem;
+      backdrop-filter: blur(5px);
+      background: rgba(0, 0, 0, 0.05);
+      opacity: 0;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      align-items: center;
+      transition: 0.25s opacity;
+      .rd-project-task-icon-wrapper {
+        cursor: pointer;
+        position: relative;
+        width: 1.5rem;
+        height: 1.5rem;
+        padding: 0 0.25rem;
+        border-radius: 0.5rem;
+        box-sizing: border-box;
+        background: rgba(0, 0, 0, 0.125);
+        opacity: 0.5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: 0.25s transform, 0.25s opacity;
+        .rd-project-task-icon-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        &:hover {
+          transform: scale(1.125);
+          opacity: 1;
+        }
+      }
+    }
+    &:hover {
+      .rd-project-task-overlay {
+        opacity: 1;
       }
     }
   }

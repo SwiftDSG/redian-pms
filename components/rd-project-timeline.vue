@@ -17,9 +17,11 @@
         >
           <div class="rd-panel-task-plan">
             <div class="rd-panel-task-detail">
-              <span class="rd-panel-task-name rd-headline-5">{{
-                task.name
-              }}</span>
+              <span
+                class="rd-panel-task-name rd-headline-5"
+                @click="openTask(task._id)"
+                >{{ task.name }}</span
+              >
               <span
                 class="rd-panel-task-period rd-caption-text"
                 @click="editTask(task)"
@@ -190,7 +192,12 @@
     state: "idle" | "changing";
     data: ProjectTaskMinResponse[];
   }>();
-  const emits = defineEmits(["change-menu", "changing-done", "edit-task"]);
+  const emits = defineEmits([
+    "change-menu",
+    "changing-done",
+    "edit-task",
+    "open-task",
+  ]);
 
   const rdPanel = ref<HTMLDivElement>(null);
   const rdPanelTaskBody = ref<HTMLDivElement>(null);
@@ -200,8 +207,6 @@
   const rdPanelTimelineDataWrapper = ref<HTMLDivElement>(null);
   const rdPanelTimelineDataContainer = ref<HTMLDivElement>(null);
   const rdPanelTimelineDayContainer = ref<HTMLDivElement>(null);
-
-  const timelineObserver = ref<IntersectionObserver>(null);
 
   const datas = ref<DataTimeline[]>([]);
 
@@ -252,6 +257,9 @@
 
   function editTask(task: ProjectTaskMinResponse): void {
     emits("edit-task", task);
+  }
+  function openTask(task_id: string): void {
+    emits("open-task", task_id);
   }
   function addDays(): void {
     const diff =
@@ -447,7 +455,6 @@
           display: flex;
           flex-shrink: 0;
           .rd-panel-task-plan {
-            cursor: pointer;
             z-index: 1;
             position: relative;
             width: 100%;
@@ -467,6 +474,7 @@
               flex-direction: column;
               justify-content: center;
               span.rd-panel-task-name {
+                cursor: pointer;
                 position: relative;
                 margin-bottom: 0.25rem;
               }

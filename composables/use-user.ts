@@ -1,5 +1,5 @@
 import { CookieRef } from "nuxt/dist/app/composables";
-import { User } from "~~/types/user";
+import { User, UserRequest } from "~~/types/user";
 
 export default () => {
   const { $setDefaults, $fetch } = useNuxtApp();
@@ -14,6 +14,22 @@ export default () => {
   const user = useState<User>("user", () => null);
   const users = useState<User[]>("user", () => null);
 
+  const getUser = async (payload: { user_id: string }): Promise<User> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/users/${payload.user_id}`,
+        "get"
+      );
+      if (response.status !== 200) throw new Error("");
+
+      const result = await response.json();
+      user.value = result;
+
+      return result;
+    } catch (e) {
+      return null;
+    }
+  };
   const getUsers = async (): Promise<User[]> => {
     try {
       const response: Response = await $fetch(
@@ -24,7 +40,24 @@ export default () => {
 
       const result = await response.json();
       users.value = result;
-      console.log(users.value);
+
+      return result;
+    } catch (e) {
+      return null;
+    }
+  };
+  const createUser = async (payload: UserRequest): Promise<User[]> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/users`,
+        "post",
+        JSON.stringify(payload)
+      );
+      if (response.status !== 200) throw new Error("");
+
+      const result = await response.json();
+      users.value = result;
+
       return result;
     } catch (e) {
       return null;
@@ -53,12 +86,11 @@ export default () => {
       return null;
     }
   };
-
   const refresh = async (): Promise<User> => {
     try {
-      if (!rtkCookie.value) throw new Error("");
+      if (!rtkCookie.value) throw new Error("COOKIE_UNAVAILABLE");
       const response: Response = await $fetch(
-        `${config.public.apiBase}/users/refresh-token`,
+        `${config.public.apiBase}/users/refresh`,
         "post",
         JSON.stringify({ rtk: rtkCookie.value })
       );
@@ -74,7 +106,9 @@ export default () => {
       });
       user.value = result.user;
       return result.user;
-    } catch {
+    } catch (e) {
+      console.log(`${config.public.apiBase}/users/refresh`)
+      console.log(e)
       logout();
       return null;
     }
@@ -83,13 +117,13 @@ export default () => {
   const logout = (): void => {
     atkCookie.value = "";
     rtkCookie.value = "";
+    user.value = null;
     $setDefaults({
       headers: {
         Authorization: null,
       },
     });
-    user.value = null;
   };
 
-  return { user, users, getUsers, login, logout, refresh };
+  return { user, users, getUser, getUsers, createUser, login, logout, refresh };
 };

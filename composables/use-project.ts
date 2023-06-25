@@ -1,5 +1,5 @@
 import { ProjectProgressReportRequest } from "~~/types/progress-report";
-import { ProjectMinResponse, ProjectAreaRequest, ProjectAreaResponse, ProjectProgressResponse, ProjectRequest, ProjectResponse, ProjectUserResponse } from "~~/types/project";
+import { ProjectMinResponse, ProjectAreaRequest, ProjectAreaResponse, ProjectProgressResponse, ProjectRequest, ProjectResponse, ProjectUserResponse, ProjectMemberResponse, ProjectMemberRequest } from "~~/types/project";
 import { ProjectRoleRequest } from "~~/types/project-role";
 import { ProjectTask, ProjectTaskMinResponse, ProjectTaskPeriodRequest, ProjectTaskRequest, ProjectTaskResponse, ProjectTaskStatusKind } from "~~/types/project-task";
 
@@ -202,6 +202,26 @@ export default () => {
       return null;
     }
   };
+  const updateProjectTask = async (payload: {
+    task_id: string;
+    project_id: string;
+    request: ProjectTaskRequest;
+  }): Promise<ProjectTask> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/projects/${payload.project_id}/tasks/${payload.task_id
+        }`,
+        "put",
+        JSON.stringify(payload.request)
+      );
+      if (response.status !== 200) throw new Error("");
+
+      const result = await response.json();
+      return result;
+    } catch (e) {
+      return null;
+    }
+  };
   const updateProjectTaskPeriod = async (payload: {
     task_id: string;
     project_id: string;
@@ -259,6 +279,24 @@ export default () => {
       return null;
     }
   };
+  const addProjectMember = async (payload: {
+    project_id: string;
+    request: ProjectMemberRequest;
+  }): Promise<string> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/projects/${payload.project_id}/members`,
+        "put",
+        JSON.stringify(payload.request)
+      );
+      if (response.status !== 201) throw new Error("");
+
+      const result = await response.json();
+      return result;
+    } catch (e) {
+      return null;
+    }
+  };
   const removeProjectArea = async (payload: {
     project_id: string;
     area_id: string
@@ -286,14 +324,16 @@ export default () => {
     getProjectTask,
     getProjectAreas,
     getProjectProgress,
-    addProjectArea,
     getProjectUsers,
     removeProjectArea,
     createProject,
     createProjectTask,
     createProjectReport,
     createProjectRole,
+    updateProjectTask,
     updateProjectTaskPeriod,
-    updateProjectRole
+    updateProjectRole,
+    addProjectArea,
+    addProjectMember
   };
 };

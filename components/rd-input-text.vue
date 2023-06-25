@@ -150,14 +150,15 @@
       display: flex;
       align-items: center;
       .rd-input-icon-container {
-        position: relative;
+        pointer-events: none;
+        z-index: 2;
+        position: absolute;
         width: 2rem;
         height: 2rem;
         padding: 0 0.5rem;
         border-top-left-radius: 0.5rem;
         border-bottom-left-radius: 0.5rem;
         box-sizing: border-box;
-        background: rgba(0, 0, 0, 0.05);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -172,9 +173,7 @@
           border-radius: 0.25rem;
         }
         & + input.rd-input {
-          width: calc(100% - 2rem);
-          border-top-left-radius: 0;
-          border-bottom-right-radius: 0;
+          padding: 0 0.5rem 0 2rem;
         }
       }
       input.rd-input {

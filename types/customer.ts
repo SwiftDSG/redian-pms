@@ -1,5 +1,3 @@
-import { UserRecord } from "./general";
-
 export type Customer = {
   _id: string;
   name: string;
@@ -14,24 +12,16 @@ export type CustomerContact = {
 };
 export type CustomerPerson = {
   name: String;
-  address: String;
-  phone: String;
-  email: String;
+  address?: String;
+  phone?: String;
+  email?: String;
   role: String;
 };
 export type CustomerRequest = {
-  // _id: string;
   name: string;
   contact: CustomerContact;
   person: CustomerPerson[];
 };
-// Old
-export type CustomerNote = {
-  title: string;
-  message: string;
-  user?: UserRecord;
-};
-
 export type CustomerMin = {
   _id: string;
   name: string;

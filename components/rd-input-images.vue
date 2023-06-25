@@ -63,7 +63,7 @@
         <div class="rd-image-overlay">
           <div class="rd-image-icon-wrapper" @click="removeImage(i)">
             <div class="rd-image-icon-container">
-              <rd-svg :name="'delete'" />
+              <rd-svg name="delete" />
             </div>
           </div>
         </div>

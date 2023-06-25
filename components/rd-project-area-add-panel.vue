@@ -40,11 +40,11 @@
   const loading = ref<boolean>(false);
 
   const nameInput = ref<InputOption>({
-    label: "Area name",
+    label: "Stage name",
     name: "name",
     model: "",
     error: "",
-    placeholder: "Some Area",
+    placeholder: "Some Stage",
   });
 
   const name = computed<ProjectAreaRequest["name"]>(

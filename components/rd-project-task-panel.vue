@@ -61,14 +61,30 @@
           }}</span>
         </div>
       </div>
-      <div v-if="!task.task?.length" class="rd-panel-fieldset">
+      <div
+        v-if="
+          (!task.task?.length && task.status[0].kind === 'pending') ||
+          (task.user?.length && task.status[0].kind !== 'pending')
+        "
+        class="rd-panel-fieldset"
+      >
         <div class="rd-panel-fieldset-header">
           <span class="rd-panel-fieldset-name rd-headline-4"
             >Collaborators</span
           >
-          <div class="rd-panel-fieldset-icon-container">
+          <div
+            v-if="!task.user?.length"
+            class="rd-panel-fieldset-icon-container"
+          >
             <rd-svg class="rd-panel-fieldset-icon" name="account-multiple" />
           </div>
+          <rd-input-button-small
+            v-else
+            icon="save"
+            type="primary"
+            :loading="submitLoading"
+            @clicked="updateProjectUser"
+          />
         </div>
         <div class="rd-panel-fieldset-body">
           <div class="rd-panel-fieldset-input-wrapper">
@@ -114,10 +130,29 @@
           </div>
         </div>
       </div>
-      <div v-if="!task.user?.length" class="rd-panel-fieldset">
+      <div
+        v-if="
+          (!task.user?.length && task.status[0].kind === 'pending') ||
+          (task.task?.length && task.status[0].kind !== 'pending')
+        "
+        class="rd-panel-fieldset"
+      >
         <div class="rd-panel-fieldset-header">
           <span class="rd-panel-fieldset-name rd-headline-4">Subtask(s)</span>
-          <div class="rd-panel-fieldset-icon-container">
+          <rd-input-button-small
+            v-if="taskPrepared || (task.task?.length && !taskPrepared)"
+            icon="save"
+            type="primary"
+            :disabled="
+              (taskPrepared &&
+                taskRequestSum !== 0 &&
+                taskRequestSum !== 100) ||
+              (!taskPrepared && taskRequestSum !== 100)
+            "
+            :loading="submitLoading"
+            @clicked="createProjectTaskSub"
+          />
+          <div v-else class="rd-panel-fieldset-icon-container">
             <rd-svg class="rd-panel-fieldset-icon" name="list" />
           </div>
         </div>
@@ -129,12 +164,6 @@
             <div class="rd-panel-fieldset-input-wrapper">
               <rd-input-text
                 :input="nameInput"
-                class="rd-panel-fieldset-input"
-              />
-            </div>
-            <div class="rd-panel-fieldset-input-wrapper">
-              <rd-input-textarea
-                :input="descriptionInput"
                 class="rd-panel-fieldset-input"
               />
             </div>
@@ -169,6 +198,10 @@
               v-for="data in task.task"
               :key="data._id"
               :task="data"
+              :edit="task.status[0].kind === 'pending' && !data.task?.length"
+              :disabled="data._id.includes('temp')"
+              @delete-task="removeTask"
+              @open-task="openTask"
             />
           </div>
         </div>
@@ -194,11 +227,20 @@
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
-  const { project, getProjectUsers, getProjectTask } = useProject();
+  const {
+    project,
+    getProjectUsers,
+    getProjectTask,
+    getProjectAreas,
+    getProjectTasks,
+    createProjectTask,
+    updateProjectTask,
+  } = useProject();
 
   const panelState = ref<"idle" | "hide">("idle");
 
   const loading = ref<boolean>(true);
+  const submitLoading = ref<boolean>(false);
 
   const task = ref<ProjectTaskResponse>(null);
 
@@ -223,12 +265,6 @@
 
     placeholder: "Some task #1",
   });
-  const descriptionInput = ref<InputOption>({
-    label: "Task name",
-    name: "description",
-    model: "",
-    placeholder: "Description",
-  });
   const volumeValueInput = ref<InputOption>({
     label: "Volume",
     name: "volume-value",
@@ -249,14 +285,11 @@
     placeholder: "100",
   });
 
-  const taskRequest = ref<ProjectTaskRequest[]>([]);
+  const taskPrepared = ref<boolean>(false);
 
-  const user_id = computed<string>(() => collaboratorInput.value.value);
+  const user = computed<string>(() => collaboratorInput.value.value);
   const name = computed<ProjectTaskRequest["name"]>(
     () => nameInput.value.model
-  );
-  const description = computed<ProjectTaskRequest["description"]>(
-    () => descriptionInput.value.model
   );
   const value = computed<ProjectTaskRequest["value"]>(() =>
     parseFloat(valueInput.value.model)
@@ -265,6 +298,9 @@
     unit: volumeUnitInput.value.model?.toLowerCase() || "pcs",
     value: parseInt(volumeValueInput.value.model.split(".").join("") || "1"),
   }));
+  const taskRequestSum = computed<number>(
+    () => task.value.task?.reduce((a, b) => a + b.value, 0) || 0
+  );
 
   function getStatus(status: ProjectTaskStatusKind): string {
     let str = "";
@@ -338,7 +374,7 @@
 
     users.push(
       ...project.value.users.user
-        .filter((a) => a._id === user_id.value)
+        .filter((a) => a._id === user.value)
         .map((a) => ({
           _id: a._id,
           name: a.name,
@@ -365,20 +401,35 @@
       filterUsers();
     }
   }
-  function addTask(): void {
-    const payload: ProjectTaskRequest = {
-      name: name.value,
-      description: description.value,
-      value: value.value,
-      volume: volume.value,
-      area_id: task.value.area._id,
-    };
+  async function updateProjectUser(): Promise<void> {
+    submitLoading.value = true;
 
+    await updateProjectTask({
+      project_id: props.data.project_id,
+      task_id: props.data.task_id,
+      request: {
+        area_id: task.value.area._id,
+        user_id: task.value.user?.map((a) => a._id) || [],
+        name: task.value.name,
+        description: task.value.description,
+        volume: task.value.volume,
+        value: task.value.value,
+      },
+    });
+
+    project.value.areas = await getProjectAreas({ _id: props.data.project_id });
+    project.value.timeline = await getProjectTasks({
+      _id: props.data.project_id,
+    });
+
+    submitLoading.value = false;
+    panelState.value = "hide";
+  }
+  function addTask(): void {
     task.value.task = task.value.task || [];
 
-    taskRequest.value.push(payload);
     task.value.task.push({
-      _id: new Date().toISOString(),
+      _id: `temp-${new Date().toISOString()}`,
       user: null,
       task: null,
       name: name.value,
@@ -396,10 +447,50 @@
     });
 
     nameInput.value.model = "";
-    descriptionInput.value.model = "";
     volumeValueInput.value.model = "";
     volumeUnitInput.value.model = "";
     valueInput.value.model = "";
+  }
+  function removeTask(task_id: string) {
+    const index = task.value.task?.findIndex((a) => a._id === task_id);
+    if (index > -1) {
+      task.value.task.splice(index, 1);
+    }
+  }
+  function openTask(task_id: string): void {
+    emits("open-panel", {
+      state: "show",
+      type: "project-task",
+      data: {
+        project_id: props.data.project_id,
+        task_id,
+      },
+    });
+  }
+  async function createProjectTaskSub(): Promise<void> {
+    submitLoading.value = true;
+
+    await createProjectTask({
+      project_id: props.data.project_id,
+      task_id: props.data.task_id,
+      request: [
+        ...(task.value.task?.map<ProjectTaskRequest>((a) => ({
+          name: a.name,
+          value: a.value,
+          description: "",
+          volume: a.volume,
+          area_id: task.value.area._id,
+        })) || []),
+      ],
+    });
+
+    project.value.areas = await getProjectAreas({ _id: props.data.project_id });
+    project.value.timeline = await getProjectTasks({
+      _id: props.data.project_id,
+    });
+
+    submitLoading.value = false;
+    panelState.value = "hide";
   }
 
   watch(
@@ -427,6 +518,8 @@
       project_id: props.data.project_id,
       task_id: props.data.task_id,
     });
+
+    if (task.value.task?.length) taskPrepared.value = true;
 
     setTimeout(() => {
       loading.value = false;

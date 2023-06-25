@@ -48,6 +48,12 @@ export type ProjectMember = {
   kind: ProjectMemberKind;
   role_id: string[];
 };
+export type ProjectMemberRequest = {
+  _id?: string;
+  name?: string;
+  kind: ProjectMemberKind;
+  role_id: string[];
+};
 
 export type ProjectRequest = {
   customer_id: string;

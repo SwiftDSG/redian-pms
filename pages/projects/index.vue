@@ -55,6 +55,10 @@
   const { projects, getProjects } = useProject();
   const emits = defineEmits(["change-page", "open-panel"]);
 
+  definePageMeta({
+    middleware: ["auth"],
+  });
+
   const tabsInput = ref<InputSwitchOption>({
     options: [
       "All",
@@ -96,6 +100,7 @@
   }
 
   onMounted(async () => {
+    tabsInput.value.model = "";
     await getProjects();
   });
 </script>

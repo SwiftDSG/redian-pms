@@ -11,7 +11,7 @@
       class="rd-input"
       name="rd-input-radio"
       ref="rdInput"
-      :id="`rd-input-radio-${i}`"
+      :id="`${id}-${i}`"
       :disabled="input.disabled"
       :data-index="i"
       @change="updateModel"
@@ -19,7 +19,7 @@
     <label
       v-for="(option, i) in input.options"
       :key="i"
-      :for="`rd-input-radio-${i}`"
+      :for="`${id}-${i}`"
       :class="props.input.model === option ? 'rd-input-label-active' : ''"
       class="rd-input-label"
       ref="rdInputLabel"
@@ -51,6 +51,15 @@
   const windowLeft = ref<number>(0);
   const sizes = ref<Size[]>([]);
 
+  const id = computed<string>(() => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let combination = "";
+    for (let i = 0; i < 6; i++) {
+      combination += chars[Math.round(Math.random() * 35)];
+    }
+    return `rd-input-${combination}`;
+  });
+
   function updateModel(e: InputEvent): InputEvent {
     if (e.target instanceof HTMLInputElement) {
       const index: number = parseInt(e.target.dataset.index);
@@ -72,7 +81,10 @@
       const { width, left }: DOMRect = rdElement.getBoundingClientRect();
       sizes.value.push({ width, left });
     }
+
     rdInputComponent.value.querySelector("input").click();
+    console.log(props.input.model);
+    console.log(props.input.options);
   });
 </script>
 

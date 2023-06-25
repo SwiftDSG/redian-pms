@@ -1,5 +1,3 @@
-import { User } from "~~/types/user";
-
 export default defineNuxtPlugin(() => {
   const { refresh } = useUser();
 
@@ -32,13 +30,12 @@ export default defineNuxtPlugin(() => {
         if (body && body instanceof FormData)
           delete option.headers["Content-Type"];
 
-        let response: Response = await fetch(url, option);
+        let response = await fetch(url, option);
 
         if (response.status === 401) {
-          const user: User = await refresh();
+          const user = await refresh();
           if (user) response = await fetch(url, option);
         }
-
         return response;
       },
     },

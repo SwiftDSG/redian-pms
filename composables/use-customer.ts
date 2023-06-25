@@ -22,11 +22,10 @@ export default () => {
       return null;
     }
   };
-
-  const getCustomer = async (payload): Promise<CustomerMin[]> => {
+  const getCustomer = async (payload: { customer_id: string }): Promise<CustomerMin[]> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/customers/${payload}`,
+        `${config.public.apiBase}/customers/${payload.customer_id}`,
         "get"
       );
       if (response.status !== 200) throw new Error("");
@@ -39,57 +38,35 @@ export default () => {
       return null;
     }
   };
-
-  const addCustomer = async (payload: CustomerRequest): Promise<string> => {
+  const createCustomer = async (payload: { request: CustomerRequest }): Promise<string> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/customers`,
         "post",
-        JSON.stringify({
-          name: payload.name,
-          person: payload.person,
-          contact: payload.contact,
-        })
+        JSON.stringify(payload.request)
       );
       if (response.status !== 201) throw new Error("");
 
       const result = await response.text();
 
-      return result;
-    } catch (e) {
-      return null;
-    }
-  };
-
-  const getCustomerOverview = async (): Promise<Customer[]> => {
-    try {
-      const response: Response = await $fetch(
-        `${config.public.apiBase}/customers/overview`,
-        "get"
-      );
-      if (response.status !== 200) throw new Error("");
-
-      const result: Customer[] = await response.json();
       return result;
     } catch (e) {
       return null;
     }
   };
   const updateCustomer = async (
-    payload: CustomerRequest,
-    id
+    payload: {
+      customer_id: string,
+      request: CustomerRequest
+    },
   ): Promise<string> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/customers/${id}`,
+        `${config.public.apiBase}/customers/${payload.customer_id}`,
         "put",
-        JSON.stringify({
-          name: payload.name,
-          person: payload.person,
-          contact: payload.contact,
-        })
+        JSON.stringify(payload.request)
       );
-      if (response.status !== 201) throw new Error("");
+      if (response.status !== 200) throw new Error("");
 
       const result = await response.text();
 
@@ -98,13 +75,13 @@ export default () => {
       return null;
     }
   };
-  const deleteCustomer = async (id): Promise<string> => {
+  const deleteCustomer = async (payload: { customer_id: string }): Promise<string> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/customers/${id}`,
+        `${config.public.apiBase}/customers/${payload.customer_id}`,
         "delete"
       );
-      if (response.status !== 201) throw new Error("");
+      if (response.status !== 200) throw new Error("");
 
       const result = await response.text();
 
@@ -121,7 +98,6 @@ export default () => {
     updateCustomer,
     getCustomers,
     getCustomer,
-    addCustomer,
-    getCustomerOverview,
+    createCustomer,
   };
 };

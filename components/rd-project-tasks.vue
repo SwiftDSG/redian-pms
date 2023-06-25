@@ -97,26 +97,6 @@
   function removeArea(area_id: string): void {
     emits("remove-area", area_id);
   }
-  function getStatus(status: ProjectTaskStatusKind): string {
-    let str = "";
-
-    switch (status) {
-      case "finished":
-        str = "Finished";
-        break;
-      case "paused":
-        str = "Paused";
-        break;
-      case "pending":
-        str = "Pending";
-        break;
-      case "running":
-        str = "Running";
-        break;
-    }
-
-    return str;
-  }
 
   onMounted(() => {
     animate.init(rdComponent.value, () => {
