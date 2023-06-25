@@ -23,11 +23,4 @@ export default defineNuxtConfig({
     },
   },
   css: ["~/assets/fonts.scss"],
-  build: {
-    loaders: {
-      scss: {
-        implementation: require("sass"),
-      },
-    },
-  },
 });
