@@ -233,19 +233,19 @@
   const router = useRouter();
   const { viewMode, rem } = useMain();
 
-  const routeCurrent = computed<Route>(() =>
-    routes.find((a) => a.name === route.name)
+  const routeCurrent = computed<Route | undefined>(() =>
+    routes.find((a) => a.name === route?.name)
   );
-  const routeChanging = ref<Route>(null);
+  const routeChanging = ref<Route | undefined>(undefined);
 
-  const rdLayout = ref<HTMLDivElement>(null);
-  const rdMain = ref<HTMLDivElement>(null);
-  const rdHeaderTitle = ref<HTMLDivElement>(null);
+  const rdLayout = ref<HTMLDivElement | undefined>(undefined);
+  const rdMain = ref<HTMLDivElement | undefined>(undefined);
+  const rdHeaderTitle = ref<HTMLDivElement | undefined>(undefined);
 
   const panelState = ref<"idle" | "hide">("idle");
   const panelData = ref<any[]>([]);
-  const panelOpened = ref<PanelType>(null);
-  const panelSequence = ref<PanelType[]>([]);
+  const panelOpened = ref<PanelType | undefined>(undefined);
+  const panelSequence = ref<(PanelType | undefined)[]>([]);
 
   const animate = {
     leavePage(
@@ -315,8 +315,8 @@
         panelData.value.push(data || {});
       }
     } else {
-      panelOpened.value = null;
-      let sequence: PanelHandlerOption["type"] = null;
+      panelOpened.value = undefined;
+      let sequence: PanelHandlerOption["type"] = undefined;
       let payload: PanelHandlerOption["data"] = null;
       if (panelState.value === "hide") {
         panelState.value = "idle";
@@ -343,19 +343,23 @@
       }
     }
   }
-  function changeHandler(to: Route, e?: MouseEvent): MouseEvent {
+  function changeHandler(to: Route, e?: MouseEvent): MouseEvent | undefined {
     if (!routeChanging.value) {
       routeChanging.value = routes.find((a) => a.name === to.name);
       if (routeChanging.value) {
         if (route.path !== (to.href || "/")) {
           setTimeout(() => {
-            animate.leavePage(rdMain.value, rdHeaderTitle.value, () => {
-              router.push(to.href || "/");
-              setTimeout(() => {
-                routeChanging.value = null;
-                animate.enterPage(rdMain.value);
-              }, 250);
-            });
+            if (rdMain.value && rdHeaderTitle.value) {
+              animate.leavePage(rdMain.value, rdHeaderTitle.value, () => {
+                router.push(to.href || "/");
+                setTimeout(() => {
+                  if (rdMain.value) {
+                    routeChanging.value = undefined;
+                    animate.enterPage(rdMain.value);
+                  }
+                }, 250);
+              });
+            }
           }, 100);
         }
       }
@@ -368,9 +372,9 @@
     rem.value = parseInt(getComputedStyle?.(document.body)?.fontSize) || 24;
   }
   function shake(): void {
-    rdLayout.value.classList.add("rd-layout-shake");
+    if (rdLayout.value) rdLayout.value.classList.add("rd-layout-shake");
     setTimeout(() => {
-      rdLayout.value.classList.remove("rd-layout-shake");
+      if (rdLayout.value) rdLayout.value.classList.remove("rd-layout-shake");
     }, 500);
   }
 

@@ -1,14 +1,14 @@
 import { Alert } from "~~/types/alert"
 
 export default () => {
-  const alert = useState<Alert>('alert', () => null)
+  const alert = useState<Alert | null>('alert', () => null)
 
-  const setAlert = (data: Alert): Alert => {
-    return alert.value = data
+  const setAlert = (data: Alert): void => {
+    alert.value = data
   }
 
   const removeAlert = (): void => {
-    return alert.value = null
+    alert.value = null
   }
 
   return { alert, setAlert, removeAlert }

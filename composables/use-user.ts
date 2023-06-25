@@ -11,10 +11,10 @@ export default () => {
     maxAge: 86400,
   });
 
-  const user = useState<User>("user", () => null);
-  const users = useState<User[]>("user", () => null);
+  const user = useState<User | null>("user", () => null);
+  const users = useState<User[] | null>("user", () => null);
 
-  const getUser = async (payload: { user_id: string }): Promise<User> => {
+  const getUser = async (payload: { user_id: string }): Promise<User | null> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/users/${payload.user_id}`,
@@ -43,10 +43,10 @@ export default () => {
 
       return result;
     } catch (e) {
-      return null;
+      return [];
     }
   };
-  const createUser = async (payload: UserRequest): Promise<User[]> => {
+  const createUser = async (payload: UserRequest): Promise<string> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/users`,
@@ -60,10 +60,10 @@ export default () => {
 
       return result;
     } catch (e) {
-      return null;
+      return '';
     }
   };
-  const login = async (email: string, password: string): Promise<User> => {
+  const login = async (email: string, password: string): Promise<User | null> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/users/login`,
@@ -86,7 +86,7 @@ export default () => {
       return null;
     }
   };
-  const refresh = async (): Promise<User> => {
+  const refresh = async (): Promise<User | null> => {
     try {
       if (!rtkCookie.value) throw new Error("COOKIE_UNAVAILABLE");
       const response: Response = await $fetch(
@@ -120,7 +120,7 @@ export default () => {
     user.value = null;
     $setDefaults({
       headers: {
-        Authorization: null,
+        "Authorization": '',
       },
     });
   };

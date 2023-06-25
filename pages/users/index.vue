@@ -44,9 +44,8 @@
 
 <script lang="ts" setup>
   import { gsap } from "gsap";
-  import { ProjectResponse, ProjectUserResponse } from "~~/types/project";
 
-  const { getUsers } = useUser();
+  const { users, getUsers } = useUser();
   const emits = defineEmits(["change-menu", "changing-done", "edit-task"]);
 
   definePageMeta({
@@ -54,51 +53,9 @@
   });
 
   const usersData = ref<any>(null);
-  const rdPanel = ref<HTMLDivElement>(null);
-  const rdPanelRoleBody = ref<HTMLDivElement>(null);
-  const rdPanelUserBody = ref<HTMLDivElement>(null);
-
-  // let userData = []
-
-  const animate = {
-    init(rdComponent: HTMLElement, cb: () => void): void {
-      const tl = gsap.timeline({
-        onComplete: cb,
-      });
-
-      tl.to(rdComponent, {
-        opacity: 1,
-        duration: 0.25,
-      });
-    },
-    exit(rdComponent: HTMLElement): void {
-      const tl = gsap.timeline({
-        onComplete() {
-          rdComponent.removeAttribute("style");
-        },
-      });
-
-      tl.to(rdComponent, {
-        opacity: 0,
-        duration: 0.25,
-      });
-    },
-  };
-
-  // watch(
-  //   () => props.state,
-  //   (val) => {
-  //     if (val === "changing") {
-  //       animate.exit(rdPanel.value);
-  //     }
-  //   }
-  // );
 
   onMounted(async () => {
-    usersData.value = await getUsers();
-    animate.init(rdPanel.value, () => {
-      emits("changing-done");
-    });
+    users.value = await getUsers();
   });
 </script>
 

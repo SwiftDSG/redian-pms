@@ -63,7 +63,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { InputOption } from "~~/types/general";
+  import { InputOption, ViewMode } from "~~/types/general";
   import { gsap } from "gsap";
 
   const { viewMode } = useMain();
@@ -112,11 +112,7 @@
   const password = computed<string>((): string => passwordInput.value.model);
 
   const animate = {
-    exit(
-      viewMode: "desktop" | "mobile",
-      rdPanel: HTMLElement,
-      cb?: () => void
-    ): void {
+    exit(viewMode: ViewMode, rdPanel: HTMLElement, cb?: () => void): void {
       const tl: GSAPTimeline = gsap.timeline({
         onComplete() {
           if (cb) cb();
@@ -145,7 +141,7 @@
       submitLoading.value = true;
       if (createUser.value)
         await createOwner({
-          role_id: null,
+          role_id: [],
           name: name.value,
           email: email.value,
           password: password.value,
@@ -164,19 +160,21 @@
   }
 
   function exit(path: string = "/"): void {
-    animate.exit(viewMode.value, rdPanel.value, () => {
-      router.push(path);
-    });
+    if (rdPanel.value)
+      animate.exit(viewMode.value, rdPanel.value, () => {
+        router.push(path);
+      });
   }
 
   onMounted(async () => {
     createUser.value = !(await getUsers())?.length;
 
     setTimeout(() => {
-      gsap.to(rdPanel.value, {
-        opacity: 1,
-        duration: 0.25,
-      });
+      if (rdPanel.value)
+        gsap.to(rdPanel.value, {
+          opacity: 1,
+          duration: 0.25,
+        });
     }, 100);
   });
 </script>

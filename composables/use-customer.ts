@@ -4,8 +4,8 @@ export default () => {
   const { $fetch } = useNuxtApp();
   const config = useRuntimeConfig();
 
-  const names = useState<CustomerMin[]>("customer", () => null);
-  const customers = useState<Customer[]>("customers", () => null);
+  const names = useState<CustomerMin[] | null>("customer", () => null);
+  const customers = useState<Customer[] | null>("customers", () => null);
 
   const getCustomers = async (): Promise<Customer[]> => {
     try {
@@ -19,7 +19,7 @@ export default () => {
       customers.value = result;
       return result;
     } catch (e) {
-      return null;
+      return [];
     }
   };
   const getCustomer = async (payload: { customer_id: string }): Promise<CustomerMin[]> => {
@@ -35,7 +35,7 @@ export default () => {
 
       return result;
     } catch (e) {
-      return null;
+      return [];
     }
   };
   const createCustomer = async (payload: { request: CustomerRequest }): Promise<string> => {
@@ -51,7 +51,7 @@ export default () => {
 
       return result;
     } catch (e) {
-      return null;
+      return '';
     }
   };
   const updateCustomer = async (
@@ -72,7 +72,7 @@ export default () => {
 
       return result;
     } catch (e) {
-      return null;
+      return '';
     }
   };
   const deleteCustomer = async (payload: { customer_id: string }): Promise<string> => {
@@ -87,7 +87,7 @@ export default () => {
 
       return result;
     } catch (e) {
-      return null;
+      return '';
     }
   };
 

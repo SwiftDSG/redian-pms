@@ -28,7 +28,7 @@ export default defineNuxtPlugin(() => {
           body,
         };
         if (body && body instanceof FormData)
-          delete option.headers["Content-Type"];
+          option.headers = { ...option.headers, "Content-Type": '' }
 
         let response = await fetch(url, option);
 
