@@ -53,13 +53,13 @@
   }>();
   const emits = defineEmits(["clicked"]);
 
-  const rdInputComponent = ref<HTMLButtonElement>(null);
+  const rdInputComponent = ref<HTMLButtonElement | null>(null);
 
   const buttonAnimating = ref<boolean>(false);
   const buttonClicking = ref<boolean>(false);
   const buttonPressed = ref<boolean>(false);
   const buttonHovered = ref<boolean>(false);
-  const buttonLoadingAnim = ref<GSAPTimeline>(null);
+  const buttonLoadingAnim = ref<GSAPTimeline | null>(null);
 
   const animate = {
     hover(rdInputComponent: HTMLElement, cb?: () => void): void {
@@ -115,7 +115,7 @@
         },
       });
 
-      const rdOverlay: HTMLElement =
+      const rdOverlay: HTMLElement | null =
         rdInputComponent.querySelector(".rd-input-overlay");
 
       tl.to(rdInputComponent, {
@@ -139,7 +139,7 @@
         },
       });
 
-      const rdOverlay: HTMLElement =
+      const rdOverlay: HTMLElement | null =
         rdInputComponent.querySelector(".rd-input-overlay");
 
       tl.to(rdInputComponent, {
@@ -164,7 +164,7 @@
           "label.rd-input-label-main .rd-letter"
         )
       );
-      const rdProgressBar: HTMLElement = rdInputComponent.querySelector(
+      const rdProgressBar: HTMLElement | null = rdInputComponent.querySelector(
         ".rd-input-progress-bar"
       );
 
@@ -188,30 +188,24 @@
     buttonAnimating.value = true;
     buttonClicking.value = true;
     buttonPressed.value = true;
-    animate.click(rdInputComponent.value, () => {
-      buttonClicking.value = false;
-      if (!buttonPressed.value) {
-        mouseUpHandler();
-      }
-    });
+    if (rdInputComponent.value) {
+      animate.click(rdInputComponent.value, () => {
+        buttonClicking.value = false;
+        if (!buttonPressed.value) {
+          mouseUpHandler();
+        }
+      });
+    }
     window.addEventListener("mouseup", mouseUpHandler);
     return e;
   }
   function mouseUpHandler(): void {
     window.removeEventListener("mouseup", mouseUpHandler);
     buttonPressed.value = false;
-    if (!buttonClicking.value) {
+    if (!buttonClicking.value && rdInputComponent.value) {
       emits("clicked");
       animate.release(rdInputComponent.value, () => {
         buttonAnimating.value = false;
-      });
-    }
-  }
-  function mouseOverHandler(): void {
-    if (!buttonHovered.value && !props.loading) {
-      buttonHovered.value = true;
-      animate.hover(rdInputComponent.value, () => {
-        buttonHovered.value = false;
       });
     }
   }
@@ -220,10 +214,13 @@
     () => props.loading,
     (val) => {
       setTimeout(() => {
-        if (!buttonLoadingAnim.value)
+        if (!buttonLoadingAnim.value && rdInputComponent.value) {
           buttonLoadingAnim.value = animate.loading(rdInputComponent.value);
-        if (val) buttonLoadingAnim.value.play();
-        else buttonLoadingAnim.value.reverse();
+        }
+        if (buttonLoadingAnim.value) {
+          if (val) buttonLoadingAnim.value.play();
+          else buttonLoadingAnim.value.reverse();
+        }
       }, 100);
     }
   );

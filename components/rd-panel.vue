@@ -18,7 +18,7 @@
           class="rd-panel-button"
           :icon="action"
           :disabled="disabled"
-          type="primary"
+          :type="type || 'primary'"
           @clicked="emits('clicked')"
         />
       </div>
@@ -46,27 +46,23 @@
   import { ComputedRef } from "vue";
   import { ViewMode } from "~~/types/general";
 
-  const { viewMode } = useMain();
+  const { viewMode, rem } = useMain();
   const props = defineProps<{
     label?: string;
     action?: string;
+    type?: "primary" | "secondary" | "default";
     disabled?: boolean;
     state: "idle" | "hide";
     loading?: boolean;
   }>();
   const emits = defineEmits(["exit", "clicked"]);
 
-  const rdBackground = ref<HTMLDivElement>(null);
-  const rdPanel = ref<HTMLDivElement>(null);
+  const rdBackground = ref<HTMLDivElement | null>(null);
+  const rdPanel = ref<HTMLDivElement | null>(null);
 
   const scrollValue = ref<number>(0);
   const scrollThreshold = ref<number>(0);
 
-  const rem: ComputedRef<number> = computed((): number =>
-    typeof getComputedStyle === "function"
-      ? parseInt(getComputedStyle(document.body).fontSize)
-      : 0
-  );
   const headerActive: ComputedRef<boolean> = computed(
     (): boolean => scrollValue.value >= scrollThreshold.value
   );
@@ -138,9 +134,11 @@
   }
 
   function exit(): void {
-    animate.exit(viewMode.value, rdBackground.value, rdPanel.value, () => {
-      emits("exit");
-    });
+    if (rdBackground.value && rdPanel.value) {
+      animate.exit(viewMode.value, rdBackground.value, rdPanel.value, () => {
+        emits("exit");
+      });
+    }
   }
 
   watch(
@@ -152,7 +150,9 @@
 
   onMounted(() => {
     scrollThreshold.value = 2 * rem.value;
-    animate.init(rdBackground.value, rdPanel.value);
+    if (rdBackground.value && rdPanel.value) {
+      animate.init(rdBackground.value, rdPanel.value);
+    }
   });
 </script>
 

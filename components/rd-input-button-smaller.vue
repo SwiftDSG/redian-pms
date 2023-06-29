@@ -22,7 +22,7 @@
   }>();
   const emits = defineEmits(["clicked"]);
 
-  const rdInputComponent = ref<HTMLButtonElement>(null);
+  const rdInputComponent = ref<HTMLButtonElement | null>(null);
 
   const buttonAnimating = ref<boolean>(false);
   const buttonClicking = ref<boolean>(false);
@@ -36,7 +36,7 @@
         },
       });
 
-      const rdOverlay: HTMLElement =
+      const rdOverlay: HTMLElement | null =
         rdInputComponent.querySelector(".rd-input-overlay");
 
       tl.to(rdInputComponent, {
@@ -60,7 +60,7 @@
         },
       });
 
-      const rdOverlay: HTMLElement =
+      const rdOverlay: HTMLElement | null =
         rdInputComponent.querySelector(".rd-input-overlay");
 
       tl.to(rdInputComponent, {
@@ -83,18 +83,20 @@
     buttonAnimating.value = true;
     buttonClicking.value = true;
     buttonPressed.value = true;
-    animate.click(rdInputComponent.value, () => {
-      buttonClicking.value = false;
-      if (!buttonPressed.value) {
-        mouseUpHandler();
-      }
-    });
+    if (rdInputComponent.value) {
+      animate.click(rdInputComponent.value, () => {
+        buttonClicking.value = false;
+        if (!buttonPressed.value) {
+          mouseUpHandler();
+        }
+      });
+    }
     window.addEventListener("mouseup", mouseUpHandler);
   }
   function mouseUpHandler(): void {
     window.removeEventListener("mouseup", mouseUpHandler);
     buttonPressed.value = false;
-    if (!buttonClicking.value) {
+    if (!buttonClicking.value && rdInputComponent.value) {
       emits("clicked");
       animate.release(rdInputComponent.value, () => {
         buttonAnimating.value = false;

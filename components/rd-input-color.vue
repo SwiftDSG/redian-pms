@@ -12,7 +12,7 @@
 
 <script lang="ts" setup>
   import { ComputedRef } from "vue";
-  import { InputColorOption, InputOption } from "~~/interfaces/general";
+  import { InputColorOption, InputOption } from "~~/types/general";
 
   const props = defineProps<{
     input: InputColorOption;

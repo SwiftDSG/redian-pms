@@ -17,7 +17,7 @@
     state: "show" | "hide";
     type?: "default" | "overlay";
   }>();
-  const rdComponent = ref<HTMLDivElement>(null);
+  const rdComponent = ref<HTMLDivElement | null>(null);
 
   const animate = {
     init(rdComponent: HTMLElement): void {
@@ -45,14 +45,17 @@
   watch(
     () => props.state,
     (val) => {
-      if (val === "hide") animate.exit(rdComponent.value);
-      else animate.init(rdComponent.value);
+      if (rdComponent.value) {
+        if (val === "hide") animate.exit(rdComponent.value);
+        else animate.init(rdComponent.value);
+      }
     }
   );
 
   onMounted(() => {
     setTimeout(() => {
-      if (props.state === "show") animate.init(rdComponent.value);
+      if (props.state === "show" && rdComponent.value)
+        animate.init(rdComponent.value);
     }, 250);
   });
 </script>

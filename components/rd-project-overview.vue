@@ -3,7 +3,7 @@
     <div class="rd-panel rd-panel-chart">
       <div class="rd-panel-header">
         <span class="rd-panel-name rd-headline-3">Progress chart</span>
-        <rd-input-button label="See all" />
+        <rd-input-button label="See all" key="2" />
       </div>
       <rd-project-progress-lite
         class="rd-panel-body"
@@ -14,7 +14,7 @@
     <div class="rd-panel rd-panel-chart">
       <div class="rd-panel-header">
         <span class="rd-panel-name rd-headline-3">Timeline</span>
-        <rd-input-button label="See all" />
+        <rd-input-button label="See all" key="1" />
       </div>
       <rd-project-timeline-lite
         class="rd-panel-body"
@@ -40,7 +40,7 @@
   }>();
   const emits = defineEmits(["change-menu", "changing-done"]);
 
-  const rdComponent = ref<HTMLDivElement>(null);
+  const rdComponent = ref<HTMLDivElement | null>(null);
 
   const animate = {
     init(rdComponent: HTMLElement, cb: () => void): void {
@@ -70,7 +70,7 @@
   watch(
     () => props.state,
     (val) => {
-      if (val === "changing") {
+      if (val === "changing" && rdComponent.value) {
         animate.exit(rdComponent.value);
       }
     }
@@ -78,9 +78,11 @@
 
   onMounted(() => {
     setTimeout(() => {
-      animate.init(rdComponent.value, () => {
-        emits("changing-done");
-      });
+      if (rdComponent.value) {
+        animate.init(rdComponent.value, () => {
+          emits("changing-done");
+        });
+      }
     }, 100);
   });
 </script>

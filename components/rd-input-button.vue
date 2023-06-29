@@ -2,27 +2,27 @@
   <button
     class="rd-input-component"
     ref="rdInputComponent"
-    :class="`${props.icon ? 'rd-input-component-icon' : ''} ${
-      props.disabled ? 'rd-input-component-disabled' : ''
+    :class="`${icon ? 'rd-input-component-icon' : ''} ${
+      disabled ? 'rd-input-component-disabled' : ''
     } ${
-      props.loading || buttonAnimating ? 'rd-input-component-animating' : ''
-    } rd-input-component-${props.type ? props.type : 'primary'}`"
-    :disabled="props.disabled"
+      loading || buttonAnimating ? 'rd-input-component-animating' : ''
+    } rd-input-component-${type ? type : 'primary'}`"
+    :disabled="disabled"
     @mousedown="mouseDownHandler"
     @keydown.space.enter="keyDownHandler"
   >
-    <div v-if="props.icon" class="rd-input-icon-container">
-      <rd-svg :name="props.icon" color="secondary" />
+    <div v-if="icon" class="rd-input-icon-container">
+      <rd-svg :name="icon" color="secondary" />
     </div>
     <div class="rd-input-label-container">
       <label class="rd-input-label rd-button-text rd-input-label-decoy">
-        {{ props.label }}
+        {{ label }}
       </label>
       <label class="rd-input-label rd-button-text rd-input-label-main">
         <span
           class="rd-letter"
           :class="letter === ' ' ? 'rd-letter-space' : ''"
-          v-for="(letter, i) in props.label"
+          v-for="(letter, i) in label"
           :key="i"
         >
           {{ letter }}
@@ -32,7 +32,7 @@
         <span
           class="rd-letter"
           :class="letter === ' ' ? 'rd-letter-space' : ''"
-          v-for="(letter, i) in props.label"
+          v-for="(letter, i) in label"
           :key="i"
         >
           {{ letter }}
@@ -61,61 +61,14 @@
   }>();
   const emits = defineEmits(["clicked"]);
 
-  const rdInputComponent = ref<HTMLButtonElement>(null);
+  const rdInputComponent = ref<HTMLButtonElement | null>(null);
 
   const buttonAnimating = ref<boolean>(false);
   const buttonClicking = ref<boolean>(false);
   const buttonPressed = ref<boolean>(false);
-  const buttonHovered = ref<boolean>(false);
-  const buttonLoadingAnim = ref<GSAPTimeline>(null);
+  const buttonLoadingAnim = ref<GSAPTimeline | null>(null);
 
   const animate = {
-    hover(rdInputComponent: HTMLElement, cb?: () => void): void {
-      const tl: GSAPTimeline = gsap.timeline({
-        onComplete() {
-          gsap.to(rdLetter, {
-            y: 0,
-            opacity: 1,
-            duration: 0,
-          });
-          gsap.to(rdOverlayLetter, {
-            y: "100%",
-            opacity: 0,
-            duration: 0,
-          });
-          if (cb) cb();
-        },
-      });
-
-      const rdLetter: HTMLElement[] = gsap.utils.toArray(
-        rdInputComponent.querySelectorAll(
-          "label.rd-input-label-main .rd-letter"
-        )
-      );
-      const rdOverlayLetter: HTMLElement[] = gsap.utils.toArray(
-        rdInputComponent.querySelectorAll(
-          "label.rd-input-label-overlay .rd-letter"
-        )
-      );
-
-      tl.to(rdLetter, {
-        y: "-100%",
-        opacity: 0,
-        duration: 0.25,
-        ease: "power2.in",
-        stagger: 0.05,
-      }).to(
-        rdOverlayLetter,
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.25,
-          ease: "powr2.out",
-          stagger: 0.05,
-        },
-        "<0.125"
-      );
-    },
     click(rdInputComponent: HTMLElement, cb?: () => void): void {
       const tl: GSAPTimeline = gsap.timeline({
         onComplete() {
@@ -123,7 +76,7 @@
         },
       });
 
-      const rdOverlay: HTMLElement =
+      const rdOverlay: HTMLElement | null =
         rdInputComponent.querySelector(".rd-input-overlay");
 
       tl.to(rdInputComponent, {
@@ -147,7 +100,7 @@
         },
       });
 
-      const rdOverlay: HTMLElement =
+      const rdOverlay: HTMLElement | null =
         rdInputComponent.querySelector(".rd-input-overlay");
 
       tl.to(rdInputComponent, {
@@ -172,7 +125,7 @@
           "label.rd-input-label-main .rd-letter"
         )
       );
-      const rdProgressBar: HTMLElement = rdInputComponent.querySelector(
+      const rdProgressBar: HTMLElement | null = rdInputComponent.querySelector(
         ".rd-input-progress-bar"
       );
 
@@ -196,25 +149,29 @@
     buttonAnimating.value = true;
     buttonClicking.value = true;
     buttonPressed.value = true;
-    animate.click(rdInputComponent.value, () => {
-      buttonClicking.value = false;
-      if (!buttonPressed.value) {
-        releaseHandler();
-      }
-    });
+    if (rdInputComponent.value) {
+      animate.click(rdInputComponent.value, () => {
+        buttonClicking.value = false;
+        if (!buttonPressed.value) {
+          releaseHandler();
+        }
+      });
+    }
     window.addEventListener("mouseup", releaseHandler);
     return e;
   }
-  function keyDownHandler(e?: KeyboardEvent): KeyboardEvent {
+  function keyDownHandler(e?: KeyboardEvent): KeyboardEvent | undefined {
     buttonAnimating.value = true;
     buttonClicking.value = true;
     buttonPressed.value = true;
-    animate.click(rdInputComponent.value, () => {
-      buttonClicking.value = false;
-      if (!buttonPressed.value) {
-        releaseHandler();
-      }
-    });
+    if (rdInputComponent.value) {
+      animate.click(rdInputComponent.value, () => {
+        buttonClicking.value = false;
+        if (!buttonPressed.value) {
+          releaseHandler();
+        }
+      });
+    }
     window.addEventListener("keyup", releaseHandler);
 
     return e;
@@ -223,18 +180,10 @@
     window.removeEventListener("mouseup", releaseHandler);
     window.removeEventListener("keyup", releaseHandler);
     buttonPressed.value = false;
-    if (!buttonClicking.value) {
+    if (!buttonClicking.value && rdInputComponent.value) {
       emits("clicked");
       animate.release(rdInputComponent.value, () => {
         buttonAnimating.value = false;
-      });
-    }
-  }
-  function mouseOverHandler(): void {
-    if (!buttonHovered.value && !props.loading) {
-      buttonHovered.value = true;
-      animate.hover(rdInputComponent.value, () => {
-        buttonHovered.value = false;
       });
     }
   }
@@ -243,10 +192,13 @@
     () => props.loading,
     (val) => {
       setTimeout(() => {
-        if (!buttonLoadingAnim.value)
+        if (!buttonLoadingAnim.value && rdInputComponent.value) {
           buttonLoadingAnim.value = animate.loading(rdInputComponent.value);
-        if (val) buttonLoadingAnim.value.play();
-        else buttonLoadingAnim.value.reverse();
+        }
+        if (buttonLoadingAnim.value) {
+          if (val) buttonLoadingAnim.value.play();
+          else buttonLoadingAnim.value.reverse();
+        }
       }, 100);
     }
   );

@@ -25,7 +25,7 @@
 
   const inputModel = ref<string>("");
 
-  function updateModel(e: InputEvent): InputEvent {
+  function updateModel(e: Event): Event {
     if (e.target instanceof HTMLInputElement) {
       inputModel.value = e.target.value;
       props.input.model = e.target.value;

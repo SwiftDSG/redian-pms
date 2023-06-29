@@ -15,7 +15,7 @@
         />
         <rd-svg
           v-if="status === 'paused'"
-          color="warning"
+          color="error"
           class="rd-project-data-status-icon"
           name="pause"
         />
@@ -112,7 +112,11 @@
       | "behind" = "pending";
 
     if (props.project.status[0].kind === "finished") str = "finished";
-    else if (props.project.status[0].kind === "paused") str = "paused";
+    else if (
+      props.project.status[0].kind === "paused" ||
+      props.project.status[0].kind === "breakdown"
+    )
+      str = "paused";
     else if (props.project.status[0].kind === "pending") str = "pending";
     else if (props.project.progress.actual >= props.project.progress.plan)
       str = "ahead";
@@ -224,6 +228,16 @@
       }
     }
     &.rd-project-behind {
+      .rd-project-data {
+        .rd-project-data-status {
+          &::before {
+            background: var(--error-color);
+          }
+        }
+      }
+    }
+    &.rd-project-paused,
+    &.rd-project-breakdown {
       .rd-project-data {
         .rd-project-data-status {
           &::before {

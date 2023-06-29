@@ -8,7 +8,7 @@
   >
     <div class="rd-panel-body">
       <div class="rd-panel-input-wrapper">
-        <lazy-rd-input-select :input="typeInput" class="rd-panel-input" />
+        <rd-input-select :input="typeInput" class="rd-panel-input" />
       </div>
       <div v-if="type === 'Daily'" class="rd-panel-form">
         <div class="rd-panel-form-input-wrapper">
@@ -74,8 +74,131 @@
             </div>
           </div>
         </div>
-        <div class="rd-panel-form-image-container">
+        <label class="rd-panel-form-label rd-headline-6">Today workers</label>
+        <div class="rd-panel-form-input-wrapper">
+          <rd-input-select
+            :input="collaboratorInput"
+            class="rd-panel-form-input"
+            style="width: calc(100% - 2.75rem)"
+          />
+          <rd-input-button-small
+            class="rd-panel-form-button"
+            icon="plus"
+            type="primary"
+            :disabled="!member"
+            @clicked="addMember"
+          />
+        </div>
+        <div
+          v-if="roleInput.length"
+          class="rd-panel-form-role-wrapper"
+          style="margin-top: -0.25rem"
+        >
+          <div
+            v-for="role in roleInput"
+            :key="role.role_id"
+            class="rd-panel-form-role"
+            @click="addMembersWithinRole(role.role_id)"
+          >
+            <span class="rd-panel-form-role-name rd-headline-6">{{
+              role.name
+            }}</span>
+            <rd-svg class="rd-panel-form-role-icon" name="plus" />
+          </div>
+        </div>
+        <div
+          v-if="membersSelected.length"
+          class="rd-panel-form-user-wrapper"
+          style="margin-top: -0.25rem"
+        >
+          <div
+            v-for="member in membersSelected"
+            :key="member._id"
+            class="rd-panel-form-user"
+            @click="removeMember(member._id)"
+          >
+            <div class="rd-panel-form-user-image"></div>
+            <span class="rd-panel-form-user-name rd-headline-5">{{
+              member.name
+            }}</span>
+            <rd-svg class="rd-panel-form-user-icon" name="close" />
+          </div>
+        </div>
+        <div class="rd-panel-form-image-container" style="margin-bottom: 6rem">
           <rd-input-images :input="imagesInput" />
+        </div>
+      </div>
+      <div v-else class="rd-panel-form">
+        <div class="rd-panel-form-input-wrapper">
+          <rd-input-select
+            :input="kindInput"
+            class="rd-panel-form-input"
+            style="width: 100%"
+          />
+        </div>
+        <label class="rd-panel-form-label rd-headline-6">Victims</label>
+        <div class="rd-panel-form-input-wrapper">
+          <rd-input-select
+            :input="collaboratorInput"
+            class="rd-panel-form-input"
+            style="width: calc(100% - 2.75rem)"
+          />
+          <rd-input-button-small
+            class="rd-panel-form-button"
+            icon="plus"
+            type="primary"
+            :disabled="!member"
+            @clicked="addMember"
+          />
+        </div>
+        <div
+          v-if="roleInput.length"
+          class="rd-panel-form-role-wrapper"
+          style="margin-top: -0.25rem"
+        >
+          <div
+            v-for="role in roleInput"
+            :key="role.role_id"
+            class="rd-panel-form-role"
+            @click="addMembersWithinRole(role.role_id)"
+          >
+            <span class="rd-panel-form-role-name rd-headline-6">{{
+              role.name
+            }}</span>
+            <rd-svg class="rd-panel-form-role-icon" name="plus" />
+          </div>
+        </div>
+        <div
+          v-if="membersSelected.length"
+          class="rd-panel-form-user-wrapper"
+          style="margin-top: -0.25rem"
+        >
+          <div
+            v-for="member in membersSelected"
+            :key="member._id"
+            class="rd-panel-form-user"
+            @click="removeMember(member._id)"
+          >
+            <div class="rd-panel-form-user-image"></div>
+            <span class="rd-panel-form-user-name rd-headline-5">{{
+              member.name
+            }}</span>
+            <rd-svg class="rd-panel-form-user-icon" name="close" />
+          </div>
+        </div>
+        <div
+          class="rd-panel-form-input-wrapper"
+          style="justify-content: space-between; align-items: center"
+        >
+          <label
+            class="rd-panel-form-label rd-headline-6"
+            style="width: auto; margin: 0"
+            >Project breakdown?</label
+          >
+          <rd-input-toggle
+            class="rd-panel-form-input-toggle"
+            :input="breakdownInput"
+          />
         </div>
       </div>
     </div>
@@ -91,12 +214,19 @@
 </template>
 
 <script lang="ts" setup>
+  import { ProjectMemberResponse } from "types/project";
   import {
+    ProjectIncidentReportKind,
+    ProjectIncidentReportRequest,
+  } from "types/project-incident";
+  import {
+    InputGeneric,
     InputImageOption,
     InputOption,
     InputTimeOption,
+    InputToggleOption,
   } from "~~/types/general";
-  import { ProjectProgressReportRequest } from "~~/types/progress-report";
+  import { ProjectProgressReportRequest } from "~~/types/project-report";
   import {
     ProjectTaskMinResponse,
     ProjectTaskStatusKind,
@@ -118,7 +248,14 @@
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
-  const { getProjectTasks, createProjectReport } = useProject();
+  const {
+    project,
+    getProjectTasks,
+    createProjectReport,
+    createProjectIncident,
+    getProjectReports,
+    getProjectUsers,
+  } = useProject();
 
   const panelState = ref<"idle" | "hide">("idle");
 
@@ -128,12 +265,46 @@
   const tasks = ref<ProjectTaskMinResponse[]>([]);
   const tasksSelected = ref<ProjectTaskActualInput[]>([]);
 
+  const membersSelected = ref<ProjectMemberResponse[]>([]);
+
   const typeInput = ref<InputOption>({
     label: "Report type",
     name: "type",
     model: "Daily",
     placeholder: "Report type",
     options: ["Daily", "Incident"],
+  });
+  const kindInput = ref<InputGeneric<ProjectIncidentReportKind>>({
+    label: "Incident type",
+    name: "type",
+    model: "Environmental",
+    placeholder: "Incident type",
+    options: [
+      {
+        name: "Environmental",
+        value: "environmental",
+      },
+      {
+        name: "Fatal",
+        value: "fatal",
+      },
+      {
+        name: "First Aid",
+        value: "first_aid",
+      },
+      {
+        name: "Lost Time Injury",
+        value: "lost_time_injury",
+      },
+      {
+        name: "Near Miss",
+        value: "near_miss",
+      },
+      {
+        name: "Property Damage",
+        value: "property_damage",
+      },
+    ],
   });
   const inInput = ref<InputTimeOption>({
     label: "Check-in",
@@ -149,14 +320,36 @@
     model: "",
     placeholder: "Select task",
   });
+  const collaboratorInput = ref<InputOption>({
+    name: "user",
+    placeholder: "Find user",
+    model: "",
+    value: "",
+    options: [],
+  });
   const imagesInput = ref<InputImageOption>({
     label: "Documentation",
     limit: 10,
     file: [],
   });
+  const breakdownInput = ref<InputToggleOption>({
+    model: false,
+  });
+  const roleInput = ref<
+    {
+      role_id: string;
+      name: string;
+      user: ProjectMemberResponse[] | undefined;
+    }[]
+  >([]);
 
   const type = computed<string>(() => typeInput.value.model);
-  const selectedTask = computed<string>(() => taskInput.value.value);
+  const kind = computed<ProjectIncidentReportKind | undefined>(
+    () => kindInput.value.value
+  );
+  const selectedTask = computed<string | undefined>(
+    () => taskInput.value.value
+  );
   const time = computed<ProjectProgressReportRequest["time"]>(() => [
     inInput.value.model,
     outInput.value.model,
@@ -172,6 +365,13 @@
         };
       })
   );
+  const member_id = computed<ProjectProgressReportRequest["member_id"]>(() =>
+    membersSelected.value.map((a) => a._id)
+  );
+  const member = computed<string | undefined>(
+    () => collaboratorInput.value.value
+  );
+  const breakdown = computed<boolean>(() => breakdownInput.value.model);
 
   function getStatus(status: ProjectTaskStatusKind): string {
     let str = "";
@@ -228,16 +428,115 @@
         .map((a) => ({ name: a.name, value: a._id }));
     }
   }
+  function filterUsers(): void {
+    collaboratorInput.value.options =
+      project.value.users?.user
+        ?.filter(
+          (a) =>
+            !(membersSelected.value.map((b) => b._id) || []).includes(a._id)
+        )
+        .map((a) => ({ name: a.name, value: a._id })) || [];
+
+    roleInput.value =
+      project.value.users?.role
+        ?.map((a) => ({
+          role_id: a._id,
+          name: a.name,
+          user: project.value.users?.user
+            ?.filter(
+              (a) =>
+                !(membersSelected.value.map((b) => b._id) || []).includes(a._id)
+            )
+            .filter((b) => b.role.map((c) => c._id).includes(a._id)),
+        }))
+        .filter((a) => a.user?.length) || [];
+  }
+  function addMembersWithinRole(role_id: string): void {
+    const users: ProjectMemberResponse[] = JSON.parse(
+      JSON.stringify(membersSelected.value)
+    );
+    const usersNew: ProjectMemberResponse[] = [];
+    const userIds: string[] = [];
+
+    users?.push(
+      ...(project.value?.users?.user.filter((a) =>
+        a.role.map((b) => b._id).includes(role_id)
+      ) || [])
+    );
+
+    for (const user of users) {
+      if (!userIds.includes(user._id)) {
+        userIds.push(user._id);
+        usersNew.push(user);
+      }
+    }
+
+    membersSelected.value = usersNew;
+    collaboratorInput.value.value = "";
+    collaboratorInput.value.model = "";
+    filterUsers();
+  }
+  function addMember(): void {
+    const users: ProjectMemberResponse[] = JSON.parse(
+      JSON.stringify(membersSelected.value)
+    );
+    const usersNew: ProjectMemberResponse[] = [];
+    const userIds: string[] = [];
+
+    users.push(
+      ...(project.value?.users?.user.filter((a) => a._id === member.value) ||
+        [])
+    );
+
+    for (const user of users) {
+      if (!userIds.includes(user._id)) {
+        userIds.push(user._id);
+        usersNew.push(user);
+      }
+    }
+
+    membersSelected.value = usersNew;
+    collaboratorInput.value.value = "";
+    collaboratorInput.value.model = "";
+    filterUsers();
+  }
+  function removeMember(user_id: string): void {
+    const index = membersSelected.value.findIndex((a) => a._id === user_id);
+
+    if (index > -1) {
+      membersSelected.value.splice(0, 1);
+      filterUsers();
+    }
+  }
   async function submit(): Promise<void> {
     loadingSubmit.value = true;
-    const payload: ProjectProgressReportRequest = {
-      time: time.value,
-      actual: actual.value,
-    };
-    await createProjectReport({
-      project_id: props.data.project_id,
-      request: payload,
+    if (type.value === "Daily") {
+      const payload: ProjectProgressReportRequest = {
+        member_id: member_id.value,
+        time: time.value,
+        actual: actual.value,
+      };
+      await createProjectReport({
+        project_id: props.data.project_id,
+        request: payload,
+      });
+    } else if (type.value === "Incident" && kind.value) {
+      const payload: ProjectIncidentReportRequest = {
+        member_id: member_id.value,
+        breakdown: breakdown.value,
+        kind: kind.value,
+      };
+
+      await createProjectIncident({
+        project_id: props.data.project_id,
+        request: payload,
+      });
+    }
+
+    project.value.reports = await getProjectReports({
+      _id: props.data.project_id,
     });
+
     loadingSubmit.value = false;
     panelState.value = "hide";
   }
@@ -260,6 +559,10 @@
       name: a.name,
       value: a._id,
     }));
+    project.value.users = await getProjectUsers({
+      _id: props.data.project_id,
+    });
+    filterUsers();
 
     setTimeout(() => {
       loading.value = false;
@@ -386,6 +689,90 @@
             }
           }
         }
+        .rd-panel-form-label {
+          position: relative;
+          width: 100%;
+          height: 1rem;
+          display: flex;
+          align-items: center;
+          margin-bottom: -1rem;
+          opacity: 0.5;
+        }
+        .rd-panel-form-role-wrapper {
+          position: relative;
+          left: -2rem;
+          width: calc(100% + 4rem);
+          padding: 0 2rem;
+          box-sizing: border-box;
+          display: flex;
+          flex-wrap: nowrap;
+          gap: 0.75rem;
+          overflow-x: auto;
+          .rd-panel-form-role {
+            cursor: pointer;
+            position: relative;
+            height: 1.5rem;
+            border-radius: 0.75rem;
+            border: var(--border);
+            padding: 0 0.5rem 0 0.75rem;
+            box-sizing: border-box;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+            * {
+              pointer-events: none;
+            }
+            span {
+              white-space: nowrap;
+            }
+            .rd-panel-form-role-icon {
+              position: relative;
+              width: 0.75rem;
+              height: 0.75rem;
+            }
+          }
+          &::-webkit-scrollbar {
+            display: none;
+          }
+        }
+        .rd-panel-form-user-wrapper {
+          position: relative;
+          width: 100%;
+          box-sizing: border-box;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.75rem;
+          .rd-panel-form-user {
+            cursor: pointer;
+            position: relative;
+            height: 1.5rem;
+            border-radius: 0.75rem;
+            border: var(--border);
+            padding: 0 0.5rem 0 0.25rem;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            * {
+              pointer-events: none;
+            }
+            .rd-panel-form-user-image {
+              position: relative;
+              width: 1rem;
+              height: 1rem;
+              background: var(--border-color);
+              border-radius: 50%;
+              margin-right: 0.5rem;
+            }
+            .rd-panel-form-user-icon {
+              position: relative;
+              width: 0.75rem;
+              height: 0.75rem;
+              margin-left: 0.5rem;
+            }
+          }
+        }
         .rd-panel-form-image-container {
           position: relative;
           left: -2rem;
@@ -423,3 +810,4 @@
     }
   }
 </style>
+types/project-report

@@ -67,7 +67,7 @@
 
   const datas = ref<DataTimeline[]>([]);
 
-  const period = ref<Period>(null);
+  const period = ref<Period | null>(null);
   const days = ref<Date[]>([]);
   const init = ref<boolean>(true);
 
@@ -87,7 +87,7 @@
   ];
 
   function setPeriod(tasks: ProjectTaskMinResponse[]): void {
-    const allPeriod: [number[], number[]] = tasks.reduce(
+    const allPeriod: [number[], number[]] = tasks.reduce<[number[], number[]]>(
       (a, b) => {
         if (b.period) {
           a[0].push(new Date(b.period.start).getTime());
@@ -121,13 +121,13 @@
 
     const w: number = Math.ceil((end.getTime() - start.getTime()) / 86400000);
     const x: number = Math.ceil(
-      (start.getTime() - period.value.start.getTime()) / 86400000
+      (start.getTime() - (period.value?.start.getTime() || 0)) / 86400000
     );
     let y: number = 0;
 
     const settled = datas.value
       .filter((a) => !!a.position)
-      .sort((a, b) => a.position.y - b.position.y)
+      .sort((a, b) => (a.position?.y || 0) - (b.position?.y || 0))
       .map((a) => JSON.parse(JSON.stringify(a)));
 
     for (var i: number = 0; i < settled.length; i++) {
@@ -159,9 +159,12 @@
           .filter((a) => !!a.period)
           .map<DataTimeline>((a) => ({
             name: a.name,
-            period: a.period,
+            period: a.period || {
+              start: "",
+              end: "",
+            },
             status: a.status[0].kind,
-            position: null,
+            position: undefined,
           }));
 
         for (var i: number = 0; i < datas.value.length; i++) {

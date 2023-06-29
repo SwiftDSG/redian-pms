@@ -13,12 +13,20 @@
       </div>
       <div class="rd-project-menu-section">
         <rd-input-button
-          v-if="projectMenu === 'tasks'"
+          v-if="
+            projectMenu === 'tasks' &&
+            project.data?.status[0]?.kind === 'pending'
+          "
           label="Add stage"
           @clicked="openAddArea"
         />
         <rd-input-button
-          v-else-if="projectMenu === 'reports'"
+          v-else-if="
+            projectMenu === 'reports' &&
+            project.data?.status[0]?.kind !== 'finished' &&
+            project.data?.status[0]?.kind !== 'breakdown' &&
+            project.data?.status[0]?.kind !== 'cancelled'
+          "
           label="Add report"
           @clicked="openAddReport"
         />
@@ -29,7 +37,13 @@
         <rd-input-select v-else :input="areaInput" />
       </div>
     </div>
-    <div v-if="projectWarning" class="rd-project-warning">
+    <div
+      v-if="projectWarning"
+      class="rd-project-warning"
+      :class="
+        projectWarning === 'breakdown' ? 'rd-project-warning-breakdown' : ''
+      "
+    >
       <div class="rd-project-warning-detail">
         <div class="rd-project-warning-icon-container">
           <rd-svg class="rd-project-warning-icon" name="warning" />
@@ -44,6 +58,7 @@
         </div>
       </div>
       <rd-input-button-small
+        v-if="projectWarning !== 'breakdown'"
         class="rd-project-warning-action"
         icon="chevron-right"
         type="primary"
@@ -96,9 +111,10 @@
       @remove-area="openRemoveArea"
     />
     <rd-project-reports
-      v-if="projectMenu === 'reports' && project.data"
+      v-if="projectMenu === 'reports' && project.data && projectReports"
       :project="project.data"
       :state="projectMenuState"
+      :data="projectReports"
       @changing-done="projectMenuState = 'idle'"
       @add-task="openAddTask"
     />
@@ -122,6 +138,7 @@
     ProjectAreaResponse,
     ProjectMemberResponse,
     ProjectProgressResponse,
+    ProjectReportResponse,
     ProjectUserResponse,
   } from "~~/types/project";
   import { ProjectRoleResponse } from "~~/types/project-role";
@@ -143,16 +160,20 @@
     | "empty-area"
     | "empty-task"
     | "incomplete-value"
-    | "incomplete-period";
+    | "incomplete-period"
+    | "breakdown";
 
   const emits = defineEmits(["open-panel", "change-page"]);
   const {
+    projects,
     project,
+    getProjects,
     getProject,
     getProjectProgress,
     getProjectAreas,
     getProjectTasks,
     getProjectUsers,
+    getProjectReports,
   } = useProject();
   const route = useRoute();
 
@@ -163,17 +184,8 @@
   const projectInput = ref<InputOption>({
     name: "project",
     placeholder: "Project",
-    model: "Time added",
-    options: [
-      {
-        name: "Time added",
-        value: "time_added",
-      },
-      {
-        name: "Alphabetically",
-        value: "alphabetically",
-      },
-    ],
+    model: "",
+    options: [],
   });
   const areaInput = ref<InputOption>({
     name: "area",
@@ -213,6 +225,9 @@
   );
   const projectProgress = computed<ProjectProgressResponse[] | null>(
     () => project.value.progress
+  );
+  const projectReports = computed<ProjectReportResponse[] | null>(
+    () => project.value.reports
   );
 
   const projectMenus: ProjectMenu[] = [
@@ -257,6 +272,8 @@
       str = "Invalid tasks values";
     if (projectWarning.value === "incomplete-period")
       str = "Tasks period incomplete";
+    if (projectWarning.value === "breakdown")
+      str = "Project is currently on investigation";
 
     return str;
   }
@@ -272,6 +289,8 @@
       str = "The sum of tasks values need to be 100% to start the project";
     if (projectWarning.value === "incomplete-period")
       str = "Tasks period is not completed yet";
+    if (projectWarning.value === "breakdown")
+      str = "Please wait until your employer removes this status";
 
     return str;
   }
@@ -294,6 +313,9 @@
           });
           break;
         case "reports":
+          project.value.reports = await getProjectReports({
+            _id: project.value.data?._id || "",
+          });
           break;
         case "tasks":
           project.value.areas = await getProjectAreas({
@@ -387,26 +409,40 @@
       type: "project-task-period",
       data: {
         project_id: project.value.data?._id || "",
+        period: project.value.data?.period,
         task,
       },
     });
   }
+  function generateWarning(): void {
+    if (project.value.data?.status[0].kind === "breakdown")
+      projectWarning.value = "breakdown";
+    else if (!projectAreas.value?.length) projectWarning.value = "empty-area";
+    else {
+      const count = projectAreas.value.reduce(
+        (a, b) => a + (b?.task?.length || 0),
+        0
+      );
+      if (!count) projectWarning.value = "empty-task";
+      else {
+        const count = projectAreas.value.reduce(
+          (a, b) => a + (b?.task?.reduce((c, d) => c + d.value, 0) || 0),
+          0
+        );
+        if (count !== 100) projectWarning.value = "incomplete-value";
+        else if (
+          projectTimeline.value?.length &&
+          !projectTimeline.value.every((a) => !!a.period)
+        )
+          projectWarning.value = "incomplete-period";
+      }
+    }
+  }
 
   watch(
     () => projectAreas.value,
-    (val) => {
-      if (!val?.length) projectWarning.value = "empty-area";
-      else {
-        const count = val.reduce((a, b) => a + (b?.task?.length || 0), 0);
-        if (!count) projectWarning.value = "empty-task";
-        else {
-          const count = val.reduce(
-            (a, b) => a + (b?.task?.reduce((c, d) => c + d.value, 0) || 0),
-            0
-          );
-          if (count !== 100) projectWarning.value = "incomplete-value";
-        }
-      }
+    () => {
+      generateWarning();
     },
     {
       deep: true,
@@ -414,9 +450,8 @@
   );
   watch(
     () => projectTimeline.value,
-    (val) => {
-      if (val?.length && !val.every((a) => !!a.period))
-        projectWarning.value = "incomplete-period";
+    () => {
+      generateWarning();
     },
     {
       deep: true,
@@ -424,6 +459,8 @@
   );
 
   onMounted(async () => {
+    await getProjects();
+
     project.value = {
       data: await getProject({
         _id: route.params.project_id.toString(),
@@ -434,11 +471,12 @@
       timeline: null,
       progress: null,
       users: null,
+      reports: null,
     };
 
     projectMenuChange("overview");
 
-    if (!project.value?.areas?.length) projectWarning.value = "empty-area";
+    if (!project.value.areas?.length) generateWarning();
     else if (areaInput.value.options) {
       areaInput.value.options.push(
         ...(project.value.areas?.map((a) => ({
@@ -446,6 +484,17 @@
           value: a._id,
         })) || [])
       );
+    }
+
+    if (projects.value?.length) {
+      projectInput.value.options = projects.value.map((a) => ({
+        name: a.name,
+        value: a._id,
+      }));
+      if (project.value.data) {
+        projectInput.value.model = project.value.data.name;
+        projectInput.value.value = project.value.data._id;
+      }
     }
   });
 </script>
@@ -508,6 +557,9 @@
           display: flex;
           flex-direction: column;
         }
+      }
+      &.rd-project-warning-breakdown {
+        background: var(--error-color);
       }
     }
   }

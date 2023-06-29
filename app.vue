@@ -69,6 +69,22 @@
       @open-panel="panelHandler"
       @change-page="changeHandler"
     />
+    <rd-role-panel
+      v-if="panelOpened === 'role'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
+    <rd-user-panel
+      v-if="panelOpened === 'user'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
     <rd-project-add-panel
       v-if="panelOpened === 'project-add'"
       :state="panelState"
@@ -125,6 +141,14 @@
       @open-panel="panelHandler"
       @change-page="changeHandler"
     />
+    <rd-project-task-delete-panel
+      v-if="panelOpened === 'project-task-delete'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
     <rd-project-task-period-panel
       v-if="panelOpened === 'project-task-period'"
       :state="panelState"
@@ -165,11 +189,14 @@
   };
   type PanelType =
     | "customer"
+    | "role"
+    | "user"
     | "project-add"
     | "project-area-add"
     | "project-area-remove"
     | "project-task"
     | "project-task-add"
+    | "project-task-delete"
     | "project-task-period"
     | "project-report-add"
     | "project-role"

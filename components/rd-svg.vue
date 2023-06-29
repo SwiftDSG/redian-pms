@@ -7,15 +7,13 @@
 </template>
 
 <script lang="ts" setup>
-  import gsap from "gsap";
-
   const config = useRuntimeConfig();
   const props = defineProps<{
     name: string;
     color?: string;
   }>();
 
-  const rdComponent = ref<HTMLDivElement>(null);
+  const rdComponent = ref<HTMLDivElement | null>(null);
 
   const rdElementText = ref<string>("");
 
@@ -38,7 +36,7 @@
   watch(
     () => rdElementText.value,
     (val) => {
-      rdComponent.value.innerHTML = val;
+      if (rdComponent.value) rdComponent.value.innerHTML = val;
     }
   );
 

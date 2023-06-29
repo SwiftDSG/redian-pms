@@ -33,7 +33,7 @@
 
   const { alert, removeAlert } = useAlert();
 
-  const rdComponent = ref<HTMLDivElement>(null);
+  const rdComponent = ref<HTMLDivElement | null>(null);
 
   const alerts = ref<AlertTimeout[]>([]);
   const alertId = ref<number>(0);
@@ -46,11 +46,9 @@
         },
       });
 
-      const rdAlert: HTMLElement = rdComponent.querySelector(
+      const rdAlert: HTMLElement | null = rdComponent.querySelector(
         `.rd-alert[data-id="${id}"]`
       );
-
-      console.log("test");
 
       tl.to(rdAlert, {
         y: 0,
@@ -65,7 +63,7 @@
         },
       });
 
-      const rdAlert: HTMLElement = rdComponent.querySelector(
+      const rdAlert: HTMLElement | null = rdComponent.querySelector(
         `.rd-alert[data-id="${id}"]`
       );
 
@@ -82,7 +80,7 @@
         },
       });
 
-      const rdAlert: HTMLElement = rdComponent.querySelector(
+      const rdAlert: HTMLElement | null = rdComponent.querySelector(
         `.rd-alert[data-id="${id}"]`
       );
 
@@ -103,14 +101,18 @@
       const prevAlert: AlertTimeout = alerts.value[prevIndex];
       if (prevAlert && !prevAlert.playing) {
         alerts.value[prevIndex].playing = true;
-        animate.remove(rdComponent.value, prevAlert.id, () => {
-          clearTimeout(prevAlert.timeout);
-          alerts.value.splice(prevIndex, 1);
-        });
+        if (rdComponent.value) {
+          animate.remove(rdComponent.value, prevAlert.id, () => {
+            clearTimeout(prevAlert.timeout);
+            alerts.value.splice(prevIndex, 1);
+          });
+        }
       }
       setTimeout(
         () => {
-          animate.show(rdComponent.value, data.id);
+          if (rdComponent.value) {
+            animate.show(rdComponent.value, data.id);
+          }
         },
         prevAlert ? 100 : 0
       );
@@ -128,7 +130,11 @@
           playing: false,
           timeout: setTimeout(() => {
             const index: number = alerts.value.findIndex((a) => a.id === id);
-            if (index > -1 && !alerts.value[index].playing) {
+            if (
+              index > -1 &&
+              !alerts.value[index].playing &&
+              rdComponent.value
+            ) {
               alerts.value[index].playing = true;
               animate.hide(rdComponent.value, id, () => {
                 alerts.value.splice(index, 1);

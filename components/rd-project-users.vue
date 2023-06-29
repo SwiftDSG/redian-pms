@@ -4,6 +4,7 @@
       <div class="rd-panel-role-header">
         <span class="rd-panel-role-header-title rd-headline-3">Role list</span>
         <rd-input-button-small
+          v-if="project.status[0]?.kind === 'pending'"
           :icon="'plus'"
           :type="'primary'"
           @clicked="addRole"
@@ -38,6 +39,7 @@
           >Member list</span
         >
         <rd-input-button-small
+          v-if="project.status[0]?.kind === 'pending'"
           :icon="'plus'"
           :type="'primary'"
           @clicked="addUser"
@@ -88,7 +90,7 @@
     "add-user",
   ]);
 
-  const rdPanel = ref<HTMLDivElement>(null);
+  const rdPanel = ref<HTMLDivElement | null>(null);
 
   const animate = {
     init(rdComponent: HTMLElement, cb: () => void): void {
@@ -131,16 +133,18 @@
   watch(
     () => props.state,
     (val) => {
-      if (val === "changing") {
+      if (val === "changing" && rdPanel.value) {
         animate.exit(rdPanel.value);
       }
     }
   );
 
   onMounted(() => {
-    animate.init(rdPanel.value, () => {
-      emits("changing-done");
-    });
+    if (rdPanel.value) {
+      animate.init(rdPanel.value, () => {
+        emits("changing-done");
+      });
+    }
   });
 </script>
 
@@ -253,15 +257,14 @@
       .rd-panel-user-body {
         position: relative;
         width: 100%;
-        height: 100%;
+        max-height: calc(100% - 3.5rem);
         padding: 0.75rem;
         border-radius: 0.75rem;
         box-sizing: border-box;
         display: flex;
-        justify-content: space-between;
         flex-wrap: wrap;
         gap: 0.75rem;
-
+        overflow-y: auto;
         .rd-panel-user {
           position: relative;
           width: calc((100% - 0.75rem) / 2);

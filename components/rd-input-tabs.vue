@@ -44,9 +44,9 @@
   }>();
   const { rem } = useMain();
 
-  const rdInputLabel = ref<HTMLLabelElement[]>(null);
-  const rdInputComponent = ref<HTMLDivElement>(null);
-  const rdInputBorder = ref<HTMLDivElement>(null);
+  const rdInputLabel = ref<HTMLLabelElement[] | null>(null);
+  const rdInputComponent = ref<HTMLDivElement | null>(null);
+  const rdInputBorder = ref<HTMLDivElement | null>(null);
 
   const windowLeft = ref<number>(0);
   const sizes = ref<Size[]>([]);
@@ -60,31 +60,34 @@
     return `rd-input-${combination}`;
   });
 
-  function updateModel(e: InputEvent): InputEvent {
+  function updateModel(e: Event): Event {
     if (e.target instanceof HTMLInputElement) {
-      const index: number = parseInt(e.target.dataset.index);
-      props.input.model = props.input.options[index];
-      const { width, left }: Size = sizes.value[index];
-      gsap.to(rdInputBorder.value, {
-        x: left - windowLeft.value - 0.75 * rem.value,
-        width,
-        duration: 0.25,
-        ease: "power2.out",
-      });
+      const index: number = parseInt(e.target.dataset.index || "-1");
+      if (index > -1) {
+        props.input.model = props.input.options[index];
+        const { width, left }: Size = sizes.value[index];
+        gsap.to(rdInputBorder.value, {
+          x: left - windowLeft.value - 0.75 * rem.value,
+          width,
+          duration: 0.25,
+          ease: "power2.out",
+        });
+      }
     }
     return e;
   }
 
   onMounted(() => {
-    windowLeft.value = rdInputComponent.value.getBoundingClientRect().left;
-    for (const rdElement of rdInputLabel.value) {
-      const { width, left }: DOMRect = rdElement.getBoundingClientRect();
-      sizes.value.push({ width, left });
-    }
+    if (rdInputComponent.value && rdInputLabel.value) {
+      windowLeft.value = rdInputComponent.value.getBoundingClientRect().left;
+      for (const rdElement of rdInputLabel.value) {
+        const { width, left }: DOMRect = rdElement.getBoundingClientRect();
+        sizes.value.push({ width, left });
+      }
 
-    rdInputComponent.value.querySelector("input").click();
-    console.log(props.input.model);
-    console.log(props.input.options);
+      const rdInput = rdInputComponent.value.querySelector("input");
+      if (rdInput) rdInput.click();
+    }
   });
 </script>
 

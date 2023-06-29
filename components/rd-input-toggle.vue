@@ -21,7 +21,7 @@
   }>();
 
   const emits = defineEmits(["clicked"]);
-  const rdInputComponent = ref<HTMLButtonElement>(null);
+  const rdInputComponent = ref<HTMLButtonElement | null>(null);
 
   const buttonAnimating = ref<boolean>(false);
   const buttonClicking = ref<boolean>(false);
@@ -39,7 +39,7 @@
         },
       });
 
-      const rdInputSlider: HTMLElement = rdInputComponent.querySelector(
+      const rdInputSlider: HTMLElement | null = rdInputComponent.querySelector(
         ".rd-input-label-slider"
       );
 
@@ -61,9 +61,9 @@
         },
       });
 
-      const rdInputLabel: HTMLElement =
+      const rdInputLabel: HTMLElement | null =
         rdInputComponent.querySelector(".rd-input-label");
-      const rdInputSlider: HTMLElement = rdInputComponent.querySelector(
+      const rdInputSlider: HTMLElement | null = rdInputComponent.querySelector(
         ".rd-input-label-slider"
       );
 
@@ -88,19 +88,21 @@
     buttonAnimating.value = true;
     buttonClicking.value = true;
     buttonPressed.value = true;
-    animate.click(props.input.model, rdInputComponent.value, () => {
-      emits("clicked");
-      buttonClicking.value = false;
-      if (!buttonPressed.value) {
-        mouseUpHandler();
-      }
-    });
-    window.addEventListener("mouseup", mouseUpHandler);
+    if (rdInputComponent.value) {
+      animate.click(props.input.model, rdInputComponent.value, () => {
+        emits("clicked");
+        buttonClicking.value = false;
+        if (!buttonPressed.value) {
+          mouseUpHandler();
+        }
+      });
+      window.addEventListener("mouseup", mouseUpHandler);
+    }
   }
   function mouseUpHandler(): void {
     window.removeEventListener("mouseup", mouseUpHandler);
     buttonPressed.value = false;
-    if (!buttonClicking.value) {
+    if (!buttonClicking.value && rdInputComponent.value) {
       animate.release(props.input.model, rdInputComponent.value, () => {
         props.input.model = !props.input.model;
         setTimeout(() => {
@@ -116,20 +118,24 @@
       if (!buttonAnimating.value && rdInputComponent.value) {
         buttonAnimating.value = true;
         animate.click(!val, rdInputComponent.value, () => {
-          animate.release(!val, rdInputComponent.value, () => {
-            buttonAnimating.value = false;
-          });
+          if (rdInputComponent.value) {
+            animate.release(!val, rdInputComponent.value, () => {
+              buttonAnimating.value = false;
+            });
+          }
         });
       }
     }
   );
 
   onMounted(() => {
-    if (props.input.model) {
+    if (props.input.model && rdInputComponent.value) {
       animate.click(false, rdInputComponent.value, () => {
-        animate.release(false, rdInputComponent.value, () => {
-          buttonAnimating.value = false;
-        });
+        if (rdInputComponent.value) {
+          animate.release(false, rdInputComponent.value, () => {
+            buttonAnimating.value = false;
+          });
+        }
       });
     }
   });

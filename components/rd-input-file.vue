@@ -48,7 +48,7 @@
 <script lang="ts" setup>
   import gsap from "gsap";
 
-  import { InputFileOption } from "~~/interfaces/general.js";
+  import { InputFileOption } from "~~/types/general.js";
 
   interface AnyFile {
     name: string;
@@ -61,18 +61,18 @@
     input: InputFileOption;
   }>();
 
-  const rdInputLabel = ref<HTMLDivElement>(null);
-  const rdInputDetails = ref<HTMLDivElement>(null);
-  const rdInputLoading = ref<HTMLDivElement>(null);
+  const rdInputLabel = ref<HTMLDivElement | null>(null);
+  const rdInputDetails = ref<HTMLDivElement | null>(null);
+  const rdInputLoading = ref<HTMLDivElement | null>(null);
 
-  const file = ref<AnyFile>(null);
+  const file = ref<AnyFile | null>(null);
   const init = ref<boolean>(true);
 
   const animate = {
     initLabel(rdInputLabel: HTMLElement): void {
       const tl: GSAPTimeline = gsap.timeline();
 
-      const rdInputPlaceholder: HTMLElement = rdInputLabel.querySelector(
+      const rdInputPlaceholder: HTMLElement | null = rdInputLabel.querySelector(
         "span.rd-input-placeholder"
       );
 
@@ -94,7 +94,7 @@
         },
       });
 
-      const rdInputPlaceholder: HTMLElement = rdInputLabel.querySelector(
+      const rdInputPlaceholder: HTMLElement | null = rdInputLabel.querySelector(
         "span.rd-input-placeholder"
       );
 
@@ -152,9 +152,8 @@
         },
       });
 
-      const rdInputProgressBar: HTMLElement = rdInputLoading.querySelector(
-        ".rd-input-icon-progress-bar"
-      );
+      const rdInputProgressBar: HTMLElement | null =
+        rdInputLoading.querySelector(".rd-input-icon-progress-bar");
 
       tl.to(rdInputProgressBar, {
         scale: 0.875,
@@ -174,9 +173,8 @@
         },
       });
 
-      const rdInputProgressBar: HTMLElement = rdInputLoading.querySelector(
-        ".rd-input-icon-progress-bar"
-      );
+      const rdInputProgressBar: HTMLElement | null =
+        rdInputLoading.querySelector(".rd-input-icon-progress-bar");
 
       tl.to(rdInputProgressBar, {
         scale: 1.125,
@@ -210,39 +208,49 @@
   }
 
   function removeFile(): void {
-    animate.exitDetails(rdInputDetails.value, () => {
-      file.value = null;
-      setTimeout(() => {
-        animate.initLabel(rdInputLabel.value);
-      }, 100);
-    });
+    if (rdInputDetails.value) {
+      animate.exitDetails(rdInputDetails.value, () => {
+        file.value = null;
+        setTimeout(() => {
+          if (rdInputLabel.value) animate.initLabel(rdInputLabel.value);
+        }, 100);
+      });
+    }
   }
 
   function changeHandler(e: Event): void {
     e.preventDefault();
     if (e.target instanceof HTMLInputElement) {
-      const files: FileList = e.target.files;
-      fileHandler(files);
+      const files = e.target.files;
+      if (files) fileHandler(files);
     }
   }
   function fileHandler(files: FileList): void {
-    animate.exitLabel(rdInputLabel.value, () => {
-      init.value = false;
-      file.value = {
-        name: files[0].name,
-        type: files[0].type,
-        size: files[0].size,
-        file: files[0],
-      };
-      props.input.file = files[0];
-      animate.initLoading(rdInputLoading.value, () => {
-        setTimeout(() => {
-          animate.exitLoading(rdInputLoading.value, () => {
-            animate.initDetails(rdInputDetails.value);
+    if (rdInputLabel.value) {
+      animate.exitLabel(rdInputLabel.value, () => {
+        if (rdInputLoading.value) {
+          init.value = false;
+          file.value = {
+            name: files[0].name,
+            type: files[0].type,
+            size: files[0].size,
+            file: files[0],
+          };
+          props.input.file = files[0];
+          animate.initLoading(rdInputLoading.value, () => {
+            setTimeout(() => {
+              if (rdInputLoading.value) {
+                animate.exitLoading(rdInputLoading.value, () => {
+                  if (rdInputDetails.value) {
+                    animate.initDetails(rdInputDetails.value);
+                  }
+                });
+              }
+            }, 500);
           });
-        }, 500);
+        }
       });
-    });
+    }
   }
 </script>
 

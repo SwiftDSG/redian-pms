@@ -2,27 +2,27 @@
   <div
     ref="rdInputComponent"
     class="rd-input-component"
-    :class="`${props.input.error ? 'rd-input-error-active' : ''} ${
-      props.input.disabled ? 'rd-input-disabled' : ''
+    :class="`${input.error ? 'rd-input-error-active' : ''} ${
+      input.disabled ? 'rd-input-disabled' : ''
     }`"
   >
-    <label v-if="props.input.label" class="rd-input-label rd-headline-6">{{
-      props.input.label
+    <label v-if="input.label" class="rd-input-label rd-headline-6">{{
+      input.label
     }}</label>
     <div class="rd-input-container">
       <textarea
         class="rd-input rd-body-text"
-        :placeholder="props.input.placeholder"
-        :name="props.input.name"
-        :type="props.input.type === 'number' ? 'text' : props.input.type"
-        :disabled="props.input.disabled"
+        :placeholder="input.placeholder"
+        :name="input.name"
+        :type="input.type === 'number' ? 'text' : input.type"
+        :disabled="input.disabled"
         ref="rdInput"
         @input="updateModel"
       />
       <div class="rd-input-border"></div>
     </div>
     <span
-      v-if="typeof props.input.error === 'string'"
+      v-if="typeof input.error === 'string'"
       class="rd-input-error rd-headline-6"
     >
       <span class="rd-text-wrapper">
@@ -41,35 +41,36 @@
     input: InputOption;
   }>();
 
-  const rdInput = ref<HTMLInputElement>(null);
+  const rdInput = ref<HTMLInputElement | null>(null);
 
-  const inputError = ref<string>(props.input.error);
+  const inputError = ref<string | undefined>(props.input.error);
   const inputModel = ref<string>("");
 
-  function updateModel({ target, data }: InputEvent): void {
-    if (target instanceof HTMLTextAreaElement) {
+  function updateModel(e: Event): Event {
+    if (e.target instanceof HTMLTextAreaElement && e instanceof InputEvent) {
       if (props.input.type === "number") {
-        if ("1234567890".includes(data) || !data) {
-          const rawValue: number = parseInt(target.value.split(".").join(""));
+        if ((e.data && "1234567890".includes(e.data)) || !e.data) {
+          const rawValue: number = parseInt(e.target.value.split(".").join(""));
           const value: string = rawValue
             ? rawValue.toLocaleString("de-DE")
             : "";
-          target.value = value;
+          e.target.value = value;
           inputModel.value = value;
           props.input.model = value;
         } else {
-          target.value = inputModel.value;
+          e.target.value = inputModel.value;
         }
       } else {
-        inputModel.value = target.value;
-        props.input.model = target.value;
+        inputModel.value = e.target.value;
+        props.input.model = e.target.value;
       }
     }
+    return e;
   }
   watch(
     () => props.input.model,
     (val) => {
-      if (inputModel.value !== val) {
+      if (inputModel.value !== val && rdInput.value) {
         rdInput.value.value = val;
         inputModel.value = val;
       }
@@ -77,13 +78,13 @@
   );
   watch(
     () => props.input.error,
-    (val: string) => {
+    (val) => {
       if (val) inputError.value = val;
     }
   );
 
   onMounted(() => {
-    if (props.input.model) {
+    if (props.input.model && rdInput.value) {
       rdInput.value.value = props.input.model;
       inputModel.value = props.input.model;
     }

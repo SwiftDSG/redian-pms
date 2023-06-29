@@ -160,7 +160,7 @@ export type InputDateOption = {
   label?: string
   error?: string
   disabled?: boolean
-  threshold?: Date
+  threshold?: Date | [Date, Date]
   available?: number[]
 }
 export type InputTimeOption = {

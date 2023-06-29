@@ -4,7 +4,10 @@
     :label="task?.name || data.task_id"
     :state="panelState"
     :loading="loading"
+    :action="project.data?.status[0]?.kind === 'pending' ? 'delete' : ''"
+    type="secondary"
     @exit="emits('exit')"
+    @clicked="deleteTask"
   >
     <div v-if="task" class="rd-panel-body">
       <div class="rd-panel-fieldset">
@@ -63,8 +66,8 @@
       </div>
       <div
         v-if="
-          (!task.task?.length && task.status[0].kind === 'pending') ||
-          (task.user?.length && task.status[0].kind !== 'pending')
+          (!task.task?.length && project.data?.status[0].kind === 'pending') ||
+          (task.user?.length && project.data?.status[0].kind !== 'pending')
         "
         class="rd-panel-fieldset"
       >
@@ -97,7 +100,7 @@
               class="rd-panel-fieldset-button"
               icon="plus"
               type="primary"
-              :disabled="!user_id"
+              :disabled="!user"
               @clicked="addUser"
             />
           </div>
@@ -132,15 +135,18 @@
       </div>
       <div
         v-if="
-          (!task.user?.length && task.status[0].kind === 'pending') ||
-          (task.task?.length && task.status[0].kind !== 'pending')
+          (!task.user?.length && project.data?.status[0].kind === 'pending') ||
+          (task.task?.length && project.data?.status[0].kind !== 'pending')
         "
         class="rd-panel-fieldset"
       >
         <div class="rd-panel-fieldset-header">
           <span class="rd-panel-fieldset-name rd-headline-4">Subtask(s)</span>
           <rd-input-button-small
-            v-if="taskPrepared || (task.task?.length && !taskPrepared)"
+            v-if="
+              project.data?.status[0].kind === 'pending' &&
+              (taskPrepared || (task.task?.length && !taskPrepared))
+            "
             icon="save"
             type="primary"
             :disabled="
@@ -158,7 +164,7 @@
         </div>
         <div class="rd-panel-fieldset-body">
           <div
-            v-if="task.status[0].kind === 'pending'"
+            v-if="project.data?.status[0].kind === 'pending'"
             class="rd-panel-fieldset"
           >
             <div class="rd-panel-fieldset-input-wrapper">
@@ -217,6 +223,7 @@
     ProjectTaskRequest,
     ProjectTaskResponse,
     ProjectTaskStatusKind,
+    ProjectTaskUserResponse,
   } from "~~/types/project-task";
 
   const props = defineProps<{
@@ -242,13 +249,13 @@
   const loading = ref<boolean>(true);
   const submitLoading = ref<boolean>(false);
 
-  const task = ref<ProjectTaskResponse>(null);
+  const task = ref<ProjectTaskResponse | null>(null);
 
   const roleInput = ref<
     {
       role_id: string;
       name: string;
-      user: ProjectMemberResponse[];
+      user: ProjectMemberResponse[] | undefined;
     }[]
   >([]);
   const collaboratorInput = ref<InputOption>({
@@ -287,7 +294,9 @@
 
   const taskPrepared = ref<boolean>(false);
 
-  const user = computed<string>(() => collaboratorInput.value.value);
+  const user = computed<string | undefined>(
+    () => collaboratorInput.value.value
+  );
   const name = computed<ProjectTaskRequest["name"]>(
     () => nameInput.value.model
   );
@@ -299,7 +308,7 @@
     value: parseInt(volumeValueInput.value.model.split(".").join("") || "1"),
   }));
   const taskRequestSum = computed<number>(
-    () => task.value.task?.reduce((a, b) => a + b.value, 0) || 0
+    () => task.value?.task?.reduce((a, b) => a + b.value, 0) || 0
   );
 
   function getStatus(status: ProjectTaskStatusKind): string {
@@ -324,9 +333,9 @@
   }
   function filterUsers(): void {
     collaboratorInput.value.options =
-      project.value.users.user
+      project.value.users?.user
         ?.filter(
-          (a) => !(task.value.user?.map((b) => b._id) || []).includes(a._id)
+          (a) => !(task.value?.user?.map((b) => b._id) || []).includes(a._id)
         )
         .map((a) => ({ name: a.name, value: a._id })) || [];
 
@@ -337,124 +346,143 @@
           name: a.name,
           user: project.value.users?.user
             ?.filter(
-              (a) => !(task.value.user?.map((b) => b._id) || []).includes(a._id)
+              (a) =>
+                !(task.value?.user?.map((b) => b._id) || []).includes(a._id)
             )
             .filter((b) => b.role.map((c) => c._id).includes(a._id)),
         }))
         .filter((a) => a.user?.length) || [];
   }
   function addUsersWithinRole(role_id: string): void {
-    const users = JSON.parse(JSON.stringify(task.value.user || []));
-    const usersNew = [];
-    const userIds = [];
+    if (task.value) {
+      const users: ProjectTaskUserResponse[] = JSON.parse(
+        JSON.stringify(task.value?.user || [])
+      );
+      const usersNew: ProjectTaskUserResponse[] = [];
+      const userIds: string[] = [];
 
-    users.push(
-      ...project.value.users.user
-        .filter((a) => a.role.map((b) => b._id).includes(role_id))
-        .map((a) => ({
-          _id: a._id,
-          name: a.name,
-          image: a.image,
-        }))
-    );
+      users?.push(
+        ...(project.value?.users?.user
+          .filter((a) => a.role.map((b) => b._id).includes(role_id))
+          .map((a) => ({
+            _id: a._id,
+            name: a.name,
+            image: a.image,
+          })) || [])
+      );
 
-    for (const user of users) {
-      if (!userIds.includes(user._id)) {
-        userIds.push(user._id);
-        usersNew.push(user);
+      for (const user of users) {
+        if (!userIds.includes(user._id)) {
+          userIds.push(user._id);
+          usersNew.push(user);
+        }
       }
-    }
 
-    task.value.user = usersNew;
+      task.value.user = usersNew;
+    }
   }
   function addUser(): void {
-    const users = JSON.parse(JSON.stringify(task.value.user || []));
-    const usersNew = [];
-    const userIds = [];
+    if (task.value) {
+      const users: ProjectTaskUserResponse[] = JSON.parse(
+        JSON.stringify(task.value?.user || [])
+      );
+      const usersNew: ProjectTaskUserResponse[] = [];
+      const userIds: string[] = [];
 
-    users.push(
-      ...project.value.users.user
-        .filter((a) => a._id === user.value)
-        .map((a) => ({
-          _id: a._id,
-          name: a.name,
-          image: a.image,
-        }))
-    );
+      users.push(
+        ...(project.value?.users?.user
+          .filter((a) => a._id === user.value)
+          .map((a) => ({
+            _id: a._id,
+            name: a.name,
+            image: a.image,
+          })) || [])
+      );
 
-    for (const user of users) {
-      if (!userIds.includes(user._id)) {
-        userIds.push(user._id);
-        usersNew.push(user);
+      for (const user of users) {
+        if (!userIds.includes(user._id)) {
+          userIds.push(user._id);
+          usersNew.push(user);
+        }
       }
-    }
 
-    task.value.user = usersNew;
-    collaboratorInput.value.value = "";
-    collaboratorInput.value.model = "";
+      task.value.user = usersNew;
+      collaboratorInput.value.value = "";
+      collaboratorInput.value.model = "";
+    }
   }
   function removeUser(user_id: string): void {
-    const index = task.value.user?.findIndex((a) => a._id === user_id);
+    if (task.value?.user) {
+      const index = task.value.user.findIndex((a) => a._id === user_id);
 
-    if (index > -1) {
-      task.value.user.splice(0, 1);
-      filterUsers();
+      if (index > -1) {
+        task.value.user.splice(0, 1);
+        filterUsers();
+      }
     }
   }
   async function updateProjectUser(): Promise<void> {
-    submitLoading.value = true;
+    if (task.value) {
+      submitLoading.value = true;
 
-    await updateProjectTask({
-      project_id: props.data.project_id,
-      task_id: props.data.task_id,
-      request: {
-        area_id: task.value.area._id,
-        user_id: task.value.user?.map((a) => a._id) || [],
-        name: task.value.name,
-        description: task.value.description,
-        volume: task.value.volume,
-        value: task.value.value,
-      },
-    });
+      await updateProjectTask({
+        project_id: props.data.project_id,
+        task_id: props.data.task_id,
+        request: {
+          area_id: task.value.area._id,
+          user_id: task.value.user?.map((a) => a._id) || [],
+          name: task.value.name,
+          description: task.value.description,
+          volume: task.value.volume,
+          value: task.value.value,
+        },
+      });
 
-    project.value.areas = await getProjectAreas({ _id: props.data.project_id });
-    project.value.timeline = await getProjectTasks({
-      _id: props.data.project_id,
-    });
+      project.value.areas = await getProjectAreas({
+        _id: props.data.project_id,
+      });
+      project.value.timeline = await getProjectTasks({
+        _id: props.data.project_id,
+      });
 
-    submitLoading.value = false;
-    panelState.value = "hide";
+      submitLoading.value = false;
+      panelState.value = "hide";
+    }
   }
   function addTask(): void {
-    task.value.task = task.value.task || [];
+    if (task.value) {
+      task.value.task = task.value.task || [];
 
-    task.value.task.push({
-      _id: `temp-${new Date().toISOString()}`,
-      user: null,
-      task: null,
-      name: name.value,
-      period: null,
-      actual: null,
-      status: [
-        {
-          kind: "pending",
-          time: new Date(),
-        },
-      ],
-      volume: volume.value,
-      value: value.value,
-      progress: 0,
-    });
+      task.value.task.push({
+        _id: `temp-${new Date().toISOString()}`,
+        user: undefined,
+        task: undefined,
+        name: name.value,
+        period: undefined,
+        actual: undefined,
+        status: [
+          {
+            kind: "pending",
+            time: new Date(),
+          },
+        ],
+        volume: volume.value,
+        value: value.value,
+        progress: 0,
+      });
 
-    nameInput.value.model = "";
-    volumeValueInput.value.model = "";
-    volumeUnitInput.value.model = "";
-    valueInput.value.model = "";
+      nameInput.value.model = "";
+      volumeValueInput.value.model = "";
+      volumeUnitInput.value.model = "";
+      valueInput.value.model = "";
+    }
   }
   function removeTask(task_id: string) {
-    const index = task.value.task?.findIndex((a) => a._id === task_id);
-    if (index > -1) {
-      task.value.task.splice(index, 1);
+    if (task.value?.task) {
+      const index = task.value.task.findIndex((a) => a._id === task_id);
+      if (index > -1) {
+        task.value.task.splice(index, 1);
+      }
     }
   }
   function openTask(task_id: string): void {
@@ -467,30 +495,44 @@
       },
     });
   }
+  function deleteTask(): void {
+    emits("open-panel", {
+      state: "show",
+      type: "project-task-delete",
+      data: {
+        project_id: props.data.project_id,
+        task_id: props.data.task_id,
+      },
+    });
+  }
   async function createProjectTaskSub(): Promise<void> {
-    submitLoading.value = true;
+    if (task.value) {
+      submitLoading.value = true;
 
-    await createProjectTask({
-      project_id: props.data.project_id,
-      task_id: props.data.task_id,
-      request: [
-        ...(task.value.task?.map<ProjectTaskRequest>((a) => ({
-          name: a.name,
-          value: a.value,
-          description: "",
-          volume: a.volume,
-          area_id: task.value.area._id,
-        })) || []),
-      ],
-    });
+      await createProjectTask({
+        project_id: props.data.project_id,
+        task_id: props.data.task_id,
+        request: [
+          ...(task.value.task?.map<ProjectTaskRequest>((a) => ({
+            name: a.name,
+            value: a.value,
+            description: "",
+            volume: a.volume,
+            area_id: task.value?.area._id,
+          })) || []),
+        ],
+      });
 
-    project.value.areas = await getProjectAreas({ _id: props.data.project_id });
-    project.value.timeline = await getProjectTasks({
-      _id: props.data.project_id,
-    });
+      project.value.areas = await getProjectAreas({
+        _id: props.data.project_id,
+      });
+      project.value.timeline = await getProjectTasks({
+        _id: props.data.project_id,
+      });
 
-    submitLoading.value = false;
-    panelState.value = "hide";
+      submitLoading.value = false;
+      panelState.value = "hide";
+    }
   }
 
   watch(
@@ -510,20 +552,22 @@
   );
 
   onMounted(async () => {
-    project.value.users = await getProjectUsers({
-      _id: project.value.data._id,
-    });
+    if (project.value?.data) {
+      project.value.users = await getProjectUsers({
+        _id: project.value.data._id,
+      });
 
-    task.value = await getProjectTask({
-      project_id: props.data.project_id,
-      task_id: props.data.task_id,
-    });
+      task.value = await getProjectTask({
+        project_id: props.data.project_id,
+        task_id: props.data.task_id,
+      });
 
-    if (task.value.task?.length) taskPrepared.value = true;
+      if (task.value?.task?.length) taskPrepared.value = true;
 
-    setTimeout(() => {
-      loading.value = false;
-    }, 500);
+      setTimeout(() => {
+        loading.value = false;
+      }, 500);
+    }
   });
 </script>
 
@@ -606,11 +650,17 @@
               * {
                 pointer-events: none;
               }
+              span {
+                white-space: nowrap;
+              }
               .rd-panel-fieldset-role-icon {
                 position: relative;
                 width: 0.75rem;
                 height: 0.75rem;
               }
+            }
+            &::-webkit-scrollbar {
+              display: none;
             }
           }
           .rd-panel-fieldset-user-wrapper {

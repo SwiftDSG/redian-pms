@@ -52,7 +52,7 @@
           <rd-input-button
             class="rd-panel-form-input"
             label="Submit"
-            :disabled="!email || !password || !name"
+            :disabled="!email || !password || (createUser && !name)"
             :loading="submitLoading"
             @clicked="submit"
           />
@@ -107,9 +107,9 @@
     error: "",
   });
 
-  const name = computed<string>((): string => nameInput.value.model);
-  const email = computed<string>((): string => emailInput.value.model);
-  const password = computed<string>((): string => passwordInput.value.model);
+  const name = computed<string>(() => nameInput.value.model);
+  const email = computed<string>(() => emailInput.value.model);
+  const password = computed<string>(() => passwordInput.value.model);
 
   const animate = {
     exit(viewMode: ViewMode, rdPanel: HTMLElement, cb?: () => void): void {
@@ -139,31 +139,36 @@
   async function submit() {
     if (email.value && password.value && !submitLoading.value) {
       submitLoading.value = true;
-      if (createUser.value)
-        await createOwner({
-          role_id: [],
-          name: name.value,
-          email: email.value,
-          password: password.value,
-        });
+      if (createUser.value) {
+        const payload = {
+          request: {
+            name: name.value,
+            email: email.value,
+            password: password.value,
+          },
+        };
+        await createOwner(payload);
+      }
       const user = await login(email.value, password.value);
 
       setTimeout(() => {
+        submitLoading.value = false;
         if (user) {
           exit("/");
         } else {
           emits("shake");
         }
-        submitLoading.value = false;
       }, 1000);
     }
   }
 
   function exit(path: string = "/"): void {
-    if (rdPanel.value)
-      animate.exit(viewMode.value, rdPanel.value, () => {
-        router.push(path);
-      });
+    setTimeout(() => {
+      if (rdPanel.value)
+        animate.exit(viewMode.value, rdPanel.value, () => {
+          router.push(path);
+        });
+    }, 100);
   }
 
   onMounted(async () => {

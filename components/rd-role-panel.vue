@@ -3,6 +3,8 @@
     class="rd-panel"
     :label="data.role ? 'Edit role' : 'Add role'"
     :state="panelState"
+    :action="data.role ? 'delete' : ''"
+    @clicked="submit(true)"
     @exit="emits('exit')"
   >
     <div class="rd-panel-body">
@@ -28,7 +30,7 @@
       <rd-input-button
         class="rd-panel-button"
         label="submit"
-        :disabled="!project || !name"
+        :disabled="!name || !permission.length"
         :loading="loading"
         @clicked="submit"
       />
@@ -37,15 +39,11 @@
 </template>
 
 <script lang="ts" setup>
+  import { RolePermission, RoleRequest, RoleResponse } from "types/role";
   import { InputOption, InputToggleOption } from "~~/types/general";
-  import {
-    ProjectRolePermission,
-    ProjectRoleRequest,
-    ProjectRoleResponse,
-  } from "~~/types/project-role";
 
-  type RolePermission = {
-    kind: ProjectRolePermission;
+  type RolePermissionInput = {
+    kind: RolePermission;
     name: string;
     description: string;
     input: InputToggleOption;
@@ -54,13 +52,12 @@
   const props = defineProps<{
     state: "idle" | "hide";
     data: {
-      project_id: string;
-      role?: ProjectRoleResponse;
+      role?: RoleResponse;
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
-  const { project, createProjectRole, getProjectUsers, updateProjectRole } =
-    useProject();
+  const { getRoles, createRole, updateRole, deleteRole } = useRole();
+  const { getUsers } = useUser();
 
   const panelState = ref<"idle" | "hide">("idle");
 
@@ -73,11 +70,11 @@
     placeholder: "Project Manager",
   });
 
-  const rolePermission = ref<RolePermission[]>([
+  const rolePermission = ref<RolePermissionInput[]>([
     {
       kind: "get_roles",
       name: "See users",
-      description: "See all users and roles available within this project.",
+      description: "See all users and roles available.",
       input: {
         model: false,
       },
@@ -85,7 +82,7 @@
     {
       kind: "create_role",
       name: "Create user",
-      description: "Create a user or a role for this project.",
+      description: "Create a user or a role.",
       input: {
         model: false,
       },
@@ -93,7 +90,7 @@
     {
       kind: "update_role",
       name: "Update user",
-      description: "Update a user or a role within this project.",
+      description: "Update a user or a role.",
       input: {
         model: false,
       },
@@ -101,90 +98,106 @@
     {
       kind: "delete_role",
       name: "Delete user",
-      description: "Delete a user or a role within this project.",
+      description: "Delete a user or a role.",
       input: {
         model: false,
       },
     },
     {
-      kind: "get_tasks",
-      name: "See tasks",
-      description: "See all tasks available within this project.",
+      kind: "get_customers",
+      name: "See customers",
+      description: "See all customers available.",
       input: {
         model: false,
       },
     },
     {
-      kind: "create_task",
-      name: "Create task",
-      description: "Create a task for this project.",
+      kind: "create_customer",
+      name: "Create customer",
+      description: "Create a customer.",
       input: {
         model: false,
       },
     },
     {
-      kind: "update_task",
-      name: "Update task",
-      description: "Update a task within this project.",
+      kind: "update_customer",
+      name: "Update customer",
+      description: "Update a customer.",
       input: {
         model: false,
       },
     },
     {
-      kind: "delete_task",
-      name: "Delete task",
-      description: "Delete a task within this project.",
+      kind: "delete_customer",
+      name: "Delete customer",
+      description: "Delete a customer.",
       input: {
         model: false,
       },
     },
     {
-      kind: "create_report",
-      name: "Create report",
-      description: "Create reports (daily & incident report) for this project",
+      kind: "get_projects",
+      name: "See projects",
+      description: "See all projects available.",
+      input: {
+        model: false,
+      },
+    },
+    {
+      kind: "create_project",
+      name: "Create project",
+      description: "Create a project.",
       input: {
         model: false,
       },
     },
   ]);
 
-  const name = computed<ProjectRoleRequest["name"]>(
-    () => nameInput.value.model
-  );
-  const permission = computed<ProjectRoleRequest["permission"]>(() => {
+  const name = computed<RoleRequest["name"]>(() => nameInput.value.model);
+  const permission = computed<RoleRequest["permission"]>(() => {
     const permissions = rolePermission.value
       .filter((a) => a.input.model)
       .map((a) => a.kind);
-    if (permissions.includes("get_roles")) permissions.push("get_role");
-    if (permissions.includes("get_tasks")) permissions.push("get_task");
-    if (permissions.includes("create_report"))
-      permissions.push("create_incident");
+    if (permissions.includes("get_roles"))
+      permissions.push("get_role", "get_users", "get_user");
+    if (permissions.includes("create_role")) permissions.push("create_user");
+    if (permissions.includes("update_role")) permissions.push("update_user");
+    if (permissions.includes("delete_role")) permissions.push("delete_user");
+    if (permissions.includes("get_customers")) permissions.push("get_customer");
+    if (permissions.includes("get_projects")) permissions.push("get_project");
     return permissions;
   });
 
-  async function submit(): Promise<void> {
-    if (project.value) {
+  async function submit(del?: boolean): Promise<void> {
+    if (!loading.value) {
       loading.value = true;
-      const payload = {
-        request: { name: name.value, permission: permission.value },
-        project_id: props.data.project_id,
-        role_id: props.data.role?._id || "",
-      };
 
-      if (props.data.role) {
-        await updateProjectRole(payload);
+      if (del && props.data.role) {
+        await deleteRole({ role_id: props.data.role._id });
       } else {
-        await createProjectRole(payload);
+        const payload = {
+          role_id: "",
+          request: {
+            name: name.value,
+            permission: permission.value,
+          },
+        };
+
+        if (props.data.role) {
+          payload.role_id = props.data.role._id;
+          await updateRole(payload);
+        } else {
+          await createRole(payload);
+        }
       }
 
-      project.value.users = await getProjectUsers({
-        _id: props.data.project_id,
-      });
-
+      await getUsers();
+      await getRoles();
       loading.value = false;
       panelState.value = "hide";
     }
   }
+
   watch(
     () => props.state,
     (val) => {
@@ -201,16 +214,30 @@
         if (
           (a.kind === "get_roles" &&
             role.permission.includes("get_roles") &&
-            role.permission.includes("get_role")) ||
-          (a.kind === "get_tasks" &&
-            role.permission.includes("get_tasks") &&
-            role.permission.includes("get_task")) ||
-          (a.kind === "create_report" &&
-            role.permission.includes("create_report") &&
-            role.permission.includes("create_incident")) ||
+            role.permission.includes("get_role") &&
+            role.permission.includes("get_users") &&
+            role.permission.includes("get_user")) ||
+          (a.kind === "create_role" &&
+            role.permission.includes("create_role") &&
+            role.permission.includes("create_user")) ||
+          (a.kind === "update_role" &&
+            role.permission.includes("update_role") &&
+            role.permission.includes("update_user")) ||
+          (a.kind === "delete_role" &&
+            role.permission.includes("delete_role") &&
+            role.permission.includes("delete_user")) ||
+          (a.kind === "get_customers" &&
+            role.permission.includes("get_customers") &&
+            role.permission.includes("get_customer")) ||
+          (a.kind === "get_projects" &&
+            role.permission.includes("get_projects") &&
+            role.permission.includes("get_project")) ||
           (a.kind !== "get_roles" &&
-            a.kind !== "get_tasks" &&
-            a.kind !== "create_report" &&
+            a.kind !== "create_role" &&
+            a.kind !== "update_role" &&
+            a.kind !== "delete_role" &&
+            a.kind !== "get_customers" &&
+            a.kind !== "get_projects" &&
             role.permission.includes(a.kind))
         ) {
           permitted = true;

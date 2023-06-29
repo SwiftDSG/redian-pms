@@ -5,11 +5,13 @@
         <span class="rd-project-area-name rd-headline-3">{{ area.name }}</span>
         <div class="rd-project-area-actions">
           <rd-input-button-small
+            v-if="project.status[0]?.kind === 'pending'"
             icon="delete"
             type="secondary"
             @clicked="removeArea(area._id)"
           />
           <rd-input-button-small
+            v-if="project.status[0]?.kind === 'pending'"
             icon="plus"
             type="primary"
             @clicked="addTask(area._id)"
@@ -37,7 +39,6 @@
 <script lang="ts" setup>
   import { ProjectAreaResponse, ProjectResponse } from "~~/types/project";
   import { gsap } from "gsap";
-  import { ProjectTaskStatusKind } from "~~/types/project-task";
 
   const props = defineProps<{
     project: ProjectResponse;
@@ -52,7 +53,7 @@
     "remove-area",
   ]);
 
-  const rdComponent = ref<HTMLDivElement>(null);
+  const rdComponent = ref<HTMLDivElement | null>(null);
 
   const animate = {
     init(rdComponent: HTMLElement, cb: () => void): void {
@@ -82,7 +83,7 @@
   watch(
     () => props.state,
     (val) => {
-      if (val === "changing") {
+      if (val === "changing" && rdComponent.value) {
         animate.exit(rdComponent.value);
       }
     }
@@ -99,9 +100,11 @@
   }
 
   onMounted(() => {
-    animate.init(rdComponent.value, () => {
-      emits("changing-done");
-    });
+    if (rdComponent.value) {
+      animate.init(rdComponent.value, () => {
+        emits("changing-done");
+      });
+    }
   });
 </script>
 

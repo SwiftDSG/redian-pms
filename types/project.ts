@@ -1,3 +1,5 @@
+import { ProjectIncidentReportResponse } from "./project-incident";
+import { ProjectProgressReportResponse } from "./project-report";
 import { ProjectRoleResponse } from "./project-role";
 import { ProjectTaskMinResponse } from "./project-task";
 import { UserImage } from "./user";
@@ -10,6 +12,7 @@ export type ProjectStatusKind =
   | "finished"
   | "cancelled";
 export type ProjectMemberKind = "direct" | "indirect" | "support";
+export type ProjectReportKind = "progress" | "incident";
 
 export type Project = {
   _id: string;
@@ -112,4 +115,10 @@ export type ProjectMemberResponse = {
 export type ProjectUserResponse = {
   user: ProjectMemberResponse[];
   role: ProjectRoleResponse[];
+}
+export type ProjectReportResponse = {
+  date: string;
+  kind: ProjectReportKind;
+  progress?: ProjectProgressReportResponse;
+  incident?: ProjectIncidentReportResponse;
 }

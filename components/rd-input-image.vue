@@ -51,7 +51,6 @@
 
 <script lang="ts" setup>
   import gsap from "gsap";
-  import { ComputedRef } from "vue";
 
   import { InputFileOption } from "~~/types/general.js";
 
@@ -60,7 +59,7 @@
     type: string;
     size: number;
     image_url: string | ArrayBuffer;
-    file: File;
+    file?: File;
   }
 
   const config = useRuntimeConfig();
@@ -69,14 +68,14 @@
     input: InputFileOption;
   }>();
 
-  const rdInputArea = ref<HTMLLabelElement>(null);
-  const rdImage = ref<HTMLDivElement[]>(null);
+  const rdInputArea = ref<HTMLLabelElement | null>(null);
+  const rdImage = ref<HTMLDivElement[] | null>(null);
 
   const inputDragging = ref<boolean>(false);
   const inputLoading = ref<boolean>(false);
-  const inputFile = ref<ImageFile>(null);
+  const inputFile = ref<ImageFile | null>(null);
 
-  const file: ComputedRef<File> = computed((): File => inputFile.value?.file);
+  const file = computed<File | undefined>(() => inputFile.value?.file);
 
   const animate = {
     initImage(rdInputArea: HTMLElement): void {
@@ -84,7 +83,7 @@
         onComplete() {},
       });
 
-      const rdInputImage: HTMLElement = rdInputArea.querySelector(
+      const rdInputImage: HTMLElement | null = rdInputArea.querySelector(
         ".rd-input-image-container"
       );
 
@@ -102,7 +101,7 @@
         },
       });
 
-      const rdInputImage: HTMLElement = rdInputArea.querySelector(
+      const rdInputImage: HTMLElement | null = rdInputArea.querySelector(
         ".rd-input-image-container"
       );
 
@@ -118,9 +117,8 @@
   function changeHandler(e: Event): Event {
     e.preventDefault();
     if (e.target instanceof HTMLInputElement) {
-      const files: FileList = e.target.files;
-      console.log(files);
-      fileHandler(files);
+      const files = e.target.files;
+      if (files) fileHandler(files);
     }
     return e;
   }
@@ -145,25 +143,27 @@
     return new Promise((resolve, reject) => {
       const reader: FileReader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
+      reader.onload = () => (reader.result ? resolve(reader.result) : null);
       reader.onerror = (e: ProgressEvent<FileReader>) => reject(e);
     });
   }
 
   function inputHandler(state: "show" | "hide"): void {
-    if (state === "show") {
-      animate.initImage(rdInputArea.value);
-    } else {
-      animate.exitImage(rdInputArea.value, () => {
-        inputFile.value = null;
-      });
+    if (rdInputArea.value) {
+      if (state === "show") {
+        animate.initImage(rdInputArea.value);
+      } else {
+        animate.exitImage(rdInputArea.value, () => {
+          inputFile.value = null;
+        });
+      }
     }
   }
 
   watch(
     () => file.value,
-    () => {
-      props.input.file = file.value;
+    (val) => {
+      if (val) props.input.file = val;
     }
   );
 
@@ -175,7 +175,6 @@
           type: "",
           size: 0,
           image_url: props.input.image_url,
-          file: null,
         };
         setTimeout(() => {
           inputHandler("show");

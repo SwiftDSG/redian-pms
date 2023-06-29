@@ -1,7 +1,7 @@
 <template>
   <div class="rd-component">
-    <label v-if="props.input.label" class="rd-input-label rd-headline-6">{{
-      props.input.label
+    <label v-if="input.label" class="rd-input-label rd-headline-6">{{
+      input.label
     }}</label>
     <div class="rd-input-wrapper">
       <rd-input-text class="rd-input" :input="hoursInput" />
@@ -12,7 +12,6 @@
 </template>
 
 <script lang="ts" setup>
-  import { ComputedRef } from "nuxt/dist/app/compat/capi";
   import { InputOption, InputTimeOption } from "~~/types/general";
 
   const props = defineProps<{
@@ -32,7 +31,7 @@
     type: "minute",
   });
 
-  const time: ComputedRef<[number, number]> = computed(() => [
+  const time = computed<[number, number]>(() => [
     parseInt(hoursInput.value.model) || 0,
     parseInt(minutesInput.value.model) || 0,
   ]);

@@ -2,31 +2,36 @@
   <div
     ref="rdInputComponent"
     class="rd-input-component"
-    :class="props.input.error ? 'rd-input-error-active' : ''"
+    :class="input.error ? 'rd-input-error-active' : ''"
   >
     <label
       :for="`rd-input-${inputId}`"
-      v-if="props.input.label"
+      v-if="input.label"
       class="rd-input-label rd-headline-6"
-      >{{ props.input.label }}</label
+      >{{ input.label }}</label
     >
     <div class="rd-input-container">
-      <div v-if="props.input.icon" class="rd-input-icon-container">
-        <rd-svg :name="props.input.icon" :color="'secondary'" />
+      <div v-if="input.icon" class="rd-input-icon-container">
+        <rd-svg :name="input.icon" :color="'secondary'" />
       </div>
       <input
         class="rd-input rd-body-text"
         :placeholder="props.input.placeholder"
         ref="rdInput"
         :id="`rd-input-${inputId}`"
-        readonly
+        type="date"
+        :model="inputModel"
         :name="props.input.name"
-        @focusin="dropDownHandler('open')"
+        :min="inputMin"
+        :max="inputMax"
         @input="updateModel"
       />
       <div class="rd-input-border"></div>
+      <div class="rd-input-calendar-container" @click="dropDownHandler('open')">
+        <rd-svg class="rd-input-calendar" name="calendar" />
+      </div>
       <div
-        v-if="dropDownOpened"
+        v-if="dropDownOpened && selectedMonth"
         ref="rdInputDate"
         class="rd-input-date"
         :data-id="inputId"
@@ -92,6 +97,16 @@
               :icon="'chevron-left'"
               style="transform-origin: center right"
               @clicked="changeMonth('left')"
+              :disabled="
+                props.input.threshold &&
+                isYesterday(
+                  selectedMonth.month === 0
+                    ? selectedMonth.year - 1
+                    : selectedMonth.year,
+                  selectedMonth.month === 0 ? 11 : selectedMonth.month - 1,
+                  32
+                )
+              "
             />
             <rd-input-button-small
               :data-id="inputId"
@@ -100,6 +115,16 @@
               :icon="'chevron-right'"
               style="transform-origin: center left"
               @clicked="changeMonth('right')"
+              :disabled="
+                props.input.threshold &&
+                isTomorrow(
+                  selectedMonth.month === 11
+                    ? selectedMonth.year + 1
+                    : selectedMonth.year,
+                  selectedMonth.month === 11 ? 0 : selectedMonth.month + 1,
+                  1
+                )
+              "
             />
           </div>
         </div>
@@ -129,18 +154,15 @@
                 :key="j"
                 class="rd-input-date-week-day"
                 :class="
-                  props.input.threshold
-                    ? isYesterday(
-                        selectedMonth.month === 0
-                          ? selectedMonth.year - 1
-                          : selectedMonth.year,
-                        selectedMonth.month === 0
-                          ? 11
-                          : selectedMonth.month - 1,
-                        prevDays[i - 1][j - 1]
-                      )
-                      ? 'rd-input-date-week-day-disabled'
-                      : ''
+                  props.input.threshold &&
+                  isYesterday(
+                    selectedMonth.month === 0
+                      ? selectedMonth.year - 1
+                      : selectedMonth.year,
+                    selectedMonth.month === 0 ? 11 : selectedMonth.month - 1,
+                    prevDays?.[i - 1][j - 1]
+                  )
+                    ? 'rd-input-date-week-day-disabled'
                     : ''
                 "
               >
@@ -151,14 +173,14 @@
                         ? selectedMonth.year - 1
                         : selectedMonth.year,
                       selectedMonth.month === 0 ? 11 : selectedMonth.month - 1,
-                      prevDays[i - 1][j - 1]
+                      prevDays?.[i - 1][j - 1]
                     )
                   "
                   :data-id="inputId"
                   class="rd-input-date-week-day-overlay"
                 ></div>
                 <span
-                  v-if="prevDays[i - 1][j - 1]"
+                  v-if="prevDays?.[i - 1][j - 1]"
                   :data-id="inputId"
                   class="rd-input-date-week-day-date rd-headline-6"
                   :class="
@@ -198,14 +220,18 @@
                 :key="j"
                 class="rd-input-date-week-day"
                 :class="
-                  props.input.threshold
-                    ? isYesterday(
-                        selectedMonth.year,
-                        selectedMonth.month,
-                        currentDays[i - 1][j - 1]
-                      )
-                      ? 'rd-input-date-week-day-disabled'
-                      : ''
+                  props.input.threshold &&
+                  (isYesterday(
+                    selectedMonth.year,
+                    selectedMonth.month,
+                    currentDays?.[i - 1][j - 1]
+                  ) ||
+                    isTomorrow(
+                      selectedMonth.year,
+                      selectedMonth.month,
+                      currentDays?.[i - 1][j - 1]
+                    ))
+                    ? 'rd-input-date-week-day-disabled'
                     : ''
                 "
               >
@@ -215,26 +241,26 @@
                     isSameDay(
                       selectedMonth.year,
                       selectedMonth.month,
-                      currentDays[i - 1][j - 1]
+                      currentDays?.[i - 1][j - 1]
                     )
                   "
                   class="rd-input-date-week-day-overlay"
                 ></div>
                 <span
-                  v-if="currentDays[i - 1][j - 1]"
+                  v-if="currentDays?.[i - 1][j - 1]"
                   :data-id="inputId"
                   class="rd-input-date-week-day-date rd-headline-6"
                   :class="
                     isSelected(
                       selectedMonth.year,
                       selectedMonth.month,
-                      currentDays[i - 1][j - 1]
+                      currentDays?.[i - 1][j - 1]
                     )
                       ? 'rd-input-date-week-day-date-selected'
                       : ''
                   "
-                  @click="selectOption(currentDays[i - 1][j - 1])"
-                  >{{ currentDays[i - 1][j - 1] }}</span
+                  @click="selectOption(currentDays?.[i - 1][j - 1])"
+                  >{{ currentDays?.[i - 1][j - 1] }}</span
                 >
                 <span
                   v-else
@@ -260,18 +286,15 @@
                 :key="j"
                 class="rd-input-date-week-day"
                 :class="
-                  props.input.threshold
-                    ? isYesterday(
-                        selectedMonth.month === 11
-                          ? selectedMonth.year + 1
-                          : selectedMonth.year,
-                        selectedMonth.month === 11
-                          ? 0
-                          : selectedMonth.month + 1,
-                        nextDays[i - 1][j - 1]
-                      )
-                      ? 'rd-input-date-week-day-disabled'
-                      : ''
+                  props.input.threshold &&
+                  isTomorrow(
+                    selectedMonth.month === 11
+                      ? selectedMonth.year + 1
+                      : selectedMonth.year,
+                    selectedMonth.month === 11 ? 0 : selectedMonth.month + 1,
+                    nextDays?.[i - 1][j - 1]
+                  )
+                    ? 'rd-input-date-week-day-disabled'
                     : ''
                 "
               >
@@ -282,14 +305,14 @@
                         ? selectedMonth.year + 1
                         : selectedMonth.year,
                       selectedMonth.month === 11 ? 0 : selectedMonth.month + 1,
-                      nextDays[i - 1][j - 1]
+                      nextDays?.[i - 1][j - 1]
                     )
                   "
                   :data-id="inputId"
                   class="rd-input-date-week-day-overlay"
                 ></div>
                 <span
-                  v-if="nextDays[i - 1][j - 1]"
+                  v-if="nextDays?.[i - 1][j - 1]"
                   :data-id="inputId"
                   class="rd-input-date-week-day-date rd-headline-6"
                   :class="
@@ -298,12 +321,12 @@
                         ? selectedMonth.year + 1
                         : selectedMonth.year,
                       selectedMonth.month === 11 ? 0 : selectedMonth.month + 1,
-                      nextDays[i - 1][j - 1]
+                      nextDays?.[i - 1][j - 1]
                     )
                       ? 'rd-input-date-week-day-date-selected'
                       : ''
                   "
-                  >{{ nextDays[i - 1][j - 1] }}</span
+                  >{{ nextDays?.[i - 1][j - 1] }}</span
                 >
                 <span
                   v-else
@@ -328,7 +351,6 @@
 
 <script lang="ts" setup>
   import gsap from "gsap";
-  import { ComputedRef } from "vue";
 
   import { InputDateOption } from "~~/types/general.js";
 
@@ -342,17 +364,20 @@
     input: InputDateOption;
   }>();
 
-  const rdInputDate = ref<HTMLDivElement>(null);
-  const rdInput = ref<HTMLInputElement>(null);
+  const rdInputDate = ref<HTMLDivElement | null>(null);
+  const rdInput = ref<HTMLInputElement | null>(null);
 
   const inputId = ref<string>(generateId());
-  const inputError = ref<string>(props.input.error);
+  const inputError = ref<string | undefined>(props.input.error);
   const inputModel = ref<string>("");
   const inputValue = ref<string>("");
+  const inputMin = ref<string>("");
+  const inputMax = ref<string>("");
 
   const dropDownOpened = ref<boolean>(false);
 
-  const selectedMonth = ref<DateObject>(null);
+  const selectedChanging = ref<boolean>(false);
+  const selectedMonth = ref<DateObject | null>(null);
   const selectedDate = ref<DateObject>({
     date: -1,
     month: -1,
@@ -364,17 +389,17 @@
     year: new Date().getFullYear(),
   });
 
-  const currentDays: ComputedRef<number[][]> = computed(() => {
+  const currentDays = computed<number[][] | null>(() => {
     if (!selectedMonth.value) return null;
     return getDays(selectedMonth.value.year, selectedMonth.value.month);
   });
-  const nextDays: ComputedRef<number[][]> = computed(() => {
+  const nextDays = computed<number[][] | null>(() => {
     if (!selectedMonth.value) return null;
     const { month, year }: DateObject = selectedMonth.value;
     if (month === 11) return getDays(year + 1, 0);
     return getDays(year, month + 1);
   });
-  const prevDays: ComputedRef<number[][]> = computed(() => {
+  const prevDays = computed<number[][] | null>(() => {
     if (!selectedMonth.value) return null;
     const { month, year }: DateObject = selectedMonth.value;
     if (month === 0) return getDays(year - 1, 11);
@@ -451,22 +476,24 @@
       window.addEventListener("mousedown", closeHandler);
       window.addEventListener("touchstart", closeHandler);
       setTimeout(() => {
-        rdInputDate.value.focus();
-        animate.dropDownOpen(rdInputDate.value);
-        const { bottom, right }: DOMRect =
-          rdInputDate.value.getBoundingClientRect();
-        gsap.to(rdInputDate.value, {
-          top: window.innerHeight - bottom < 0 ? "auto" : "100%",
-          bottom: window.innerHeight - bottom < 0 ? "100%" : "auto",
-          right: window.innerWidth - right < 0 ? "0" : "auto",
-          left: window.innerWidth - right < 0 ? "auto" : "0",
-          duration: 0,
-        });
+        if (rdInputDate.value) {
+          rdInputDate.value.focus();
+          animate.dropDownOpen(rdInputDate.value);
+          const { bottom, right }: DOMRect =
+            rdInputDate.value.getBoundingClientRect();
+          gsap.to(rdInputDate.value, {
+            top: window.innerHeight - bottom < 0 ? "auto" : "100%",
+            bottom: window.innerHeight - bottom < 0 ? "100%" : "auto",
+            right: window.innerWidth - right < 0 ? "0" : "auto",
+            left: window.innerWidth - right < 0 ? "auto" : "0",
+            duration: 0,
+          });
+        }
       }, 100);
     } else {
       window.removeEventListener("mousedown", closeHandler);
       window.removeEventListener("touchstart", closeHandler);
-      if (dropDownOpened.value) {
+      if (dropDownOpened.value && rdInputDate.value) {
         animate.dropDownClose(rdInputDate.value, () => {
           dropDownOpened.value = false;
         });
@@ -482,41 +509,68 @@
     }
   }
 
-  function updateModel({ target }: InputEvent): void {
-    if (target instanceof HTMLInputElement) {
-      inputModel.value = target.value;
-      dropDownHandler("open");
+  function updateModel(e: Event): void {
+    if (e.target instanceof HTMLInputElement) {
+      inputModel.value = e.target.value;
+      const [y, m, d] = e.target.value.split("-");
+      if (y && m && d) {
+        const year = parseInt(y);
+        const month = parseInt(m) - 1;
+        const date = parseInt(d);
+        selectedDate.value = {
+          year,
+          month,
+          date,
+        };
+      }
     }
   }
 
   function selectOption(date: number): void {
     selectedDate.value = {
       date,
-      month: selectedMonth.value.month,
-      year: selectedMonth.value.year,
+      month: selectedMonth.value?.month || 0,
+      year: selectedMonth.value?.year || 0,
     };
     dropDownHandler("close");
   }
 
-  function monthHandler(y: number, m: number): string {
+  function monthHandler(y: number = 0, m: number = 0): string {
     return `${months[m]} ${y}`;
   }
 
-  function isYesterday(y: number, m: number, d: number): boolean {
-    const day: Date = new Date(y, m, d);
-    return day.getTime() < props.input.threshold.getTime();
+  function isYesterday(y: number = 0, m: number = 0, d: number = 0): boolean {
+    if (props.input.threshold) {
+      const date = Array.isArray(props.input.threshold)
+        ? props.input.threshold[0]
+        : props.input.threshold;
+      let day: Date = new Date(y, m, d);
+      if (d === 32) {
+        day = new Date(new Date(y, m + 1, 1).setHours(0, 0, 0, 0) - 1);
+      }
+      return day.getTime() < date.getTime();
+    }
+    return false;
   }
-  function isSameDay(y: number, m: number, d: number): boolean {
+  function isTomorrow(y: number = 0, m: number = 0, d: number = 0): boolean {
+    if (Array.isArray(props.input.threshold)) {
+      const date = props.input.threshold[1];
+      const day: Date = new Date(y, m, d);
+      return day.getTime() > date.getTime();
+    }
+    return false;
+  }
+  function isSameDay(y: number = 0, m: number = 0, d: number = 0): boolean {
     return (
       y === todayDate.value.year &&
       m === todayDate.value.month &&
       d === todayDate.value.date
     );
   }
-  function isSameMonth(y: number, m: number): boolean {
+  function isSameMonth(y: number = 0, m: number = 0): boolean {
     return y === todayDate.value.year && m === todayDate.value.month;
   }
-  function isSelected(y: number, m: number, d: number): boolean {
+  function isSelected(y: number = 0, m: number = 0, d: number = 0): boolean {
     return (
       y === selectedDate.value.year &&
       m === selectedDate.value.month &&
@@ -525,60 +579,64 @@
   }
 
   function changeMonth(dir: "left" | "right"): void {
-    const rdInputDateControlsIndicator: HTMLElement[] = gsap.utils.toArray(
-      rdInputDate.value.querySelectorAll(".rd-input-date-controls-indicator")
-    );
-    const rdInputDateWeeks: HTMLElement[] = gsap.utils.toArray(
-      rdInputDate.value.querySelectorAll(".rd-input-date-weeks")
-    );
+    if (rdInputDate.value && !selectedChanging.value) {
+      selectedChanging.value = true;
+      const rdInputDateControlsIndicator: HTMLElement[] = gsap.utils.toArray(
+        rdInputDate.value.querySelectorAll(".rd-input-date-controls-indicator")
+      );
+      const rdInputDateWeeks: HTMLElement[] = gsap.utils.toArray(
+        rdInputDate.value.querySelectorAll(".rd-input-date-weeks")
+      );
 
-    const tl: GSAPTimeline = gsap.timeline({
-      onComplete() {
-        if (dir === "left") {
-          selectedMonth.value = {
-            month:
-              selectedMonth.value.month === 0
-                ? 11
-                : selectedMonth.value.month - 1,
-            year:
-              selectedMonth.value.month === 0
-                ? selectedMonth.value.year - 1
-                : selectedMonth.value.year,
-          };
-        } else {
-          selectedMonth.value = {
-            month:
-              selectedMonth.value.month === 11
-                ? 0
-                : selectedMonth.value.month + 1,
-            year:
-              selectedMonth.value.month === 11
-                ? selectedMonth.value.year + 1
-                : selectedMonth.value.year,
-          };
-        }
-        gsap.to(rdInputDateControlsIndicator, {
-          y: 0,
-          duration: 0,
-        });
-        gsap.to(rdInputDateWeeks, {
-          x: 0,
-          duration: 0,
-        });
-      },
-    });
+      const tl: GSAPTimeline = gsap.timeline({
+        onComplete() {
+          selectedChanging.value = false;
+          if (dir === "left") {
+            selectedMonth.value = {
+              month:
+                selectedMonth.value?.month === 0
+                  ? 11
+                  : (selectedMonth.value?.month || 0) - 1,
+              year:
+                selectedMonth.value?.month === 0
+                  ? selectedMonth.value?.year - 1
+                  : selectedMonth.value?.year || 0,
+            };
+          } else {
+            selectedMonth.value = {
+              month:
+                selectedMonth.value?.month === 11
+                  ? 0
+                  : (selectedMonth.value?.month || 0) + 1,
+              year:
+                selectedMonth.value?.month === 11
+                  ? selectedMonth.value?.year + 1
+                  : selectedMonth.value?.year || 0,
+            };
+          }
+          gsap.to(rdInputDateControlsIndicator, {
+            y: 0,
+            duration: 0,
+          });
+          gsap.to(rdInputDateWeeks, {
+            x: 0,
+            duration: 0,
+          });
+        },
+      });
 
-    tl.to(rdInputDateControlsIndicator, {
-      y: dir === "left" ? "2rem" : "-2rem",
-      duration: 0.25,
-    }).to(
-      rdInputDateWeeks,
-      {
-        x: dir === "left" ? "100%" : "-100%",
+      tl.to(rdInputDateControlsIndicator, {
+        y: dir === "left" ? "2rem" : "-2rem",
         duration: 0.25,
-      },
-      "<0"
-    );
+      }).to(
+        rdInputDateWeeks,
+        {
+          x: dir === "left" ? "100%" : "-100%",
+          duration: 0.25,
+        },
+        "<0"
+      );
+    }
   }
 
   function daysInMonth(y: number, m: number): number {
@@ -604,13 +662,13 @@
 
   watch(
     () => props.input.error,
-    (val: string) => {
+    (val) => {
       if (val) inputError.value = val;
     }
   );
   watch(
     () => props.input.value,
-    (val: string, oldVal: string) => {
+    (val, oldVal) => {
       if (val && val !== oldVal) {
         const date: Date = new Date(val);
         selectedMonth.value = selectedDate.value = {
@@ -625,22 +683,23 @@
   watch(
     () => selectedDate.value,
     ({ date, month, year }) => {
-      const str: string = `${date.toString().padStart(2, "0")}-${(month + 1)
-        .toString()
-        .padStart(2, "0")}-${year}`;
-      inputModel.value = str;
-      inputValue.value = new Date(
-        year,
-        month,
-        date,
-        23,
-        59,
-        59,
-        999
-      ).toISOString();
-      props.input.model = inputModel.value;
-      props.input.value = inputValue.value;
-      rdInput.value.value = str;
+      if (date && rdInput.value && year > 1969) {
+        inputValue.value = new Date(
+          year,
+          month,
+          date,
+          23,
+          59,
+          59,
+          999
+        ).toISOString();
+        rdInput.value.value = `${year.toString().padStart(4, "0")}-${(month + 1)
+          .toString()
+          .padStart(2, "0")}-${date.toString().padStart(2, "0")}`;
+        inputModel.value = rdInput.value.value;
+        props.input.model = inputModel.value;
+        props.input.value = inputValue.value;
+      }
     },
     {
       deep: true,
@@ -648,7 +707,34 @@
   );
 
   onMounted(() => {
-    selectedMonth.value = todayDate.value;
+    if (props.input.threshold) {
+      if (Array.isArray(props.input.threshold)) {
+        const min = new Date(props.input.threshold[0]);
+        const max = new Date(props.input.threshold[1]);
+        inputMin.value = `${min.getFullYear()}-${(min.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}-${min.getDate().toString().padStart(2, "0")}`;
+        inputMax.value = `${max.getFullYear()}-${(max.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}-${max.getDate().toString().padStart(2, "0")}`;
+      } else {
+        const min = new Date(props.input.threshold);
+        inputMin.value = `${min.getFullYear()}-${(min.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}-${min.getDate().toString().padStart(2, "0")}`;
+      }
+      const [y, m, d] = inputMin.value.split("-");
+      const year = parseInt(y);
+      const month = parseInt(m) - 1;
+      const date = parseInt(d);
+      selectedMonth.value = {
+        date,
+        month,
+        year,
+      };
+    } else {
+      selectedMonth.value = todayDate.value;
+    }
     if (props.input.value) {
       const date: Date = new Date(props.input.value);
       selectedDate.value = {
@@ -706,13 +792,17 @@
         height: 100%;
         padding: 0 0.5rem;
         border: none;
-        border-top-right-radius: 0.5rem;
-        border-bottom-right-radius: 0.5rem;
+        border-radius: 0.5rem;
         box-sizing: border-box;
         color: var(--font-main-color);
         background: rgba(0, 0, 0, 0);
         display: flex;
         transition: background-color 0.25s;
+        &::-webkit-calendar-picker-indicator {
+          position: absolute;
+          opacity: 0;
+          display: none;
+        }
         &::placeholder {
           color: var(--font-main-color);
           opacity: 0.5;
@@ -736,7 +826,23 @@
           }
         }
       }
+      .rd-input-calendar-container {
+        cursor: pointer;
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 2rem;
+        height: 2rem;
+        border-top-right-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+        padding: 0 0.5rem;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
       .rd-input-border {
+        z-index: 2;
         pointer-events: none;
         position: absolute;
         top: 0;

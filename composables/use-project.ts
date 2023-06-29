@@ -1,7 +1,8 @@
-import { ProjectProgressReportRequest } from "~~/types/progress-report";
-import { ProjectMinResponse, ProjectAreaRequest, ProjectAreaResponse, ProjectProgressResponse, ProjectRequest, ProjectResponse, ProjectUserResponse, ProjectMemberRequest } from "~~/types/project";
+import { ProjectIncidentReportRequest } from "types/project-incident";
+import { ProjectProgressReportRequest } from "types/project-report";
+import { ProjectMinResponse, ProjectAreaRequest, ProjectAreaResponse, ProjectProgressResponse, ProjectRequest, ProjectResponse, ProjectUserResponse, ProjectMemberRequest, ProjectReportResponse } from "~~/types/project";
 import { ProjectRoleRequest } from "~~/types/project-role";
-import { ProjectTask, ProjectTaskMinResponse, ProjectTaskPeriodRequest, ProjectTaskRequest, ProjectTaskResponse, ProjectTaskStatusKind } from "~~/types/project-task";
+import { ProjectTaskMinResponse, ProjectTaskPeriodRequest, ProjectTaskRequest, ProjectTaskResponse, ProjectTaskStatusKind } from "~~/types/project-task";
 
 export default () => {
   const { $fetch } = useNuxtApp();
@@ -14,12 +15,14 @@ export default () => {
     progress: ProjectProgressResponse[] | null,
     areas: ProjectAreaResponse[] | null,
     users: ProjectUserResponse | null,
+    reports: ProjectReportResponse[] | null
   }>('project', () => ({
     data: null,
     timeline: null,
     progress: null,
     areas: null,
-    users: null
+    users: null,
+    reports: null
   }));
 
   const getProjects = async (): Promise<ProjectMinResponse[]> => {
@@ -135,6 +138,21 @@ export default () => {
       return null;
     }
   };
+  const getProjectReports = async (payload: { _id: string }): Promise<ProjectReportResponse[]> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/projects/${payload._id}/reports`,
+        "get"
+      );
+      if (response.status !== 200) throw new Error("");
+
+      const result = await response.json();
+
+      return result;
+    } catch (e) {
+      return [];
+    }
+  };
   const createProject = async (payload: {
     request: ProjectRequest
   }): Promise<string> => {
@@ -179,6 +197,24 @@ export default () => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/projects/${payload.project_id}/reports`,
+        "post",
+        JSON.stringify(payload.request)
+      );
+      if (response.status !== 201) throw new Error("");
+
+      const result = await response.json();
+      return result;
+    } catch (e) {
+      return '';
+    }
+  };
+  const createProjectIncident = async (payload: {
+    project_id: string;
+    request: ProjectIncidentReportRequest;
+  }): Promise<string> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/projects/${payload.project_id}/incidents?${payload.request.breakdown ? 'breakdown=true' : ''}`,
         "post",
         JSON.stringify(payload.request)
       );
@@ -320,6 +356,23 @@ export default () => {
       return '';
     }
   };
+  const deleteProjectTask = async (payload: {
+    project_id: string;
+    task_id: string
+  }): Promise<string> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/projects/${payload.project_id}/tasks/${payload.task_id}`,
+        "delete"
+      );
+      if (response.status !== 204) throw new Error("");
+
+      const result = await response.json();
+      return result;
+    } catch (e) {
+      return '';
+    }
+  };
 
   return {
     projects,
@@ -331,15 +384,18 @@ export default () => {
     getProjectAreas,
     getProjectProgress,
     getProjectUsers,
-    removeProjectArea,
+    getProjectReports,
     createProject,
     createProjectTask,
     createProjectReport,
+    createProjectIncident,
     createProjectRole,
     updateProjectTask,
     updateProjectTaskPeriod,
     updateProjectRole,
     addProjectArea,
-    addProjectMember
+    addProjectMember,
+    removeProjectArea,
+    deleteProjectTask
   };
 };

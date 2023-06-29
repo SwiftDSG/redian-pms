@@ -90,34 +90,36 @@
 
   const name = computed<ProjectRequest["name"]>(() => nameInput.value.model);
   const code = computed<ProjectRequest["code"]>(() => codeInput.value.model);
-  const customer_id = computed<ProjectRequest["customer_id"]>(
+  const customer_id = computed<ProjectRequest["customer_id"] | undefined>(
     () => customerInput.value.value
   );
-  const period = computed<ProjectRequest["period"]>(() => {
+  const period = computed<ProjectRequest["period"] | undefined>(() => {
     if (periodStartInput.value.value && periodEndInput.value.value) {
       return {
         start: new Date(periodStartInput.value.value).setHours(0, 0, 0, 0),
         end: new Date(periodEndInput.value.value).setHours(23, 59, 59, 999),
       };
     } else {
-      return null;
+      return undefined;
     }
   });
 
   async function submit(): Promise<void> {
-    loadingSubmit.value = true;
-    const payload: ProjectRequest = {
-      name: name.value,
-      code: code.value,
-      customer_id: customer_id.value,
-      period: period.value,
-    };
-    await createProject({
-      request: payload,
-    });
-    await getProjects();
-    loadingSubmit.value = false;
-    panelState.value = "hide";
+    if (customer_id.value && period.value) {
+      loadingSubmit.value = true;
+      const payload: ProjectRequest = {
+        name: name.value,
+        code: code.value,
+        customer_id: customer_id.value,
+        period: period.value,
+      };
+      await createProject({
+        request: payload,
+      });
+      await getProjects();
+      loadingSubmit.value = false;
+      panelState.value = "hide";
+    }
   }
 
   watch(

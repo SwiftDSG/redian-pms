@@ -22,14 +22,10 @@
         ></div>
         <div
           class="rd-panel-cursor"
-          :style="`width: ${100 / datas.length}%; left: ${
-            (dataHoverIndex / datas.length) * 100
-          }%`"
+          ref="rdPanelCursor"
+          :style="`width: ${100 / datas.length}%;`"
         >
-          <div
-            class="rd-panel-cursor-line-container"
-            :style="`left: ${(dataHoverIndex / (datas.length - 1)) * 100}%`"
-          >
+          <div class="rd-panel-cursor-line-container">
             <svg
               class="rd-panel-cursor-line"
               width="2"
@@ -53,9 +49,6 @@
               viewBox="0 0 12 12"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              :style="`bottom: ${
-                dataHoverIndex > 0 ? datas[dataHoverIndex].y[0] : 0
-              }%;`"
             >
               <rect
                 width="12"
@@ -72,20 +65,17 @@
               viewBox="0 0 12 12"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              :style="`bottom: ${
-                dataHoverIndex > 0 ? datas[dataHoverIndex].y[1] : 0
-              }%;`"
             >
               <rect
                 width="12"
                 height="12"
                 rx="6"
                 :style="`fill: ${
-                  dataHoverIndex > 0
+                  dataHoverIndex > 0 && datas[dataHoverIndex].y[1] > 0
                     ? datas[dataHoverIndex].y[1] > datas[dataHoverIndex].y[0]
                       ? 'var(--success-color)'
                       : 'var(--error-color)'
-                    : 'var(--primary-color)'
+                    : 'transparent'
                 }`"
               />
               <rect x="3" y="3" width="6" height="6" rx="3" fill="white" />
@@ -113,10 +103,13 @@
   }>();
   const emits = defineEmits(["change-menu", "changing-done"]);
 
-  const rdPanel = ref<HTMLDivElement>(null);
-  const rdSparkline = ref<SVGSVGElement>(null);
+  const rdPanel = ref<HTMLDivElement | null>(null);
+  const rdPanelCursor = ref<HTMLDivElement | null>(null);
+  const rdSparkline = ref<SVGSVGElement | null>(null);
 
   const dataHoverIndex = ref<number>(-1);
+  const dataHoverTimeout = ref<NodeJS.Timeout | null>(null);
+  const dataHoverAnim = ref<GSAPTimeline | null>(null);
 
   const datas = ref<DataProgress[]>([]);
   const init = ref<boolean>(true);
@@ -140,69 +133,131 @@
         duration: 0.25,
       });
     },
+    move(
+      rdPanelCursor: HTMLElement,
+      percentage: [number, number, number]
+    ): GSAPTimeline {
+      const tl = gsap.timeline();
+
+      const rdParent: HTMLElement | null = rdPanelCursor.parentElement;
+      const rdCursorLine: HTMLElement | null = rdPanelCursor.querySelector(
+        ".rd-panel-cursor-line-container"
+      );
+      const rdCursorCircle: HTMLElement[] = gsap.utils.toArray(
+        rdPanelCursor.querySelectorAll("svg.rd-panel-cursor-circle")
+      );
+
+      if (rdParent && rdCursorLine && rdCursorCircle.length) {
+        const { width: w1 } = rdPanelCursor.getBoundingClientRect();
+        const { width: w2, height } = rdParent.getBoundingClientRect();
+
+        console.log(percentage[0]);
+
+        const track = w2 - w1;
+
+        tl.to(rdPanelCursor, {
+          x: `${percentage[0] * track}px`,
+          duration: 0.25,
+          ease: "power2.inOut",
+        })
+          .to(
+            rdCursorLine,
+            {
+              x: `${percentage[0] * w1}px`,
+              duration: 0.25,
+              ease: "power2.inOut",
+            },
+            "<0"
+          )
+          .to(
+            rdCursorCircle[0],
+            {
+              y: `-${(percentage[1] / 100) * height}px`,
+              duration: 0.25,
+              ease: "power2.inOut",
+            },
+            "<0"
+          )
+          .to(
+            rdCursorCircle[1],
+            {
+              y: `-${(percentage[2] / 100) * height}px`,
+              duration: 0.25,
+              ease: "power2.inOut",
+            },
+            "<0"
+          );
+      }
+
+      return tl;
+    },
   };
 
   function draw(): void {
-    const { width, height } = rdSparkline.value.getBoundingClientRect();
+    if (rdSparkline.value) {
+      const { width, height } = rdSparkline.value.getBoundingClientRect();
 
-    const xLen = datas.value.length - 1;
-    const xStep = width / xLen;
+      const xLen = datas.value.length - 1;
+      const xStep = width / xLen;
 
-    for (let i: number = 0; i < xLen; i++) {
-      const rdLine1: SVGLineElement = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line"
-      );
+      for (let i: number = 0; i < xLen; i++) {
+        const rdLine1: SVGLineElement = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line"
+        );
 
-      const x = (i + 1) * xStep;
-      const y1 = height - (datas.value[i + 1].y[0] / 100) * height;
-      const y2 = height - (datas.value[i + 1].y[1] / 100) * height;
+        const x = (i + 1) * xStep;
+        const y1 = height - (datas.value[i + 1].y[0] / 100) * height;
+        const y2 = height - (datas.value[i + 1].y[1] / 100) * height;
 
-      rdLine1.setAttributeNS(null, "x1", (i * xStep).toString());
-      rdLine1.setAttributeNS(
-        null,
-        "y1",
-        (height - (datas.value[i].y[0] / 100) * height).toString()
-      );
-      rdLine1.setAttributeNS(null, "x2", x.toString());
-      rdLine1.setAttributeNS(null, "y2", y1.toString());
+        rdLine1.setAttributeNS(null, "x1", (i * xStep).toString());
+        rdLine1.setAttributeNS(
+          null,
+          "y1",
+          (height - (datas.value[i].y[0] / 100) * height).toString()
+        );
+        rdLine1.setAttributeNS(null, "x2", x.toString());
+        rdLine1.setAttributeNS(null, "y2", y1.toString());
 
-      rdLine1.setAttributeNS(null, "stroke", "#ffc904");
-      rdLine1.setAttributeNS(null, "stroke-width", "2");
+        rdLine1.setAttributeNS(null, "stroke", "#ffc904");
+        rdLine1.setAttributeNS(null, "stroke-width", "2");
 
-      rdSparkline.value.appendChild(rdLine1);
+        rdSparkline.value.appendChild(rdLine1);
 
-      const rdLine2: SVGLineElement = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line"
-      );
+        const rdLine2: SVGLineElement = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line"
+        );
 
-      rdLine2.setAttributeNS(null, "x1", (i * xStep).toString());
-      rdLine2.setAttributeNS(
-        null,
-        "y1",
-        (height - (datas.value[i].y[1] / 100) * height).toString()
-      );
-      rdLine2.setAttributeNS(null, "x2", x.toString());
-      rdLine2.setAttributeNS(null, "y2", y2.toString());
+        rdLine2.setAttributeNS(null, "x1", (i * xStep).toString());
+        rdLine2.setAttributeNS(
+          null,
+          "y1",
+          (height - (datas.value[i].y[1] / 100) * height).toString()
+        );
+        rdLine2.setAttributeNS(null, "x2", x.toString());
+        rdLine2.setAttributeNS(null, "y2", y2.toString());
 
-      rdLine2.setAttributeNS(
-        null,
-        "stroke",
-        datas.value[i + 1].y[1] >= datas.value[i + 1].y[0]
-          ? "#6bc785"
-          : "#ff584c"
-      );
-      rdLine2.setAttributeNS(null, "stroke-width", "2");
+        rdLine2.setAttributeNS(
+          null,
+          "stroke",
+          datas.value[i + 1].y[1] > 0
+            ? datas.value[i + 1].y[1] >= datas.value[i + 1].y[0]
+              ? "#6bc785"
+              : "#ff584c"
+            : "transparent"
+        );
+        rdLine2.setAttributeNS(null, "stroke-width", "2");
 
-      rdSparkline.value.appendChild(rdLine2);
+        rdSparkline.value.appendChild(rdLine2);
 
-      if (i === xLen - 1) {
-        gsap.to([rdSparkline.value.parentElement, rdSparkline.value], {
-          x: 0,
-          duration: 2,
-          ease: "power2.out",
-        });
+        if (i === xLen - 1) {
+          gsap.to([rdSparkline.value.parentElement, rdSparkline.value], {
+            x: 0,
+            duration: 2,
+            ease: "power2.out",
+          });
+        }
       }
     }
   }
@@ -224,17 +279,35 @@
   watch(
     () => props.state,
     (val) => {
-      if (val === "changing") {
+      if (val === "changing" && rdPanel.value) {
         animate.exit(rdPanel.value);
       }
     }
   );
+  watch(
+    () => dataHoverIndex.value,
+    (val) => {
+      if (dataHoverTimeout.value) clearTimeout(dataHoverTimeout.value);
+      dataHoverTimeout.value = setTimeout(() => {
+        if (dataHoverAnim.value) dataHoverAnim.value.kill();
+        if (rdPanelCursor.value) {
+          dataHoverAnim.value = animate.move(rdPanelCursor.value, [
+            val / (datas.value.length - 1),
+            datas.value[val].y[0] || 0,
+            datas.value[val].y[1] || 0,
+          ]);
+        }
+      }, 100);
+    }
+  );
 
   onMounted(() => {
-    animate.init(rdPanel.value, () => {
-      emits("changing-done");
-      init.value = false;
-    });
+    if (rdPanel.value) {
+      animate.init(rdPanel.value, () => {
+        emits("changing-done");
+        init.value = false;
+      });
+    }
   });
 </script>
 
@@ -265,7 +338,7 @@
       position: relative;
       width: 100%;
       border: var(--border);
-      border-radius: 0.75rem;
+      // border-radius: 0.75rem;
       box-sizing: border-box;
       display: flex;
       flex: 1;
@@ -331,10 +404,10 @@
           left: 0;
           height: 100%;
           opacity: 0;
-          transition: 0.25s left, 0.25s opacity;
+          transition: 0.25s opacity;
           .rd-panel-cursor-line-container {
             position: relative;
-            left: 50%;
+            left: 0;
             width: 12px;
             transform: translateX(-6px);
             height: 100%;
@@ -347,7 +420,7 @@
             }
             svg.rd-panel-cursor-circle {
               position: absolute;
-              bottom: 0;
+              bottom: -6px;
               width: 12px;
               height: 12px;
               transform: translateY(6px);

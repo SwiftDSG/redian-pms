@@ -2,49 +2,49 @@
   <div
     ref="rdInputComponent"
     class="rd-input-component"
-    :class="`${props.input.error ? 'rd-input-error-active' : ''} ${
-      props.input.disabled ? 'rd-input-disabled' : ''
+    :class="`${input.error ? 'rd-input-error-active' : ''} ${
+      input.disabled ? 'rd-input-disabled' : ''
     }`"
   >
-    <label v-if="props.input.label" class="rd-input-label rd-headline-6">{{
-      props.input.label
+    <label v-if="input.label" class="rd-input-label rd-headline-6">{{
+      input.label
     }}</label>
     <div class="rd-input-container">
       <div
-        v-if="props.input.icon || props.input.prefix || props.input.color"
+        v-if="input.icon || input.prefix || input.color"
         class="rd-input-icon-container"
       >
-        <rd-svg v-if="props.input.icon" :name="props.input.icon" />
+        <rd-svg v-if="input.icon" :name="input.icon" />
         <span
-          v-else-if="props.input.prefix"
+          v-else-if="input.prefix"
           class="rd-input-icon-prefix rd-headline-5"
-          >{{ props.input.prefix }}</span
+          >{{ input.prefix }}</span
         >
         <span
           v-else
           class="rd-input-icon-color"
-          :style="`background: ${props.input.color}`"
+          :style="`background: ${input.color}`"
         ></span>
       </div>
       <input
         class="rd-input rd-body-text"
-        :placeholder="props.input.placeholder"
-        :name="props.input.name"
+        :placeholder="input.placeholder"
+        :name="input.name"
         :type="
-          props.input.type === 'number' ||
-          props.input.type === 'hour' ||
-          props.input.type === 'minute'
+          input.type === 'number' ||
+          input.type === 'hour' ||
+          input.type === 'minute'
             ? 'text'
-            : props.input.type
+            : input.type
         "
-        :disabled="props.input.disabled"
+        :disabled="input.disabled"
         ref="rdInput"
         @input="updateModel"
       />
       <div class="rd-input-border"></div>
     </div>
     <span
-      v-if="typeof props.input.error === 'string'"
+      v-if="typeof input.error === 'string'"
       class="rd-input-error rd-headline-6"
     >
       <span class="rd-text-wrapper">
@@ -63,15 +63,15 @@
     input: InputOption;
   }>();
 
-  const rdInput = ref<HTMLInputElement>(null);
+  const rdInput = ref<HTMLInputElement | null>(null);
 
-  const inputError = ref<string>(props.input.error);
+  const inputError = ref<string | undefined>(props.input.error);
   const inputModel = ref<string>("");
 
-  function updateModel(e: InputEvent): InputEvent {
+  function updateModel(e: Event): Event {
     if (e.target instanceof HTMLInputElement) {
-      if (props.input.type === "number") {
-        if ("1234567890".includes(e.data) || !e.data) {
+      if (props.input.type === "number" && e instanceof InputEvent) {
+        if ((e.data && "1234567890".includes(e.data)) || !e.data) {
           const rawValue: number = parseInt(e.target.value.split(".").join(""));
           const value: string = rawValue
             ? rawValue.toLocaleString("de-DE")
@@ -114,13 +114,13 @@
   );
   watch(
     () => props.input.error,
-    (val: string) => {
+    (val) => {
       if (val) inputError.value = val;
     }
   );
 
   onMounted(() => {
-    if (props.input.model) {
+    if (props.input.model && rdInput.value) {
       rdInput.value.value = props.input.model;
       inputModel.value = props.input.model;
     }

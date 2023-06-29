@@ -24,6 +24,11 @@
               >
               <span
                 class="rd-panel-task-period rd-caption-text"
+                :style="
+                  project.status[0]?.kind !== 'pending'
+                    ? 'pointer-events: none'
+                    : ''
+                "
                 @click="editTask(task)"
                 >{{
                   task.period
@@ -42,9 +47,22 @@
             </div>
           </div>
           <div
-            v-if="task.status[0].kind !== 'pending'"
+            v-if="task.status[0].kind !== 'pending' && task.actual"
             class="rd-panel-task-actual"
-          ></div>
+          >
+            <div class="rd-panel-task-actual-message-container">
+              <span class="rd-panel-task-actual-message rd-caption-text"
+                >Actual time:
+                <span class="rd-headline-6">{{
+                  `${formatDate(task.actual.start)} - ${
+                    task.status[0].kind === "running"
+                      ? "now"
+                      : formatDate(task.actual.end)
+                  }`
+                }}</span>
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -118,7 +136,33 @@
                 :style="`width: ${
                   (task.actual?.position?.w || 0) * 3
                 }rem; left: ${(task.actual?.position?.x || 0) * 3}rem;`"
-              ></div>
+              >
+                <span
+                  class="rd-panel-timeline-data-actual-name rd-headline-5"
+                  >{{ task.name }}</span
+                >
+                <span
+                  class="rd-panel-timeline-data-actual-message rd-caption-text"
+                  >{{
+                    `${
+                      task.status === "running"
+                        ? "Due in:"
+                        : getDaysDiff(
+                            new Date(task.actual.end),
+                            new Date(task.period.end)
+                          ) < 0
+                        ? "Overdue by:"
+                        : "Ahead by:"
+                    } `
+                  }}
+                  <span class="rd-headline-6">{{
+                    `${getDaysDiff(
+                      new Date(task.actual.end),
+                      new Date(task.period.end)
+                    )} days`
+                  }}</span>
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -199,21 +243,21 @@
     "open-task",
   ]);
 
-  const rdPanel = ref<HTMLDivElement>(null);
-  const rdPanelTaskBody = ref<HTMLDivElement>(null);
-  const rdPanelTimeline = ref<HTMLDivElement>(null);
-  const rdPanelTimelineIntersector = ref<HTMLDivElement>(null);
-  const rdPanelTimelineCounter = ref<HTMLDivElement>(null);
-  const rdPanelTimelineDataWrapper = ref<HTMLDivElement>(null);
-  const rdPanelTimelineDataContainer = ref<HTMLDivElement>(null);
-  const rdPanelTimelineDayContainer = ref<HTMLDivElement>(null);
+  const rdPanel = ref<HTMLDivElement | null>(null);
+  const rdPanelTaskBody = ref<HTMLDivElement | null>(null);
+  const rdPanelTimeline = ref<HTMLDivElement | null>(null);
+  const rdPanelTimelineIntersector = ref<HTMLDivElement | null>(null);
+  const rdPanelTimelineCounter = ref<HTMLDivElement | null>(null);
+  const rdPanelTimelineDataWrapper = ref<HTMLDivElement | null>(null);
+  const rdPanelTimelineDataContainer = ref<HTMLDivElement | null>(null);
+  const rdPanelTimelineDayContainer = ref<HTMLDivElement | null>(null);
 
   const datas = ref<DataTimeline[]>([]);
 
-  const period = ref<Period>(null);
+  const period = ref<Period | null>(null);
   const today = ref<number>(new Date().setHours(0, 0, 0, 0));
   const days = ref<Date[]>([]);
-  const daysAnim = ref<GSAPAnimation>(null);
+  const daysAnim = ref<GSAPAnimation | null>(null);
 
   const months = [
     "January",
@@ -263,13 +307,18 @@
   }
   function addDays(): void {
     const diff =
-      (period.value.end.getTime() - period.value.start.getTime()) / 86400000;
-    const date = period.value.start.setHours(0, 0, 0, 0);
+      ((period.value?.end.getTime() || 0) -
+        (period.value?.start.getTime() || 0)) /
+      86400000;
+    const date = period.value?.start.setHours(0, 0, 0, 0) || 0;
     for (var i: number = 0; i < diff; i++) {
       days.value.push(new Date(date + 86400000 * i));
     }
     setTimeout(() => {
-      if (rdPanelTimelineDataWrapper.value) {
+      if (
+        rdPanelTimelineDataWrapper.value &&
+        rdPanelTimelineDayContainer.value
+      ) {
         rdPanelTimelineDataWrapper.value.style.width = `${
           rdPanelTimelineDayContainer.value.getBoundingClientRect().width
         }px`;
@@ -281,12 +330,19 @@
     const date = new Date(str);
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   }
+  function getDaysDiff(start: Date, end: Date): number {
+    return Math.round((end.getTime() - start.getTime()) / 86400000);
+  }
   function setPeriod(tasks: ProjectTaskMinResponse[]): void {
-    const allPeriod: [number[], number[]] = tasks.reduce(
+    const allPeriod: [number[], number[]] = tasks.reduce<[number[], number[]]>(
       (a, b) => {
         if (b.period) {
           a[0].push(new Date(b.period.start).getTime());
           a[1].push(new Date(b.period.end).getTime());
+        }
+        if (b.actual) {
+          a[0].push(new Date(b.actual.start).getTime());
+          a[1].push(new Date(b.actual.end).getTime());
         }
         return a;
       },
@@ -303,24 +359,35 @@
 
     if (!days.value?.length) addDays();
   }
-  function getPosition(
-    data: DataTimeline["actual"] | DataTimeline["period"]
-  ): DataTimeline["period"]["position"] {
-    const start = new Date(data.start).setHours(0, 0, 0, 0);
-    const end = new Date(data.end).setHours(23, 59, 59, 999);
+  function getPosition(data: DataTimeline["actual"] | DataTimeline["period"]): {
+    w: number;
+    x: number;
+  } {
+    if (data) {
+      const start = new Date(data.start).setHours(0, 0, 0, 0);
+      const end = new Date(data.end).setHours(23, 59, 59, 999);
 
-    const w: number = Math.ceil((end - start) / 86400000);
-    const x: number = Math.ceil(
-      (start - period.value.start.getTime()) / 86400000
-    );
+      const w: number = Math.ceil((end - start) / 86400000);
+      const x: number = Math.ceil(
+        (start - (period.value?.start.getTime() || 0)) / 86400000
+      );
 
+      return {
+        w,
+        x,
+      };
+    }
     return {
-      w,
-      x,
+      w: 0,
+      x: 0,
     };
   }
   function bindScroll(e: Event): void {
-    if (e.target instanceof HTMLElement) {
+    if (
+      e.target instanceof HTMLElement &&
+      rdPanelTaskBody.value &&
+      rdPanelTimelineDataWrapper.value
+    ) {
       const { scrollTop } = e.target;
       rdPanelTaskBody.value.scrollTop = scrollTop;
       rdPanelTimelineDataWrapper.value.scrollTop = scrollTop;
@@ -350,7 +417,7 @@
   watch(
     () => props.state,
     (val) => {
-      if (val === "changing") {
+      if (val === "changing" && rdPanel.value) {
         animate.exit(rdPanel.value);
       }
     }
@@ -366,7 +433,10 @@
             const payload: DataTimeline = {
               name: a.name,
               period: {
-                ...a.period,
+                ...(a.period || {
+                  start: "",
+                  end: "",
+                }),
                 position: getPosition(a.period),
               },
               status: a.status[0].kind,
@@ -380,9 +450,13 @@
             return payload;
           });
         setTimeout(() => {
-          if (rdPanelTimelineDataContainer.value) {
+          if (
+            rdPanelTimelineDataContainer.value &&
+            rdPanelTimelineDataWrapper.value &&
+            rdPanelTimelineDayContainer.value
+          ) {
             rdPanelTimelineDataContainer.value.style.height = `${
-              3.5 * val.length + 0.75 * (val.length - 1) + 1.5
+              3.5 * val.length + 0.75 * (val.length - 1) + 1.5 - 0.75
             }rem`;
             rdPanelTimelineDataWrapper.value.style.width = `${
               rdPanelTimelineDayContainer.value.getBoundingClientRect().width
@@ -395,9 +469,11 @@
   );
 
   onMounted(() => {
-    animate.init(rdPanel.value, () => {
-      emits("changing-done");
-    });
+    if (rdPanel.value) {
+      animate.init(rdPanel.value, () => {
+        emits("changing-done");
+      });
+    }
 
     window.addEventListener("focus", initCounter);
   });
@@ -532,6 +608,17 @@
             border: var(--border);
             border-color: var(--primary-color);
             box-sizing: border-box;
+            .rd-panel-task-actual-message-container {
+              position: absolute;
+              bottom: 0;
+              left: 0;
+              width: 100%;
+              height: 2.25rem;
+              padding: 0 0.75rem;
+              box-sizing: border-box;
+              display: flex;
+              align-items: center;
+            }
             &::before {
               content: "";
               position: absolute;
@@ -560,6 +647,10 @@
             }
             .rd-panel-task-actual {
               border-color: var(--success-color);
+              span {
+                color: var(--success-color);
+                opacity: 1 !important;
+              }
               &::before {
                 background: var(--success-color);
               }
@@ -576,6 +667,16 @@
                 }
               }
             }
+            .rd-panel-task-actual {
+              border-color: var(--warning-color);
+              span {
+                color: var(--warning-color);
+                opacity: 1 !important;
+              }
+              &::before {
+                background: var(--warning-color);
+              }
+            }
           }
         }
         &::-webkit-scrollbar {
@@ -587,7 +688,7 @@
       position: relative;
       width: calc(100% - 20rem);
       height: 100%;
-      padding: 0.75rem;
+      padding: calc(0.75rem - 1px) 0.75rem;
       box-sizing: border-box;
       display: flex;
       .rd-panel-timeline {
@@ -614,6 +715,8 @@
               position: relative;
               width: 3rem;
               height: 2.75rem;
+              border-bottom: var(--border);
+              box-sizing: border-box;
               display: flex;
               flex-direction: column;
               justify-content: center;
@@ -655,10 +758,10 @@
               left: 0;
               width: 100%;
               height: 100%;
-              border-left: var(--border);
+              border-right: var(--border);
               opacity: 0.375;
             }
-            &:first-child::after {
+            &:last-child::after {
               border: none;
             }
           }
@@ -684,11 +787,11 @@
             position: relative;
             width: 100%;
             height: 100%;
-            padding: 0.75rem 0;
+            padding: 0.75rem 0 0 0;
             box-sizing: border-box;
             display: flex;
-            flex-direction: column;
             gap: 0.75rem;
+            flex-direction: column;
             .rd-panel-timeline-data {
               position: relative;
               width: 100%;
@@ -732,18 +835,55 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
+                padding: 0.75rem;
                 border-radius: 0.75rem;
                 border: var(--border);
                 border-color: var(--primary-color);
                 box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                span {
+                  position: relative;
+                  width: 100%;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                }
                 &::before {
                   content: "";
                   position: absolute;
+                  top: 0;
+                  left: 0;
                   width: 100%;
                   height: 100%;
                   border-radius: 0.75rem;
                   background: var(--primary-color);
                   opacity: 0.1;
+                }
+              }
+              &.rd-panel-timeline-data-finished {
+                .rd-panel-timeline-data-actual {
+                  border-color: var(--success-color);
+                  span {
+                    color: var(--success-color);
+                    opacity: 1 !important;
+                  }
+                  &::before {
+                    background: var(--success-color);
+                  }
+                }
+              }
+              &.rd-panel-timeline-data-running {
+                .rd-panel-timeline-data-actual {
+                  border-color: var(--warning-color);
+                  span {
+                    color: var(--warning-color);
+                    opacity: 1 !important;
+                  }
+                  &::before {
+                    background: var(--warning-color);
+                  }
                 }
               }
               &.rd-panel-timeline-data-pending {

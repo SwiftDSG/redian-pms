@@ -12,10 +12,7 @@
     :disabled="disabled"
   >
     <div v-if="icon" class="rd-input-icon-container">
-      <rd-svg
-        :name="props.icon"
-        :color="type === 'primary' ? 'secondary' : ''"
-      />
+      <rd-svg :name="icon" :color="type === 'primary' ? 'secondary' : ''" />
     </div>
     <div v-else-if="image" class="rd-input-image-container">
       <img :src="image" class="rd-input-image" />
@@ -45,7 +42,7 @@
   }>();
   const emits = defineEmits(["clicked"]);
 
-  const rdInputComponent = ref<HTMLButtonElement>(null);
+  const rdInputComponent = ref<HTMLButtonElement | null>(null);
 
   const buttonAnimating = ref<boolean>(false);
   const buttonClicking = ref<boolean>(false);
@@ -59,7 +56,7 @@
         },
       });
 
-      const rdOverlay: HTMLElement =
+      const rdOverlay: HTMLElement | null =
         rdInputComponent.querySelector(".rd-input-overlay");
 
       tl.to(rdInputComponent, {
@@ -83,7 +80,7 @@
         },
       });
 
-      const rdOverlay: HTMLElement =
+      const rdOverlay: HTMLElement | null =
         rdInputComponent.querySelector(".rd-input-overlay");
 
       tl.to(rdInputComponent, {
@@ -102,30 +99,34 @@
     },
   };
 
-  function mouseDownHandler(e?: MouseEvent): MouseEvent {
+  function mouseDownHandler(e?: MouseEvent): MouseEvent | undefined {
     buttonAnimating.value = true;
     buttonClicking.value = true;
     buttonPressed.value = true;
-    animate.click(rdInputComponent.value, () => {
-      buttonClicking.value = false;
-      if (!buttonPressed.value) {
-        releaseHandler();
-      }
-    });
+    if (rdInputComponent.value) {
+      animate.click(rdInputComponent.value, () => {
+        buttonClicking.value = false;
+        if (!buttonPressed.value) {
+          releaseHandler();
+        }
+      });
+    }
     window.addEventListener("mouseup", releaseHandler);
 
     return e;
   }
-  function keyDownHandler(e?: KeyboardEvent): KeyboardEvent {
+  function keyDownHandler(e?: KeyboardEvent): KeyboardEvent | undefined {
     buttonAnimating.value = true;
     buttonClicking.value = true;
     buttonPressed.value = true;
-    animate.click(rdInputComponent.value, () => {
-      buttonClicking.value = false;
-      if (!buttonPressed.value) {
-        releaseHandler();
-      }
-    });
+    if (rdInputComponent.value) {
+      animate.click(rdInputComponent.value, () => {
+        buttonClicking.value = false;
+        if (!buttonPressed.value) {
+          releaseHandler();
+        }
+      });
+    }
     window.addEventListener("keyup", releaseHandler);
 
     return e;
@@ -134,7 +135,7 @@
     window.removeEventListener("mouseup", releaseHandler);
     window.removeEventListener("keyup", releaseHandler);
     buttonPressed.value = false;
-    if (!buttonClicking.value) {
+    if (!buttonClicking.value && rdInputComponent.value) {
       emits("clicked");
       animate.release(rdInputComponent.value, () => {
         buttonAnimating.value = false;

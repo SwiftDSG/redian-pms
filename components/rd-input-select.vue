@@ -2,39 +2,37 @@
   <div
     ref="rdInputComponent"
     class="rd-input-component"
-    :class="`${props.input.error ? 'rd-input-error-active' : ''} ${
-      props.input.disabled || !props.input.options?.length
-        ? 'rd-input-disabled'
-        : ''
+    :class="`${input.error ? 'rd-input-error-active' : ''} ${
+      input.disabled || !input.options?.length ? 'rd-input-disabled' : ''
     }`"
   >
-    <label v-if="props.input.label" class="rd-input-label rd-headline-6">{{
-      props.input.label
+    <label v-if="input.label" class="rd-input-label rd-headline-6">{{
+      input.label
     }}</label>
     <div class="rd-input-container">
-      <div v-if="props.input.icon" class="rd-input-icon-container">
-        <rd-svg :name="props.input.icon" :color="'primary'" />
+      <div v-if="input.icon" class="rd-input-icon-container">
+        <rd-svg :name="input.icon" :color="'primary'" />
       </div>
       <input
         class="rd-input rd-body-text"
-        :placeholder="props.input.placeholder"
+        :placeholder="input.placeholder"
         ref="rdInput"
         readonly
-        :name="props.input.name"
-        :type="props.input.type"
-        :disabled="props.input.disabled || !props.input.options?.length"
+        :name="input.name"
+        :type="input.type"
+        :disabled="input.disabled || !input.options?.length"
         @focus="dropDownHandler('open')"
         @blur="dropDownHandler('close')"
         @keydown.up.prevent="
           selectIndex(
             dropDownIndex <= 0
-              ? props.input.options.length - 1
+              ? (input.options?.length || 0) - 1
               : dropDownIndex - 1
           )
         "
         @keydown.down.prevent="
           selectIndex(
-            dropDownIndex >= props.input.options.length - 1
+            dropDownIndex >= (input.options?.length || 0) - 1
               ? 0
               : dropDownIndex + 1
           )
@@ -66,7 +64,7 @@
       </div>
     </div>
     <span
-      v-if="typeof props.input.error === 'string'"
+      v-if="typeof input.error === 'string'"
       class="rd-input-error rd-headline-6"
     >
       <span class="rd-text-wrapper">
@@ -86,15 +84,15 @@
     input: InputOption;
   }>();
 
-  const rdInputOptions = ref<HTMLDivElement>(null);
-  const rdInput = ref<HTMLInputElement>(null);
+  const rdInputOptions = ref<HTMLDivElement | null>(null);
+  const rdInput = ref<HTMLInputElement | null>(null);
 
-  const inputError = ref<string>(props.input.error);
+  const inputError = ref<string | undefined>(props.input.error);
   const inputModel = ref<string>("");
   const inputValue = ref<string>("");
   const inputOptions = ref<InputOption["options"]>(props.input.options);
 
-  const dropDownAnim = ref<GSAPAnimation>(null);
+  const dropDownAnim = ref<GSAPAnimation | null>(null);
   const dropDownOpened = ref<boolean>(false);
   const dropDownIndex = ref<number>(-1);
 
@@ -122,16 +120,17 @@
   };
 
   function dropDownHandler(state: "open" | "close"): void {
-    if (!dropDownAnim.value)
+    if (!dropDownAnim.value && rdInputOptions.value)
       dropDownAnim.value = animate.dropDownHandler(rdInputOptions.value, () => {
         dropDownOpened.value = true;
       });
-    if (state === "open") {
+
+    if (state === "open" && dropDownAnim.value) {
       dropDownIndex.value = -1;
       dropDownAnim.value.play();
     } else {
       setTimeout(() => {
-        if (dropDownOpened.value) {
+        if (dropDownOpened.value && dropDownAnim.value) {
           dropDownOpened.value = false;
           dropDownIndex.value = -1;
           dropDownAnim.value.reverse();
@@ -140,9 +139,9 @@
     }
   }
 
-  function updateModel({ target }: InputEvent): void {
-    if (target instanceof HTMLInputElement) {
-      inputModel.value = target.value;
+  function updateModel(e: Event): void {
+    if (e.target instanceof HTMLInputElement) {
+      inputModel.value = e.target.value;
       dropDownHandler("open");
     }
   }
@@ -152,23 +151,25 @@
   }
 
   function selectOption(): void {
-    const selection: string | { name: string; value: string } =
-      inputOptions.value[dropDownIndex.value];
-    if (selection) {
-      inputModel.value =
-        typeof selection === "string" ? selection : selection.name;
-      inputValue.value =
-        typeof selection === "string" ? selection : selection.value;
-      props.input.model = inputModel.value;
-      props.input.value = inputValue.value;
-      rdInput.value.value = inputModel.value;
+    if (inputOptions.value) {
+      const selection: string | { name: string; value: string } =
+        inputOptions.value[dropDownIndex.value];
+      if (selection && rdInput.value) {
+        inputModel.value =
+          typeof selection === "string" ? selection : selection.name;
+        inputValue.value =
+          typeof selection === "string" ? selection : selection.value;
+        props.input.model = inputModel.value;
+        props.input.value = inputValue.value;
+        rdInput.value.value = inputModel.value;
+      }
+      dropDownHandler("close");
     }
-    dropDownHandler("close");
   }
 
   watch(
     () => props.input.error,
-    (val: string) => {
+    (val) => {
       if (val) inputError.value = val;
     }
   );
@@ -186,15 +187,17 @@
     (val) => {
       if (val) {
         setTimeout(() => {
-          const index: number = inputOptions.value?.findIndex(
-            (a) => (typeof a === "string" ? a : a.name) === val
-          );
-          if (index > -1 && index !== dropDownIndex.value) {
-            dropDownIndex.value = index;
-            selectOption();
+          if (inputOptions.value?.length) {
+            const index: number = inputOptions.value?.findIndex(
+              (a) => (typeof a === "string" ? a : a.name) === val
+            );
+            if (index > -1 && index !== dropDownIndex.value) {
+              dropDownIndex.value = index;
+              selectOption();
+            }
           }
         }, 100);
-      } else {
+      } else if (rdInput.value) {
         dropDownIndex.value = -1;
         inputModel.value = "";
         inputValue.value = "";
@@ -204,7 +207,7 @@
   );
 
   onMounted(() => {
-    if (props.input.model) {
+    if (props.input.model && rdInput.value) {
       inputModel.value = props.input.model;
       rdInput.value.value = inputModel.value;
     }

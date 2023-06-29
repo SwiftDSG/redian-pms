@@ -34,13 +34,13 @@
 </template>
 
 <script lang="ts" setup>
-  import { InputCodeOption } from "~~/interfaces/general";
+  import { InputCodeOption } from "~~/types/general";
 
   const props = defineProps<{
     input: InputCodeOption;
   }>();
 
-  const rdInput = ref<HTMLInputElement>(null);
+  const rdInput = ref<HTMLInputElement | null>(null);
 
   const inputModel = ref<string>("");
 
@@ -58,15 +58,15 @@
     }
   }
 
-  function updateModel({ target }: InputEvent): void {
-    if (target instanceof HTMLInputElement) {
-      target.value = target.value.toUpperCase();
-      if (target.value.length <= props.input.length) {
-        inputModel.value = target.value;
-        props.input.model = target.value;
+  function updateModel(e: Event): void {
+    if (e.target instanceof HTMLInputElement) {
+      e.target.value = e.target.value.toUpperCase();
+      if (e.target.value.length <= props.input.length) {
+        inputModel.value = e.target.value;
+        props.input.model = e.target.value;
         assignFocus();
       } else {
-        target.value = target.value.slice(0, props.input.length);
+        e.target.value = e.target.value.slice(0, props.input.length);
       }
     }
   }

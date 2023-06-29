@@ -1,20 +1,22 @@
 <template>
   <rd-panel
     class="rd-panel"
-    label="Add member"
+    :label="data.user ? 'Edit user' : 'Add user'"
     :state="panelState"
     :loading="loading"
+    :action="data.user ? 'delete' : ''"
+    @clicked="submit(true)"
     @exit="emits('exit')"
   >
     <div class="rd-panel-body">
       <div class="rd-panel-input-wrapper">
-        <rd-input-select :input="kindInput" class="rd-panel-input" />
-      </div>
-      <div v-if="kind === 'support'" class="rd-panel-input-wrapper">
         <rd-input-text :input="nameInput" class="rd-panel-input" />
       </div>
-      <div v-else class="rd-panel-input-wrapper">
-        <rd-input-select :input="userInput" class="rd-panel-input" />
+      <div class="rd-panel-input-wrapper">
+        <rd-input-text :input="emailInput" class="rd-panel-input" />
+      </div>
+      <div class="rd-panel-input-wrapper">
+        <rd-input-text :input="passwordInput" class="rd-panel-input" />
       </div>
       <div class="rd-panel-input-wrapper">
         <rd-input-select
@@ -24,14 +26,13 @@
         />
         <rd-input-button-small
           icon="plus"
-          type="primary"
-          @clicked="addRole"
           :disabled="!role"
+          @clicked="addRole"
         />
       </div>
-      <div class="rd-panel-role-wrapper">
+      <div v-if="rolesSelected.length" class="rd-panel-role-wrapper">
         <div
-          v-for="role in roles"
+          v-for="role in rolesSelected"
           :key="role._id"
           class="rd-panel-role"
           @click="removeRole(role._id)"
@@ -45,12 +46,8 @@
       <rd-input-button
         class="rd-panel-button"
         label="submit"
-        :disabled="
-          (kind === 'support' && !name) ||
-          (kind !== 'support' && !_id) ||
-          !role_id?.length
-        "
-        :loading="loading"
+        :disabled="!name || !email || !password || !role_id.length"
+        :loading="submitLoading"
         @clicked="submit"
       />
     </div>
@@ -58,128 +55,119 @@
 </template>
 
 <script lang="ts" setup>
-  import { InputGeneric, InputOption } from "~~/types/general";
-  import { ProjectMemberKind, ProjectMemberRequest } from "~~/types/project";
+  import { RoleResponse } from "types/role";
+  import { UserRequest, UserResponse } from "types/user";
+  import { InputOption } from "~~/types/general";
 
   const props = defineProps<{
     state: "idle" | "hide";
     data: {
-      project_id: string;
+      user?: UserResponse;
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
-  const { project, getProjectUsers, addProjectMember } = useProject();
-  const { users, getUsers } = useUser();
+  const { getUsers, createUser } = useUser();
+  const { roles, getRoles } = useRole();
 
   const panelState = ref<"idle" | "hide">("idle");
 
   const loading = ref<boolean>(true);
-  const roles = ref<{ _id: string; name: string }[]>([]);
+  const submitLoading = ref<boolean>(false);
 
-  const kindInput = ref<InputGeneric<ProjectMemberKind>>({
-    label: "Member type",
-    name: "kind",
-    model: "",
-    placeholder: "Pick one",
-    options: [
-      {
-        name: "Indirect",
-        value: "indirect",
-      },
-      {
-        name: "Direct",
-        value: "direct",
-      },
-      {
-        name: "Support",
-        value: "support",
-      },
-    ],
-  });
+  const rolesSelected = ref<RoleResponse[]>([]);
+
   const nameInput = ref<InputOption>({
-    label: "Member name",
+    label: "User name",
     name: "name",
     model: "",
-    placeholder: "John Doe",
+    placeholder: "Jane Doe",
   });
-  const userInput = ref<InputOption>({
-    label: "Member",
-    name: "user",
+  const emailInput = ref<InputOption>({
+    label: "User email",
+    name: "email",
     model: "",
-    placeholder: "Select user",
-    options: [],
+    type: "email",
+    placeholder: "jane.doe@abc.com",
+  });
+  const passwordInput = ref<InputOption>({
+    label: "User password",
+    name: "password",
+    model: "",
+    type: "password",
+    placeholder: "janedoe321",
   });
   const roleInput = ref<InputOption>({
-    label: "Role",
+    label: "User role",
     name: "role",
     model: "",
-    placeholder: "Select role",
-    options: [],
+    placeholder: "Select at least one",
   });
 
-  const kind = computed<ProjectMemberRequest["kind"] | undefined>(
-    () => kindInput.value.value
+  const name = computed<UserRequest["name"]>(() => nameInput.value.model);
+  const email = computed<UserRequest["email"]>(() => emailInput.value.model);
+  const password = computed<UserRequest["password"]>(
+    () => passwordInput.value.model
   );
-  const name = computed<ProjectMemberRequest["name"]>(
-    () => nameInput.value.model
-  );
-  const _id = computed<ProjectMemberRequest["_id"]>(
-    () => userInput.value.value
-  );
-  const role_id = computed<ProjectMemberRequest["role_id"]>(() =>
-    roles.value.map((a) => a._id)
-  );
-  const role = computed<{ _id: string; name: string } | null>(() =>
-    roleInput.value.value
-      ? {
-          _id: roleInput.value.value,
-          name: roleInput.value.model,
-        }
-      : null
+  const role = computed<string | undefined>(() => roleInput.value.value);
+  const role_id = computed<string[]>(() =>
+    rolesSelected.value.map((a) => a._id)
   );
 
-  async function submit(): Promise<void> {
-    if (project.value && kind.value) {
-      loading.value = true;
+  function addRole(): void {
+    if (role.value) {
+      const data = roles.value?.find((a) => a._id === role.value);
+      if (data) {
+        rolesSelected.value.push(data);
 
-      const payload = {
-        project_id: props.data.project_id,
-        request: {
-          _id: _id.value,
-          name: name.value,
-          kind: kind.value,
-          role_id: role_id.value,
-        },
-      };
-
-      await addProjectMember(payload);
-
-      project.value.users = await getProjectUsers({
-        _id: props.data.project_id,
-      });
-
-      loading.value = false;
-      panelState.value = "hide";
+        roleInput.value.model = "";
+        roleInput.value.value = "";
+        roleInput.value.options = roles.value
+          ?.filter(
+            (a) =>
+              !a.permission.includes("owner") &&
+              rolesSelected.value.findIndex((b) => b._id === a._id) === -1
+          )
+          .map((a) => ({ name: a.name, value: a._id }));
+      }
     }
   }
-  function addRole() {
-    if (role.value) {
-      roles.value.push(role.value);
-      roleInput.value.model = "";
-      roleInput.value.value = "";
-      roleInput.value.options = project.value.users?.role
+  function removeRole(_id: string): void {
+    const index = rolesSelected.value.findIndex((a) => a._id === _id);
+    if (index > -1) {
+      rolesSelected.value.splice(index, 1);
+
+      roleInput.value.options = roles.value
         ?.filter(
           (a) =>
             !a.permission.includes("owner") &&
-            roles.value.findIndex((b) => b._id === a._id) === -1
+            rolesSelected.value.findIndex((b) => b._id === a._id) === -1
         )
         .map((a) => ({ name: a.name, value: a._id }));
     }
   }
-  function removeRole(_id: string) {
-    const index = roles.value.findIndex((a) => a._id === _id);
-    if (index > -1) {
-      roles.value.splice(index, 1);
+  async function submit(del?: boolean): Promise<void> {
+    if (!submitLoading.value) {
+      submitLoading.value = true;
+
+      if (del && props.data.user) {
+      } else {
+        const payload = {
+          request: {
+            name: name.value,
+            email: email.value,
+            password: password.value,
+            role_id: role_id.value,
+          },
+        };
+        if (props.data.user) {
+        } else {
+          await createUser(payload);
+        }
+      }
+
+      await getUsers();
+      submitLoading.value = false;
+      panelState.value = "hide";
     }
   }
 
@@ -191,18 +179,9 @@
   );
 
   onMounted(async () => {
-    users.value = await getUsers();
-    project.value.users = await getProjectUsers({ _id: props.data.project_id });
+    await getRoles();
 
-    userInput.value.options = users.value
-      .filter(
-        (a) =>
-          (project.value.users?.user || []).findIndex(
-            (b) => b._id === a._id
-          ) === -1
-      )
-      .map((a) => ({ name: a.name, value: a._id }));
-    roleInput.value.options = project.value.users?.role
+    roleInput.value.options = roles.value
       ?.filter((a) => !a.permission.includes("owner"))
       .map((a) => ({ name: a.name, value: a._id }));
 

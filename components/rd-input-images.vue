@@ -92,9 +92,9 @@
     input: InputImageOption;
   }>();
 
-  const rdInputArea = ref<HTMLLabelElement>(null);
-  const rdImagesWrapper = ref<HTMLDivElement>(null);
-  const rdImage = ref<HTMLDivElement[]>(null);
+  const rdInputArea = ref<HTMLLabelElement | null>(null);
+  const rdImagesWrapper = ref<HTMLDivElement | null>(null);
+  const rdImage = ref<HTMLDivElement[] | null>(null);
 
   const inputDragging = ref<boolean>(false);
   const inputLoading = ref<boolean>(false);
@@ -170,11 +170,13 @@
       });
 
       const rdTargetImage: HTMLElement = rdImage[index];
-      const rdShiftImage: HTMLElement[] = gsap.utils.toArray(
-        rdTargetImage.parentElement.querySelectorAll(
-          `.rd-image-container[data-index="${index}"] ~ .rd-image-container`
-        )
-      );
+      const rdShiftImage: HTMLElement[] = rdTargetImage.parentElement
+        ? gsap.utils.toArray(
+            rdTargetImage.parentElement.querySelectorAll(
+              `.rd-image-container[data-index="${index}"] ~ .rd-image-container`
+            )
+          )
+        : [];
 
       tl.to(rdTargetImage, {
         scale: 0.875,
@@ -210,13 +212,13 @@
   function dropHandler(e: DragEvent): void {
     e.preventDefault();
     inputDragging.value = false;
-    fileHandler(e.dataTransfer.files);
+    if (e.dataTransfer) fileHandler(e.dataTransfer.files);
   }
   function changeHandler(e: Event): void {
     e.preventDefault();
     if (e.target instanceof HTMLInputElement) {
-      const files: FileList = e.target.files;
-      fileHandler(files);
+      const files = e.target.files;
+      if (files) fileHandler(files);
     }
   }
   async function fileHandler(files: FileList): Promise<void> {
@@ -245,7 +247,8 @@
         if (i === files.length - 1) {
           setTimeout(() => {
             if (showFiles) inputHandler("show");
-            else animate.showImages(rdImagesWrapper.value);
+            else if (rdImagesWrapper.value)
+              animate.showImages(rdImagesWrapper.value);
             inputLoading.value = false;
           }, 1000);
         }
@@ -257,24 +260,28 @@
     return new Promise((resolve, reject) => {
       const reader: FileReader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
+      reader.onload = () => (reader.result ? resolve(reader.result) : null);
       reader.onerror = (e: ProgressEvent<FileReader>) => reject(e);
     });
   }
 
   function inputHandler(state: "show" | "hide"): void {
-    if (state === "show") {
-      animate.initImages(rdInputArea.value, rdImagesWrapper.value);
-    } else {
-      animate.exitImages(rdInputArea.value);
+    if (rdInputArea.value) {
+      if (state === "show" && rdImagesWrapper.value) {
+        animate.initImages(rdInputArea.value, rdImagesWrapper.value);
+      } else {
+        animate.exitImages(rdInputArea.value);
+      }
     }
   }
 
   function removeImage(index: number): void {
-    animate.removeImage(rdImage.value, index, () => {
-      inputFiles.value.splice(index, 1);
-      if (!inputFiles.value.length) inputHandler("hide");
-    });
+    if (rdImage.value) {
+      animate.removeImage(rdImage.value, index, () => {
+        inputFiles.value.splice(index, 1);
+        if (!inputFiles.value.length) inputHandler("hide");
+      });
+    }
   }
 
   watch(

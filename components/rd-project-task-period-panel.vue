@@ -19,7 +19,13 @@
         label="submit"
         @clicked="submit"
         :loading="loading"
-        :disabled="!start || !end || end <= start"
+        :disabled="
+          !start ||
+          !end ||
+          end <= start ||
+          start < new Date(data.period.start).getTime() ||
+          end > new Date(data.period.end).getTime()
+        "
       />
     </div>
   </rd-panel>
@@ -27,6 +33,7 @@
 
 <script lang="ts" setup>
   import { InputDateOption } from "~~/types/general";
+  import { ProjectResponse } from "~~/types/project";
   import {
     ProjectTaskMinResponse,
     ProjectTaskPeriodRequest,
@@ -36,6 +43,7 @@
     state: "idle" | "hide";
     data: {
       project_id: string;
+      period: ProjectResponse["period"];
       task: ProjectTaskMinResponse;
     };
   }>();
@@ -51,6 +59,10 @@
     name: "start",
     model: "",
     placeholder: "Start date",
+    threshold: [
+      new Date(props.data.period.start),
+      new Date(props.data.period.end),
+    ],
     error: "",
   });
   const endDateInput = ref<InputDateOption>({
@@ -58,14 +70,18 @@
     name: "end",
     model: "",
     placeholder: "End date",
+    threshold: [
+      new Date(props.data.period.start),
+      new Date(props.data.period.end),
+    ],
     error: "",
   });
 
   const start = computed<ProjectTaskPeriodRequest["start"]>(() =>
-    new Date(startDateInput.value.value).setHours(0, 0, 0, 0)
+    new Date(startDateInput.value.value || new Date()).setHours(0, 0, 0, 0)
   );
   const end = computed<ProjectTaskPeriodRequest["end"]>(() =>
-    new Date(endDateInput.value.value).getTime()
+    new Date(endDateInput.value.value || new Date()).getTime()
   );
 
   async function submit(): Promise<void> {
@@ -82,7 +98,7 @@
     });
 
     project.value.timeline = await getProjectTasks({
-      _id: project.value.data._id,
+      _id: project.value.data?._id || "",
     });
 
     loading.value = false;

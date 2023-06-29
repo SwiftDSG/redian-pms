@@ -108,72 +108,74 @@
     data: ProjectProgressResponse[];
   }>();
 
-  const rdSparkline = ref<SVGSVGElement>(null);
+  const rdSparkline = ref<SVGSVGElement | null>(null);
 
   const dataHoverIndex = ref<number>(-1);
 
   const datas = ref<DataProgress[]>([]);
 
   function draw(): void {
-    const { width, height } = rdSparkline.value.getBoundingClientRect();
+    if (rdSparkline.value) {
+      const { width, height } = rdSparkline.value.getBoundingClientRect();
 
-    const xLen = datas.value.length - 1;
-    const xStep = width / xLen;
+      const xLen = datas.value.length - 1;
+      const xStep = width / xLen;
 
-    for (let i: number = 0; i < xLen; i++) {
-      const rdLine1: SVGLineElement = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line"
-      );
+      for (let i: number = 0; i < xLen; i++) {
+        const rdLine1: SVGLineElement = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line"
+        );
 
-      const x = (i + 1) * xStep;
-      const y1 = height - (datas.value[i + 1].y[0] / 100) * height;
-      const y2 = height - (datas.value[i + 1].y[1] / 100) * height;
+        const x = (i + 1) * xStep;
+        const y1 = height - (datas.value[i + 1].y[0] / 100) * height;
+        const y2 = height - (datas.value[i + 1].y[1] / 100) * height;
 
-      rdLine1.setAttributeNS(null, "x1", (i * xStep).toString());
-      rdLine1.setAttributeNS(
-        null,
-        "y1",
-        (height - (datas.value[i].y[0] / 100) * height).toString()
-      );
-      rdLine1.setAttributeNS(null, "x2", x.toString());
-      rdLine1.setAttributeNS(null, "y2", y1.toString());
+        rdLine1.setAttributeNS(null, "x1", (i * xStep).toString());
+        rdLine1.setAttributeNS(
+          null,
+          "y1",
+          (height - (datas.value[i].y[0] / 100) * height).toString()
+        );
+        rdLine1.setAttributeNS(null, "x2", x.toString());
+        rdLine1.setAttributeNS(null, "y2", y1.toString());
 
-      rdLine1.setAttributeNS(null, "stroke", "#ffc904");
-      rdLine1.setAttributeNS(null, "stroke-width", "2");
+        rdLine1.setAttributeNS(null, "stroke", "#ffc904");
+        rdLine1.setAttributeNS(null, "stroke-width", "2");
 
-      rdSparkline.value.appendChild(rdLine1);
+        rdSparkline.value.appendChild(rdLine1);
 
-      const rdLine2: SVGLineElement = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "line"
-      );
+        const rdLine2: SVGLineElement = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line"
+        );
 
-      rdLine2.setAttributeNS(null, "x1", (i * xStep).toString());
-      rdLine2.setAttributeNS(
-        null,
-        "y1",
-        (height - (datas.value[i].y[1] / 100) * height).toString()
-      );
-      rdLine2.setAttributeNS(null, "x2", x.toString());
-      rdLine2.setAttributeNS(null, "y2", y2.toString());
+        rdLine2.setAttributeNS(null, "x1", (i * xStep).toString());
+        rdLine2.setAttributeNS(
+          null,
+          "y1",
+          (height - (datas.value[i].y[1] / 100) * height).toString()
+        );
+        rdLine2.setAttributeNS(null, "x2", x.toString());
+        rdLine2.setAttributeNS(null, "y2", y2.toString());
 
-      rdLine2.setAttributeNS(
-        null,
-        "stroke",
-        datas.value[i + 1].y[1] > datas.value[i + 1].y[0]
-          ? "#6bc785"
-          : "#ff584c"
-      );
-      rdLine2.setAttributeNS(null, "stroke-width", "2");
+        rdLine2.setAttributeNS(
+          null,
+          "stroke",
+          datas.value[i + 1].y[1] > datas.value[i + 1].y[0]
+            ? "#6bc785"
+            : "#ff584c"
+        );
+        rdLine2.setAttributeNS(null, "stroke-width", "2");
 
-      rdSparkline.value.appendChild(rdLine2);
-      if (i === xLen - 1) {
-        gsap.to([rdSparkline.value.parentElement, rdSparkline.value], {
-          x: 0,
-          duration: 2,
-          ease: "power2.out",
-        });
+        rdSparkline.value.appendChild(rdLine2);
+        if (i === xLen - 1) {
+          gsap.to([rdSparkline.value.parentElement, rdSparkline.value], {
+            x: 0,
+            duration: 2,
+            ease: "power2.out",
+          });
+        }
       }
     }
   }

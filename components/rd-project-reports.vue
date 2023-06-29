@@ -21,7 +21,16 @@
         <span class="rd-panel-report-header-title rd-headline-3">Reports</span>
       </div>
       <div class="rd-panel-report-body">
-        <div class="rd-report rd-report-daily">
+        <div
+          v-for="(report, i) in data"
+          :key="report.progress?._id || report.incident?._id || i"
+          class="rd-report"
+          :class="
+            report.kind === 'progress'
+              ? 'rd-report-progress'
+              : 'rd-report-incident'
+          "
+        >
           <div class="rd-report-timeline">
             <div class="rd-report-timeline-bullet"></div>
           </div>
@@ -29,13 +38,15 @@
             <div class="rd-report-header">
               <div class="rd-report-name-container">
                 <span class="rd-report-date rd-caption-text"
-                  ><span>10 June 2023</span>
+                  ><span>{{ formatDate(report.date) }}</span>
                   <div class="rd-report-date-dot"></div>
-                  <span>Johne Dowen</span></span
+                  <span>{{
+                    report.progress?.user.name || report.incident?.user.name
+                  }}</span></span
                 >
-                <span class="rd-report-name rd-headline-4"
-                  >Daily report #321</span
-                >
+                <span class="rd-report-name rd-headline-4">{{
+                  `Daily report #${counterProgress[data.length - i - 1]}`
+                }}</span>
               </div>
               <div class="rd-report-action-container">
                 <rd-input-button-small
@@ -45,55 +56,67 @@
                 <rd-input-button-small class="rd-report-action" icon="eye" />
               </div>
             </div>
-            <div class="rd-report-body">
+            <div v-if="report.progress" class="rd-report-body">
               <div class="rd-report-detail-container">
                 <div class="rd-report-detail">
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >In</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5"
-                    >08:00</span
-                  >
+                  <span class="rd-report-detail-value rd-headline-5">{{
+                    `${report.progress.time?.[0][0]
+                      .toString()
+                      .padStart(2, "0")}:${report.progress.time?.[0][1]
+                      .toString()
+                      .padStart(2, "0")}`
+                  }}</span>
                 </div>
                 <div class="rd-report-detail">
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Out</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5"
-                    >17:00</span
-                  >
+                  <span class="rd-report-detail-value rd-headline-5">{{
+                    `${report.progress.time?.[1][0]
+                      .toString()
+                      .padStart(2, "0")}:${report.progress.time?.[1][1]
+                      .toString()
+                      .padStart(2, "0")}`
+                  }}</span>
                 </div>
                 <div class="rd-report-detail">
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Duration (hrs)</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5"
-                    >9 hrs</span
-                  >
+                  <span class="rd-report-detail-value rd-headline-5">{{
+                    `${
+                      report.progress.time
+                        ? formatHours(report.progress.time)
+                        : 0
+                    } hrs`
+                  }}</span>
                 </div>
                 <div class="rd-report-detail">
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Progress (%)</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5"
-                    >7.132%</span
-                  >
+                  <span class="rd-report-detail-value rd-headline-5">{{
+                    `${report.progress.progress.toFixed(3)}%`
+                  }}</span>
                 </div>
                 <div class="rd-report-detail">
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Documentation</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5"
-                    >6 photos</span
-                  >
+                  <span class="rd-report-detail-value rd-headline-5">{{
+                    `${report.progress.documentation?.length || 0} photos`
+                  }}</span>
                 </div>
                 <div class="rd-report-detail">
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Worker</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5"
-                    >12 workers</span
-                  >
+                  <span class="rd-report-detail-value rd-headline-5">{{
+                    `${report.progress.member?.length || 0} workers`
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -106,15 +129,21 @@
 
 <script lang="ts" setup>
   import { gsap } from "gsap";
-  import { ProjectResponse } from "~~/types/project";
+  import { ProjectReportResponse, ProjectResponse } from "~~/types/project";
 
   const props = defineProps<{
     project: ProjectResponse;
     state: "idle" | "changing";
+    data: ProjectReportResponse[];
   }>();
   const emits = defineEmits(["change-menu", "changing-done", "edit-task"]);
 
-  const rdPanel = ref<HTMLDivElement>(null);
+  const rdPanel = ref<HTMLDivElement | null>(null);
+
+  const counterProgress = computed<number[]>(() => {
+    let count = 1;
+    return props.data.map((a) => (a.kind === "progress" ? count++ : 0));
+  });
 
   const animate = {
     init(rdComponent: HTMLElement, cb: () => void): void {
@@ -140,20 +169,47 @@
       });
     },
   };
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  function formatDate(x: string): string {
+    const date = new Date(x);
+
+    return `${date.getDate().toString().padStart(2, "0")} ${
+      months[date.getMonth()]
+    } ${date.getFullYear()}`;
+  }
+  function formatHours(x: [[number, number], [number, number]]): number {
+    return ((x[1][0] - x[0][0]) * 60 + (x[1][1] - x[0][1])) / 60;
+  }
 
   watch(
     () => props.state,
     (val) => {
-      if (val === "changing") {
+      if (val === "changing" && rdPanel.value) {
         animate.exit(rdPanel.value);
       }
     }
   );
 
   onMounted(() => {
-    animate.init(rdPanel.value, () => {
-      emits("changing-done");
-    });
+    if (rdPanel.value) {
+      animate.init(rdPanel.value, () => {
+        emits("changing-done");
+      });
+    }
   });
 </script>
 
@@ -364,7 +420,7 @@
               }
             }
           }
-          &.rd-report-daily {
+          &.rd-report-progress {
             .rd-report-timeline {
               .rd-report-timeline-bullet {
                 &::before {

@@ -34,23 +34,25 @@
 </template>
 
 <script lang="ts" setup>
-  import { InputSwitchOption } from "~~/interfaces/general";
+  import { InputSwitchOption } from "~~/types/general";
 
   const props = defineProps<{
     input: InputSwitchOption;
   }>();
 
-  const rdInput = ref<HTMLInputElement>(null);
+  const rdInput = ref<HTMLInputElement | null>(null);
 
   watch(
     () => props.input.model,
     (val) => {
-      if (val === props.input.options[0]) rdInput.value.checked = false;
-      else rdInput.value.checked = true;
+      if (rdInput.value) {
+        if (val === props.input.options[0]) rdInput.value.checked = false;
+        else rdInput.value.checked = true;
+      }
     }
   );
 
-  function updateModel(e: InputEvent): InputEvent {
+  function updateModel(e: Event): Event {
     if (e.target instanceof HTMLInputElement) {
       props.input.model = props.input.options[e.target.checked ? 1 : 0];
     }

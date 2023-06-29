@@ -46,12 +46,12 @@ export default () => {
       return [];
     }
   };
-  const createUser = async (payload: UserRequest): Promise<string> => {
+  const createUser = async (payload: { request: UserRequest }): Promise<string> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/users`,
         "post",
-        JSON.stringify(payload)
+        JSON.stringify(payload.request)
       );
       if (response.status !== 200) throw new Error("");
 
@@ -107,8 +107,6 @@ export default () => {
       user.value = result.user;
       return result.user;
     } catch (e) {
-      console.log(`${config.public.apiBase}/users/refresh`)
-      console.log(e)
       logout();
       return null;
     }
