@@ -267,7 +267,7 @@
                 padding: 0 0.75rem;
                 box-sizing: border-box;
                 display: flex;
-                gap: 0.75rem;
+                gap: 0.375rem;
                 .rd-panel-user-role {
                   position: relative;
                   height: 1rem;

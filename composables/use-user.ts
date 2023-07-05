@@ -1,5 +1,5 @@
 import { CookieRef } from "nuxt/dist/app/composables";
-import { User, UserRequest } from "~~/types/user";
+import { User, UserRequest, UserResponse } from "~~/types/user";
 
 export default () => {
   const { $setDefaults, $fetch } = useNuxtApp();
@@ -11,10 +11,10 @@ export default () => {
     maxAge: 86400,
   });
 
-  const user = useState<User | null>("user", () => null);
-  const users = useState<User[] | null>("user", () => null);
+  const user = useState<UserResponse | null>("user", () => null);
+  const users = useState<UserResponse[] | null>("users", () => null);
 
-  const getUser = async (payload: { user_id: string }): Promise<User | null> => {
+  const getUser = async (payload: { user_id: string }): Promise<UserResponse | null> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/users/${payload.user_id}`,
@@ -30,7 +30,7 @@ export default () => {
       return null;
     }
   };
-  const getUsers = async (): Promise<User[]> => {
+  const getUsers = async (): Promise<UserResponse[]> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/users`,
@@ -63,14 +63,14 @@ export default () => {
       return '';
     }
   };
-  const login = async (email: string, password: string): Promise<User | null> => {
+  const login = async (email: string, password: string): Promise<UserResponse | null> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/users/login`,
         "post",
         JSON.stringify({ email, password })
       );
-      const result: { atk: string; rtk: string; user: User } =
+      const result: { atk: string; rtk: string; user: UserResponse } =
         await response.json();
       if (!result.atk || !result.rtk) throw new Error("");
       atkCookie.value = result.atk;
@@ -86,7 +86,7 @@ export default () => {
       return null;
     }
   };
-  const refresh = async (): Promise<User | null> => {
+  const refresh = async (): Promise<UserResponse | null> => {
     try {
       if (!rtkCookie.value) throw new Error("COOKIE_UNAVAILABLE");
       const response: Response = await $fetch(
@@ -94,7 +94,7 @@ export default () => {
         "post",
         JSON.stringify({ rtk: rtkCookie.value })
       );
-      const result: { atk: string; rtk: string; user: User } =
+      const result: { atk: string; rtk: string; user: UserResponse } =
         await response.json();
       if (!result.atk || !result.rtk) throw new Error("");
       atkCookie.value = result.atk;

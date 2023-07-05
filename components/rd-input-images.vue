@@ -283,11 +283,34 @@
       });
     }
   }
+  function generateId(): string {
+    let str = "";
+    for (var i: number = 0; i < 10; i++) {
+      str += "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[
+        Math.round(Math.random() * 25)
+      ];
+    }
+    return str;
+  }
 
   watch(
     () => file.value,
-    () => {
-      props.input.file = file.value;
+    async (val) => {
+      const files: File[] = [];
+      for (const file of val) {
+        if (typeof file === "string") {
+          const response = await fetch(file);
+          const blob: Blob = await response.blob();
+          files.push(
+            new File([blob], generateId(), {
+              type: file.match(/^data:(.+);base64/)?.[1],
+            })
+          );
+        } else {
+          files.push(file);
+        }
+      }
+      props.input.file = files;
     }
   );
 

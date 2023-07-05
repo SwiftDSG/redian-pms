@@ -132,7 +132,7 @@ export type InputFileOption = {
 export type InputImageOption = {
   label: string
   limit: number
-  file: (File | string)[]
+  file: File[]
 }
 export type InputOption = {
   name: string

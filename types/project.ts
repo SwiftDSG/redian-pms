@@ -1,5 +1,5 @@
 import { ProjectIncidentReportResponse } from "./project-incident";
-import { ProjectProgressReportResponse } from "./project-report";
+import { ProjectProgressReportMinResponse } from "./project-report";
 import { ProjectRoleResponse } from "./project-role";
 import { ProjectTaskMinResponse } from "./project-task";
 import { UserImage } from "./user";
@@ -119,6 +119,6 @@ export type ProjectUserResponse = {
 export type ProjectReportResponse = {
   date: string;
   kind: ProjectReportKind;
-  progress?: ProjectProgressReportResponse;
+  progress?: ProjectProgressReportMinResponse;
   incident?: ProjectIncidentReportResponse;
 }

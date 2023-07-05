@@ -1,6 +1,6 @@
 <template>
   <div class="rd-component">
-    <div v-if="!init" class="rd-day-container">
+    <div ref="rdDayContainer" v-if="!init" class="rd-day-container">
       <div v-for="(day, i) in days" :key="i" class="rd-day">
         <div class="rd-day-date">
           <span class="rd-day-date-value rd-headline-3">{{
@@ -13,7 +13,12 @@
         <div class="rd-day-body"></div>
       </div>
     </div>
-    <div v-if="!init" class="rd-data-container">
+    <div
+      v-if="!init"
+      ref="rdDataContainer"
+      @scroll="bindScroll"
+      class="rd-data-container"
+    >
       <div
         v-for="(data, i) in datas"
         :key="i"
@@ -64,6 +69,9 @@
     project: ProjectResponse;
     data: ProjectTaskMinResponse[];
   }>();
+
+  const rdDayContainer = ref<HTMLDivElement | null>(null);
+  const rdDataContainer = ref<HTMLDivElement | null>(null);
 
   const datas = ref<DataTimeline[]>([]);
 
@@ -149,6 +157,17 @@
     const date = new Date(str);
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   }
+  function bindScroll(e: Event): void {
+    if (
+      e.target instanceof HTMLElement &&
+      rdDayContainer.value &&
+      rdDataContainer.value
+    ) {
+      const { scrollLeft } = e.target;
+      rdDayContainer.value.scrollLeft = scrollLeft;
+      rdDataContainer.value.scrollLeft = scrollLeft;
+    }
+  }
 
   watch(
     () => props.data,
@@ -193,12 +212,15 @@
     border: var(--border);
     border-radius: 0.75rem;
     box-sizing: border-box;
-    overflow-x: auto;
     flex-shrink: 0;
+    overflow-x: hidden;
     .rd-day-container {
+      pointer-events: none;
       position: relative;
+      width: 100%;
       height: 100%;
       display: flex;
+      overflow-x: auto;
       .rd-day {
         position: relative;
         width: 3rem;
@@ -209,6 +231,8 @@
           position: relative;
           width: 3rem;
           height: 3rem;
+          border-bottom: var(--border);
+          box-sizing: border-box;
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -243,10 +267,10 @@
           left: 0;
           width: 100%;
           height: 100%;
-          border-left: var(--border);
+          border-right: var(--border);
           opacity: 0.375;
         }
-        &:first-child::after {
+        &:last-child::after {
           border: none;
         }
       }
@@ -259,6 +283,7 @@
       bottom: 0;
       width: 100%;
       height: calc(100% - 3rem);
+      overflow: auto;
       .rd-data {
         position: absolute;
         height: 3.5rem;
@@ -275,7 +300,11 @@
           flex-direction: column;
           span.rd-data-name {
             position: relative;
+            width: 100%;
             margin-bottom: 0.25rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
           }
           span.rd-data-period {
             position: relative;
@@ -285,6 +314,9 @@
             white-space: nowrap;
           }
         }
+      }
+      &::-webkit-scrollbar {
+        display: none;
       }
     }
   }

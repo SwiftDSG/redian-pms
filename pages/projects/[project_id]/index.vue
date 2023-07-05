@@ -68,21 +68,30 @@
           )
         "
       />
+      <rd-input-button
+        v-else-if="validate('create_incident')"
+        class="rd-project-warning-action"
+        label="continue project"
+        @clicked="openRemoveIncident"
+      />
     </div>
     <rd-project-overview
       v-if="
         projectMenu === 'overview' &&
         project.data &&
         projectProgress &&
-        projectTimeline
+        projectTimeline &&
+        projectUsers?.user
       "
       :project="project.data"
       :state="projectMenuState"
       :data="{
         projectProgress,
         projectTimeline,
+        projectMembers: projectUsers?.user,
       }"
       @changing-done="projectMenuState = 'idle'"
+      @change-menu="projectMenuChange"
     />
     <rd-project-progress
       v-if="projectMenu === 'progress' && project.data && projectProgress"
@@ -111,12 +120,23 @@
       @remove-area="openRemoveArea"
     />
     <rd-project-reports
-      v-if="projectMenu === 'reports' && project.data && projectReports"
+      v-if="
+        projectMenu === 'reports' &&
+        project.data &&
+        projectReports &&
+        projectProgress &&
+        projectTimeline
+      "
       :project="project.data"
       :state="projectMenuState"
-      :data="projectReports"
+      :data="{
+        projectReports,
+        projectProgress,
+        projectTimeline,
+      }"
       @changing-done="projectMenuState = 'idle'"
       @add-task="openAddTask"
+      @export-report="openExportReport"
     />
     <rd-project-users
       v-if="projectMenu === 'users' && project.data && projectUsers"
@@ -167,6 +187,7 @@
   const {
     projects,
     project,
+    validate,
     getProjects,
     getProject,
     getProjectProgress,
@@ -212,7 +233,7 @@
 
   const projectMenuState = ref<"idle" | "changing">("idle");
   const projectMenu = ref<ProjectMenuKind | null>(null);
-  const projectWarning = ref<ProjectWarning | null>(null);
+  const projectInit = ref<boolean>(true);
 
   const projectUsers = computed<ProjectUserResponse | null>(
     () => project.value.users
@@ -229,6 +250,26 @@
   const projectReports = computed<ProjectReportResponse[] | null>(
     () => project.value.reports
   );
+  const projectWarning = computed<ProjectWarning | null>(() => {
+    if (projectInit.value) return null;
+    if (project.value.data?.status[0].kind === "breakdown") return "breakdown";
+    if (!projectAreas.value?.length) return "empty-area";
+    if (!projectAreas.value.reduce((a, b) => a + (b?.task?.length || 0), 0))
+      return "empty-task";
+    if (
+      projectAreas.value.reduce(
+        (a, b) => a + (b?.task?.reduce((c, d) => c + d.value, 0) || 0),
+        0
+      ) !== 100
+    )
+      return "incomplete-value";
+    if (
+      projectTimeline.value?.length &&
+      !projectTimeline.value.every((a) => !!a.period)
+    )
+      return "incomplete-period";
+    return null;
+  });
 
   const projectMenus: ProjectMenu[] = [
     {
@@ -244,7 +285,7 @@
     {
       title: "Project Timeline",
       name: "timeline",
-      icon: "timeline",
+      icon: "gantt",
     },
     {
       title: "Project Users",
@@ -306,6 +347,9 @@
           project.value.timeline = await getProjectTasks({
             _id: project.value.data?._id || "",
           });
+          project.value.users = await getProjectUsers({
+            _id: project.value.data?._id || "",
+          });
           break;
         case "progress":
           project.value.progress = await getProjectProgress({
@@ -350,6 +394,16 @@
       type: "project-report-add",
       data: {
         project_id: project.value.data?._id || "",
+      },
+    });
+  }
+  function openExportReport(): void {
+    emits("open-panel", {
+      state: "show",
+      type: "project-report-export",
+      data: {
+        project_id: project.value.data?._id || "",
+        period: project.value.data?.period,
       },
     });
   }
@@ -403,6 +457,15 @@
       },
     });
   }
+  function openRemoveIncident(): void {
+    emits("open-panel", {
+      state: "show",
+      type: "project-incident-remove",
+      data: {
+        project_id: project.value.data?._id || "",
+      },
+    });
+  }
   function openPeriodTask(task: ProjectTaskMinResponse): void {
     emits("open-panel", {
       state: "show",
@@ -414,49 +477,6 @@
       },
     });
   }
-  function generateWarning(): void {
-    if (project.value.data?.status[0].kind === "breakdown")
-      projectWarning.value = "breakdown";
-    else if (!projectAreas.value?.length) projectWarning.value = "empty-area";
-    else {
-      const count = projectAreas.value.reduce(
-        (a, b) => a + (b?.task?.length || 0),
-        0
-      );
-      if (!count) projectWarning.value = "empty-task";
-      else {
-        const count = projectAreas.value.reduce(
-          (a, b) => a + (b?.task?.reduce((c, d) => c + d.value, 0) || 0),
-          0
-        );
-        if (count !== 100) projectWarning.value = "incomplete-value";
-        else if (
-          projectTimeline.value?.length &&
-          !projectTimeline.value.every((a) => !!a.period)
-        )
-          projectWarning.value = "incomplete-period";
-      }
-    }
-  }
-
-  watch(
-    () => projectAreas.value,
-    () => {
-      generateWarning();
-    },
-    {
-      deep: true,
-    }
-  );
-  watch(
-    () => projectTimeline.value,
-    () => {
-      generateWarning();
-    },
-    {
-      deep: true,
-    }
-  );
 
   onMounted(async () => {
     await getProjects();
@@ -476,8 +496,7 @@
 
     projectMenuChange("overview");
 
-    if (!project.value.areas?.length) generateWarning();
-    else if (areaInput.value.options) {
+    if (areaInput.value.options) {
       areaInput.value.options.push(
         ...(project.value.areas?.map((a) => ({
           name: a.name,
@@ -496,6 +515,7 @@
         projectInput.value.value = project.value.data._id;
       }
     }
+    projectInit.value = false;
   });
 </script>
 

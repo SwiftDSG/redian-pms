@@ -44,7 +44,8 @@
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
-  const { project, createProjectTask, getProjectAreas } = useProject();
+  const { project, createProjectTask, getProjectAreas, getProjectTasks } =
+    useProject();
 
   const panelState = ref<"idle" | "hide">("idle");
 
@@ -118,6 +119,9 @@
     });
 
     project.value.areas = await getProjectAreas({ _id: props.data.project_id });
+    project.value.timeline = await getProjectTasks({
+      _id: props.data.project_id,
+    });
 
     loading.value = false;
     panelState.value = "hide";

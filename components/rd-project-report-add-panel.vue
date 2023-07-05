@@ -250,6 +250,7 @@
   const emits = defineEmits(["exit", "open-panel"]);
   const {
     project,
+    getProject,
     getProjectTasks,
     createProjectReport,
     createProjectIncident,
@@ -365,6 +366,16 @@
         };
       })
   );
+  const documentation = computed<ProjectProgressReportRequest["documentation"]>(
+    () =>
+      imagesInput.value.file.map((a) => ({
+        _id: a.name,
+        extension: a.type,
+      }))
+  );
+  const documentation_photo = computed<
+    ProjectProgressReportRequest["documentation_photo"]
+  >(() => imagesInput.value.file);
   const member_id = computed<ProjectProgressReportRequest["member_id"]>(() =>
     membersSelected.value.map((a) => a._id)
   );
@@ -515,6 +526,8 @@
         member_id: member_id.value,
         time: time.value,
         actual: actual.value,
+        documentation: documentation.value,
+        documentation_photo: documentation_photo.value,
       };
       await createProjectReport({
         project_id: props.data.project_id,
@@ -533,6 +546,9 @@
       });
     }
 
+    project.value.data = await getProject({
+      _id: props.data.project_id,
+    });
     project.value.reports = await getProjectReports({
       _id: props.data.project_id,
     });
@@ -810,4 +826,3 @@
     }
   }
 </style>
-types/project-report

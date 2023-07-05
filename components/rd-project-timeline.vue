@@ -41,7 +41,7 @@
             </div>
             <div class="rd-panel-task-value-container">
               <span class="rd-panel-task-value rd-headline-5">{{
-                `${task.value}%`
+                `${task.value.toFixed(3)}%`
               }}</span>
               <div class="rd-panel-task-value-dot"></div>
             </div>
@@ -819,7 +819,7 @@
                     position: relative;
                     margin-bottom: 0.25rem;
                   }
-                  span.rd-panel-timeline-data-period {
+                  span {
                     position: relative;
                     width: 100%;
                     overflow: hidden;

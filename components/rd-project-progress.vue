@@ -1,6 +1,8 @@
 <template>
   <div class="rd-panel" ref="rdPanel">
-    <div class="rd-panel-header"></div>
+    <div class="rd-panel-header">
+      <span class="rd-panel-header-title rd-headline-3">Progress chart</span>
+    </div>
     <div class="rd-panel-body">
       <div class="rd-panel-axis-container">
         <div class="rd-panel-axis rd-caption-text">100%</div>
@@ -18,7 +20,7 @@
           v-for="i in datas.length"
           :key="i"
           class="rd-panel-cursor-area"
-          @mouseenter="dataHoverIndex = i - 1"
+          @mouseenter="dataHoverIndexChange(i - 1)"
         ></div>
         <div
           class="rd-panel-cursor"
@@ -71,15 +73,88 @@
                 height="12"
                 rx="6"
                 :style="`fill: ${
-                  dataHoverIndex > 0 && datas[dataHoverIndex].y[1] > 0
+                  dataHoverIndex > 0 && datas[dataHoverIndex].x <= today
                     ? datas[dataHoverIndex].y[1] > datas[dataHoverIndex].y[0]
                       ? 'var(--success-color)'
                       : 'var(--error-color)'
-                    : 'transparent'
+                    : 'rgba(0, 0, 0, 0)'
                 }`"
               />
-              <rect x="3" y="3" width="6" height="6" rx="3" fill="white" />
+              <rect
+                x="3"
+                y="3"
+                width="6"
+                height="6"
+                rx="3"
+                :fill="
+                  dataHoverIndex > 0 && datas[dataHoverIndex].x <= today
+                    ? 'white'
+                    : 'rgba(0, 0, 0, 0)'
+                "
+              />
             </svg>
+            <div class="rd-panel-cursor-legend-container">
+              <span class="rd-panel-cursor-legend-date rd-headline-5">{{
+                formatDate(datas[dataHoverIndex]?.x || 0)
+              }}</span>
+              <div class="rd-panel-cursor-legend">
+                <svg
+                  class="rd-panel-cursor-circle-legend"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    width="12"
+                    height="12"
+                    rx="6"
+                    style="fill: var(--warning-color)"
+                  />
+                  <rect x="3" y="3" width="6" height="6" rx="3" fill="white" />
+                </svg>
+                <span class="rd-panel-cursor-legend-placeholder rd-caption-text"
+                  >Plan:
+                </span>
+                <span class="rd-panel-cursor-legend-value rd-headline-6">{{
+                  `${(datas[dataHoverIndex]?.y[0] || 0).toFixed(2)}%`
+                }}</span>
+              </div>
+              <div
+                v-if="dataHoverIndex > 0 && datas[dataHoverIndex].x <= today"
+                class="rd-panel-cursor-legend"
+                style="margin-top: 0.25rem"
+              >
+                <svg
+                  class="rd-panel-cursor-circle-legend"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect
+                    width="12"
+                    height="12"
+                    rx="6"
+                    :style="`fill: ${
+                      dataHoverIndex > 0 &&
+                      datas[dataHoverIndex].y[1] > datas[dataHoverIndex].y[0]
+                        ? 'var(--success-color)'
+                        : 'var(--error-color)'
+                    }`"
+                  />
+                  <rect x="3" y="3" width="6" height="6" rx="3" fill="white" />
+                </svg>
+                <span class="rd-panel-cursor-legend-placeholder rd-caption-text"
+                  >Actual:
+                </span>
+                <span class="rd-panel-cursor-legend-value rd-headline-6">{{
+                  `${(datas[dataHoverIndex]?.y[1] || 0).toFixed(2)}%`
+                }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -102,6 +177,7 @@
     state: "idle" | "changing";
   }>();
   const emits = defineEmits(["change-menu", "changing-done"]);
+  const { rem } = useMain();
 
   const rdPanel = ref<HTMLDivElement | null>(null);
   const rdPanelCursor = ref<HTMLDivElement | null>(null);
@@ -112,8 +188,23 @@
   const dataHoverAnim = ref<GSAPTimeline | null>(null);
 
   const datas = ref<DataProgress[]>([]);
+  const today = ref<number>(new Date().setHours(23, 59, 59, 999));
   const init = ref<boolean>(true);
 
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
   const animate = {
     init(rdPanel: HTMLElement, cb: () => void): void {
       const tl = gsap.timeline({
@@ -143,6 +234,9 @@
       const rdCursorLine: HTMLElement | null = rdPanelCursor.querySelector(
         ".rd-panel-cursor-line-container"
       );
+      const rdCursorLegend: HTMLElement | null = rdPanelCursor.querySelector(
+        ".rd-panel-cursor-legend-container"
+      );
       const rdCursorCircle: HTMLElement[] = gsap.utils.toArray(
         rdPanelCursor.querySelectorAll("svg.rd-panel-cursor-circle")
       );
@@ -150,8 +244,6 @@
       if (rdParent && rdCursorLine && rdCursorCircle.length) {
         const { width: w1 } = rdPanelCursor.getBoundingClientRect();
         const { width: w2, height } = rdParent.getBoundingClientRect();
-
-        console.log(percentage[0]);
 
         const track = w2 - w1;
 
@@ -189,10 +281,48 @@
           );
       }
 
+      if (percentage[0] > 0.5 && rdCursorLegend) {
+        tl.to(
+          rdCursorLegend,
+          {
+            x: `${
+              -rdCursorLegend.getBoundingClientRect().width - 2 * rem.value
+            }px`,
+            duration: 0.25,
+            ease: "power2.inOut",
+          },
+          "<0"
+        );
+      } else if (rdCursorLegend) {
+        tl.to(
+          rdCursorLegend,
+          {
+            x: 0,
+            duration: 0.25,
+            ease: "power2.inOut",
+          },
+          "<0"
+        );
+      }
+
       return tl;
     },
   };
 
+  function dataHoverIndexChange(index: number): void {
+    dataHoverIndex.value = index;
+    if (dataHoverTimeout.value) clearTimeout(dataHoverTimeout.value);
+    dataHoverTimeout.value = setTimeout(() => {
+      if (dataHoverAnim.value) dataHoverAnim.value.kill();
+      if (rdPanelCursor.value) {
+        dataHoverAnim.value = animate.move(rdPanelCursor.value, [
+          index / (datas.value.length - 1),
+          datas.value[index].y[0] || 0,
+          datas.value[index].y[1] || 0,
+        ]);
+      }
+    }, 100);
+  }
   function draw(): void {
     if (rdSparkline.value) {
       const { width, height } = rdSparkline.value.getBoundingClientRect();
@@ -224,32 +354,34 @@
 
         rdSparkline.value.appendChild(rdLine1);
 
-        const rdLine2: SVGLineElement = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "line"
-        );
+        if (datas.value[i].x <= today.value - 86400000) {
+          const rdLine2: SVGLineElement = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line"
+          );
 
-        rdLine2.setAttributeNS(null, "x1", (i * xStep).toString());
-        rdLine2.setAttributeNS(
-          null,
-          "y1",
-          (height - (datas.value[i].y[1] / 100) * height).toString()
-        );
-        rdLine2.setAttributeNS(null, "x2", x.toString());
-        rdLine2.setAttributeNS(null, "y2", y2.toString());
+          rdLine2.setAttributeNS(null, "x1", (i * xStep).toString());
+          rdLine2.setAttributeNS(
+            null,
+            "y1",
+            (height - (datas.value[i].y[1] / 100) * height).toString()
+          );
+          rdLine2.setAttributeNS(null, "x2", x.toString());
+          rdLine2.setAttributeNS(null, "y2", y2.toString());
 
-        rdLine2.setAttributeNS(
-          null,
-          "stroke",
-          datas.value[i + 1].y[1] > 0
-            ? datas.value[i + 1].y[1] >= datas.value[i + 1].y[0]
-              ? "#6bc785"
-              : "#ff584c"
-            : "transparent"
-        );
-        rdLine2.setAttributeNS(null, "stroke-width", "2");
+          rdLine2.setAttributeNS(
+            null,
+            "stroke",
+            datas.value[i + 1].y[1] > 0
+              ? datas.value[i + 1].y[1] >= datas.value[i + 1].y[0]
+                ? "#6bc785"
+                : "#ff584c"
+              : "transparent"
+          );
+          rdLine2.setAttributeNS(null, "stroke-width", "2");
 
-        rdSparkline.value.appendChild(rdLine2);
+          rdSparkline.value.appendChild(rdLine2);
+        }
 
         if (i === xLen - 1) {
           gsap.to([rdSparkline.value.parentElement, rdSparkline.value], {
@@ -261,6 +393,11 @@
       }
     }
   }
+  function formatDate(num: number): string {
+    const date = new Date(num);
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  }
+
   watch(
     () => props.data,
     (val) => {
@@ -282,22 +419,6 @@
       if (val === "changing" && rdPanel.value) {
         animate.exit(rdPanel.value);
       }
-    }
-  );
-  watch(
-    () => dataHoverIndex.value,
-    (val) => {
-      if (dataHoverTimeout.value) clearTimeout(dataHoverTimeout.value);
-      dataHoverTimeout.value = setTimeout(() => {
-        if (dataHoverAnim.value) dataHoverAnim.value.kill();
-        if (rdPanelCursor.value) {
-          dataHoverAnim.value = animate.move(rdPanelCursor.value, [
-            val / (datas.value.length - 1),
-            datas.value[val].y[0] || 0,
-            datas.value[val].y[1] || 0,
-          ]);
-        }
-      }, 100);
     }
   );
 
@@ -407,7 +528,6 @@
           transition: 0.25s opacity;
           .rd-panel-cursor-line-container {
             position: relative;
-            left: 0;
             width: 12px;
             transform: translateX(-6px);
             height: 100%;
@@ -424,7 +544,39 @@
               width: 12px;
               height: 12px;
               transform: translateY(6px);
-              transition: 0.25s bottom;
+              * {
+                transition: 0.25s fill;
+              }
+            }
+            .rd-panel-cursor-legend-container {
+              position: absolute;
+              top: 1rem;
+              left: calc(50% + 1rem);
+              background: var(--background-depth-one-color);
+              border-radius: 0.75rem;
+              border: var(--border);
+              padding: 0.75rem;
+              display: flex;
+              flex-direction: column;
+              span.rd-panel-cursor-legend-date {
+                position: relative;
+                width: 100%;
+                margin-bottom: 0.5rem;
+              }
+              .rd-panel-cursor-legend {
+                position: relative;
+                display: flex;
+                align-items: center;
+                svg.rd-panel-cursor-circle {
+                  position: relative;
+                  width: 12px;
+                  height: 12px;
+                }
+                span.rd-panel-cursor-legend-placeholder {
+                  position: relative;
+                  margin: 0 0.5rem 0 0.25rem;
+                }
+              }
             }
           }
           &.rd-panel-cursor-active {

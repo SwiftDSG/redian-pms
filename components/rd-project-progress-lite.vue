@@ -16,18 +16,14 @@
         v-for="i in datas.length"
         :key="i"
         class="rd-cursor-area"
-        @mouseenter="dataHoverIndex = i - 1"
+        @mouseenter="dataHoverIndexChange(i - 1)"
       ></div>
       <div
         class="rd-cursor"
-        :style="`width: ${100 / datas.length}%; left: ${
-          (dataHoverIndex / datas.length) * 100
-        }%`"
+        ref="rdCursor"
+        :style="`width: ${100 / datas.length}%;`"
       >
-        <div
-          class="rd-cursor-line-container"
-          :style="`left: ${(dataHoverIndex / (datas.length - 1)) * 100}%`"
-        >
+        <div class="rd-cursor-line-container">
           <svg
             class="rd-cursor-line"
             width="2"
@@ -51,9 +47,6 @@
             viewBox="0 0 12 12"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            :style="`bottom: ${
-              dataHoverIndex > 0 ? datas[dataHoverIndex].y[0] : 0
-            }%`"
           >
             <rect
               width="12"
@@ -70,24 +63,93 @@
             viewBox="0 0 12 12"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            :style="`bottom: ${
-              dataHoverIndex > 0 ? datas[dataHoverIndex].y[1] : 0
-            }%;`"
           >
             <rect
               width="12"
               height="12"
               rx="6"
               :style="`fill: ${
-                dataHoverIndex > 0
+                dataHoverIndex > 0 && datas[dataHoverIndex].x <= today
                   ? datas[dataHoverIndex].y[1] > datas[dataHoverIndex].y[0]
                     ? 'var(--success-color)'
                     : 'var(--error-color)'
-                  : 'var(--primary-color)'
+                  : 'rgba(0, 0, 0, 0)'
               }`"
             />
-            <rect x="3" y="3" width="6" height="6" rx="3" fill="white" />
+            <rect
+              x="3"
+              y="3"
+              width="6"
+              height="6"
+              rx="3"
+              :fill="
+                dataHoverIndex > 0 && datas[dataHoverIndex].x <= today
+                  ? 'white'
+                  : 'rgba(0, 0, 0, 0)'
+              "
+            />
           </svg>
+          <div class="rd-cursor-legend-container">
+            <span class="rd-cursor-legend-date rd-headline-5">{{
+              formatDate(datas[dataHoverIndex]?.x || 0)
+            }}</span>
+            <div class="rd-cursor-legend">
+              <svg
+                class="rd-cursor-circle-legend"
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  width="12"
+                  height="12"
+                  rx="6"
+                  style="fill: var(--warning-color)"
+                />
+                <rect x="3" y="3" width="6" height="6" rx="3" fill="white" />
+              </svg>
+              <span class="rd-cursor-legend-placeholder rd-caption-text"
+                >Plan:
+              </span>
+              <span class="rd-cursor-legend-value rd-headline-6">{{
+                `${(datas[dataHoverIndex]?.y[0] || 0).toFixed(2)}%`
+              }}</span>
+            </div>
+            <div
+              v-if="dataHoverIndex > 0 && datas[dataHoverIndex].x <= today"
+              class="rd-cursor-legend"
+              style="margin-top: 0.25rem"
+            >
+              <svg
+                class="rd-cursor-circle-legend"
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <rect
+                  width="12"
+                  height="12"
+                  rx="6"
+                  :style="`fill: ${
+                    datas[dataHoverIndex].y[1] > datas[dataHoverIndex].y[0]
+                      ? 'var(--success-color)'
+                      : 'var(--error-color)'
+                  }`"
+                />
+                <rect x="3" y="3" width="6" height="6" rx="3" fill="white" />
+              </svg>
+              <span class="rd-cursor-legend-placeholder rd-caption-text"
+                >Actual:
+              </span>
+              <span class="rd-cursor-legend-value rd-headline-6">{{
+                `${(datas[dataHoverIndex]?.y[1] || 0).toFixed(2)}%`
+              }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -107,13 +169,135 @@
     project: ProjectResponse;
     data: ProjectProgressResponse[];
   }>();
+  const { rem } = useMain();
 
   const rdSparkline = ref<SVGSVGElement | null>(null);
+  const rdCursor = ref<HTMLDivElement | null>(null);
 
   const dataHoverIndex = ref<number>(-1);
+  const dataHoverTimeout = ref<NodeJS.Timeout | null>(null);
+  const dataHoverAnim = ref<GSAPTimeline | null>(null);
 
   const datas = ref<DataProgress[]>([]);
+  const today = ref<number>(new Date().setHours(23, 59, 59, 999));
 
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const animate = {
+    move(
+      rdPanelCursor: HTMLElement,
+      percentage: [number, number, number]
+    ): GSAPTimeline {
+      const tl = gsap.timeline();
+
+      const rdParent: HTMLElement | null = rdPanelCursor.parentElement;
+      const rdCursorLine: HTMLElement | null = rdPanelCursor.querySelector(
+        ".rd-cursor-line-container"
+      );
+      const rdCursorLegend: HTMLElement | null = rdPanelCursor.querySelector(
+        ".rd-cursor-legend-container"
+      );
+      const rdCursorCircle: HTMLElement[] = gsap.utils.toArray(
+        rdPanelCursor.querySelectorAll("svg.rd-cursor-circle")
+      );
+
+      if (rdParent && rdCursorLine && rdCursorCircle.length) {
+        const { width: w1 } = rdPanelCursor.getBoundingClientRect();
+        const { width: w2, height } = rdParent.getBoundingClientRect();
+
+        const track = w2 - w1;
+
+        tl.to(rdPanelCursor, {
+          x: `${percentage[0] * track}px`,
+          duration: 0.25,
+          ease: "power2.inOut",
+        })
+          .to(
+            rdCursorLine,
+            {
+              x: `${percentage[0] * w1}px`,
+              duration: 0.25,
+              ease: "power2.inOut",
+            },
+            "<0"
+          )
+          .to(
+            rdCursorCircle[0],
+            {
+              y: `-${(percentage[1] / 100) * height}px`,
+              duration: 0.25,
+              ease: "power2.inOut",
+            },
+            "<0"
+          );
+
+        if (rdCursorCircle[1]) {
+          tl.to(
+            rdCursorCircle[1],
+            {
+              y: `-${(percentage[2] / 100) * height}px`,
+              duration: 0.25,
+              ease: "power2.inOut",
+            },
+            "<0"
+          );
+        }
+
+        if (percentage[0] > 0.5 && rdCursorLegend) {
+          tl.to(
+            rdCursorLegend,
+            {
+              x: `${
+                -rdCursorLegend.getBoundingClientRect().width - 2 * rem.value
+              }px`,
+              duration: 0.25,
+              ease: "power2.inOut",
+            },
+            "<0"
+          );
+        } else if (rdCursorLegend) {
+          tl.to(
+            rdCursorLegend,
+            {
+              x: 0,
+              duration: 0.25,
+              ease: "power2.inOut",
+            },
+            "<0"
+          );
+        }
+      }
+
+      return tl;
+    },
+  };
+
+  function dataHoverIndexChange(index: number): void {
+    dataHoverIndex.value = index;
+    if (dataHoverTimeout.value) clearTimeout(dataHoverTimeout.value);
+    dataHoverTimeout.value = setTimeout(() => {
+      if (dataHoverAnim.value) dataHoverAnim.value.kill();
+      if (rdCursor.value) {
+        dataHoverAnim.value = animate.move(rdCursor.value, [
+          index / (datas.value.length - 1),
+          datas.value[index].y[0] || 0,
+          datas.value[index].y[1] || 0,
+        ]);
+      }
+    }, 100);
+  }
   function draw(): void {
     if (rdSparkline.value) {
       const { width, height } = rdSparkline.value.getBoundingClientRect();
@@ -145,30 +329,33 @@
 
         rdSparkline.value.appendChild(rdLine1);
 
-        const rdLine2: SVGLineElement = document.createElementNS(
-          "http://www.w3.org/2000/svg",
-          "line"
-        );
+        if (datas.value[i].x <= today.value - 86400000) {
+          const rdLine2: SVGLineElement = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line"
+          );
 
-        rdLine2.setAttributeNS(null, "x1", (i * xStep).toString());
-        rdLine2.setAttributeNS(
-          null,
-          "y1",
-          (height - (datas.value[i].y[1] / 100) * height).toString()
-        );
-        rdLine2.setAttributeNS(null, "x2", x.toString());
-        rdLine2.setAttributeNS(null, "y2", y2.toString());
+          rdLine2.setAttributeNS(null, "x1", (i * xStep).toString());
+          rdLine2.setAttributeNS(
+            null,
+            "y1",
+            (height - (datas.value[i].y[1] / 100) * height).toString()
+          );
+          rdLine2.setAttributeNS(null, "x2", x.toString());
+          rdLine2.setAttributeNS(null, "y2", y2.toString());
 
-        rdLine2.setAttributeNS(
-          null,
-          "stroke",
-          datas.value[i + 1].y[1] > datas.value[i + 1].y[0]
-            ? "#6bc785"
-            : "#ff584c"
-        );
-        rdLine2.setAttributeNS(null, "stroke-width", "2");
+          rdLine2.setAttributeNS(
+            null,
+            "stroke",
+            datas.value[i + 1].y[1] > datas.value[i + 1].y[0]
+              ? "#6bc785"
+              : "#ff584c"
+          );
+          rdLine2.setAttributeNS(null, "stroke-width", "2");
 
-        rdSparkline.value.appendChild(rdLine2);
+          rdSparkline.value.appendChild(rdLine2);
+        }
+
         if (i === xLen - 1) {
           gsap.to([rdSparkline.value.parentElement, rdSparkline.value], {
             x: 0,
@@ -178,6 +365,10 @@
         }
       }
     }
+  }
+  function formatDate(num: number): string {
+    const date = new Date(num);
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   }
 
   watch(
@@ -272,7 +463,6 @@
         transition: 0.25s left, 0.25s opacity;
         .rd-cursor-line-container {
           position: relative;
-          left: 50%;
           width: 12px;
           transform: translateX(-6px);
           height: 100%;
@@ -285,11 +475,43 @@
           }
           svg.rd-cursor-circle {
             position: absolute;
-            bottom: 0;
+            bottom: -6px;
             width: 12px;
             height: 12px;
             transform: translateY(6px);
-            transition: 0.25s bottom;
+            * {
+              transition: 0.25s fill;
+            }
+          }
+          .rd-cursor-legend-container {
+            position: absolute;
+            top: 1rem;
+            left: calc(50% + 1rem);
+            background: var(--background-depth-one-color);
+            border-radius: 0.75rem;
+            border: var(--border);
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            span.rd-cursor-legend-date {
+              position: relative;
+              width: 100%;
+              margin-bottom: 0.5rem;
+            }
+            .rd-cursor-legend {
+              position: relative;
+              display: flex;
+              align-items: center;
+              svg.rd-cursor-circle {
+                position: relative;
+                width: 12px;
+                height: 12px;
+              }
+              span.rd-cursor-legend-placeholder {
+                position: relative;
+                margin: 0 0.5rem 0 0.25rem;
+              }
+            }
           }
         }
         &.rd-cursor-active {

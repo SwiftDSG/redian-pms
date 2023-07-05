@@ -38,14 +38,14 @@
             {{ routeChanging.title }}
           </h1>
         </div>
-        <div class="rd-header-action">
+        <div v-if="user" class="rd-header-action">
           <div v-if="viewMode === 'desktop'" class="rd-header-action-profile">
-            <span class="rd-header-action-profile-name rd-headline-5"
-              >John Doe</span
-            >
-            <span class="rd-header-action-profile-role rd-headline-6"
-              >Owner</span
-            >
+            <span class="rd-header-action-profile-name rd-headline-5">{{
+              user.name
+            }}</span>
+            <span class="rd-header-action-profile-role rd-headline-6">{{
+              user.role[0].name
+            }}</span>
           </div>
           <rd-input-button-small v-if="viewMode !== 'desktop'" icon="account" />
           <rd-input-button-small v-if="viewMode === 'desktop'" icon="account" />
@@ -109,8 +109,24 @@
       @open-panel="panelHandler"
       @change-page="changeHandler"
     />
+    <rd-project-incident-remove-panel
+      v-if="panelOpened === 'project-incident-remove'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
     <rd-project-report-add-panel
       v-if="panelOpened === 'project-report-add'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
+    <rd-project-report-export-panel
+      v-if="panelOpened === 'project-report-export'"
       :state="panelState"
       :data="panelData[0]"
       @exit="panelHandler({ state: 'hide' })"
@@ -194,11 +210,13 @@
     | "project-add"
     | "project-area-add"
     | "project-area-remove"
+    | "project-incident-remove"
     | "project-task"
     | "project-task-add"
     | "project-task-delete"
     | "project-task-period"
     | "project-report-add"
+    | "project-report-export"
     | "project-role"
     | "project-user";
 
@@ -259,6 +277,7 @@
   const route = useRoute();
   const router = useRouter();
   const { viewMode, rem } = useMain();
+  const { user } = useUser();
 
   const routeCurrent = computed<Route | undefined>(() =>
     routes.find((a) => a.name === route?.name)

@@ -7,11 +7,168 @@
         >
       </div>
       <div class="rd-panel-statistic-body">
-        <div v-for="n in 2" :key="n" class="rd-statistic">
-          <div class="rd-statistic-header"></div>
+        <div class="rd-statistic">
+          <div class="rd-statistic-header">
+            <rd-svg
+              class="rd-statistic-icon"
+              :name="getStatusIcon(project.status[0].kind)"
+            />
+          </div>
           <div class="rd-statistic-body">
-            <span class="rd-statistic-value rd-headline-5">Some value</span>
-            <span class="rd-statistic-value rd-caption-text">Placeholder</span>
+            <div class="rd-statistic-value-container">
+              <span
+                class="rd-statistic-value rd-headline-5"
+                :class="`rd-statistic-value-${getStatusClass(
+                  project.status[0].kind
+                )}`"
+                >{{ project.status[0].kind }}</span
+              >
+            </div>
+            <span class="rd-statistic-placeholder rd-caption-text"
+              >Project status</span
+            >
+          </div>
+        </div>
+        <div class="rd-statistic">
+          <div class="rd-statistic-header">
+            <rd-svg class="rd-statistic-icon" name="finish" />
+          </div>
+          <div class="rd-statistic-body">
+            <div class="rd-statistic-value-container">
+              <span class="rd-statistic-value rd-headline-5">{{
+                taskComplete
+              }}</span>
+              <span class="rd-statistic-target rd-headline-5">/</span>
+              <span class="rd-statistic-target rd-headline-5">{{
+                taskTotal
+              }}</span>
+            </div>
+            <span class="rd-statistic-placeholder rd-caption-text"
+              >Tasks completed</span
+            >
+          </div>
+        </div>
+        <div class="rd-statistic">
+          <div class="rd-statistic-header">
+            <rd-svg class="rd-statistic-icon" name="timeline" />
+          </div>
+          <div class="rd-statistic-body">
+            <div class="rd-statistic-value-container">
+              <span class="rd-statistic-value rd-headline-5">{{
+                `${valueActual.toFixed(2)}%`
+              }}</span>
+              <span class="rd-statistic-target rd-headline-5">/</span>
+              <span class="rd-statistic-target rd-headline-5">{{
+                `${valuePlan.toFixed(2)}%`
+              }}</span>
+            </div>
+            <span class="rd-statistic-placeholder rd-caption-text"
+              >Actual vs planned</span
+            >
+          </div>
+        </div>
+        <div class="rd-statistic">
+          <div class="rd-statistic-header">
+            <rd-svg class="rd-statistic-icon" name="crosshairs-gps" />
+          </div>
+          <div class="rd-statistic-body">
+            <div class="rd-statistic-value-container">
+              <span
+                class="rd-statistic-value rd-headline-5"
+                :class="
+                  valueActual - valuePlan >= 0
+                    ? 'rd-statistic-value-success'
+                    : 'rd-statistic-value-error'
+                "
+                >{{ `${(valueActual - valuePlan).toFixed(2)}%` }}</span
+              >
+            </div>
+            <span class="rd-statistic-placeholder rd-caption-text"
+              >Deviation</span
+            >
+          </div>
+        </div>
+        <div class="rd-statistic">
+          <div class="rd-statistic-header">
+            <rd-svg class="rd-statistic-icon" name="clock-outline" />
+          </div>
+          <div class="rd-statistic-body">
+            <div class="rd-statistic-value-container">
+              <span class="rd-statistic-value rd-headline-5">{{
+                durationActual
+              }}</span>
+              <span class="rd-statistic-target rd-headline-5">/</span>
+              <span class="rd-statistic-target rd-headline-5">{{
+                durationPlan
+              }}</span>
+            </div>
+            <span class="rd-statistic-placeholder rd-caption-text"
+              >Duration (days)</span
+            >
+          </div>
+        </div>
+        <div class="rd-statistic">
+          <div class="rd-statistic-header">
+            <rd-svg class="rd-statistic-icon" name="backup-restore" />
+          </div>
+          <div class="rd-statistic-body">
+            <div class="rd-statistic-value-container">
+              <span class="rd-statistic-value rd-headline-5">{{
+                breakdownCount
+              }}</span>
+              <span class="rd-statistic-target rd-headline-5">times</span>
+            </div>
+            <span class="rd-statistic-placeholder rd-caption-text"
+              >Breakdown happened</span
+            >
+          </div>
+        </div>
+        <div class="rd-statistic">
+          <div class="rd-statistic-header">
+            <rd-svg class="rd-statistic-icon" name="calendar-remove" />
+          </div>
+          <div class="rd-statistic-body">
+            <div class="rd-statistic-value-container">
+              <span class="rd-statistic-value rd-headline-5">{{
+                breakdownDays
+              }}</span>
+              <span class="rd-statistic-target rd-headline-5">days</span>
+            </div>
+            <span class="rd-statistic-placeholder rd-caption-text"
+              >Man days lost</span
+            >
+          </div>
+        </div>
+        <div class="rd-statistic">
+          <div class="rd-statistic-header">
+            <rd-svg class="rd-statistic-icon" name="alert-plus" />
+          </div>
+          <div class="rd-statistic-body">
+            <div class="rd-statistic-value-container">
+              <span class="rd-statistic-value rd-headline-5">{{
+                incidentCount
+              }}</span>
+              <span class="rd-statistic-target rd-headline-5">times</span>
+            </div>
+            <span class="rd-statistic-placeholder rd-caption-text"
+              >Incidents reported</span
+            >
+          </div>
+        </div>
+        <div class="rd-statistic">
+          <div class="rd-statistic-header">
+            <rd-svg class="rd-statistic-icon" name="archive-plus" />
+          </div>
+          <div class="rd-statistic-body">
+            <div class="rd-statistic-value-container">
+              <span class="rd-statistic-value rd-headline-5">{{
+                progressCount
+              }}</span>
+              <span class="rd-statistic-target rd-headline-5">times</span>
+            </div>
+            <span class="rd-statistic-placeholder rd-caption-text"
+              >Progress reported</span
+            >
           </div>
         </div>
       </div>
@@ -19,10 +176,11 @@
     <div class="rd-panel-report-container">
       <div class="rd-panel-report-header">
         <span class="rd-panel-report-header-title rd-headline-3">Reports</span>
+        <rd-input-button label="export" @clicked="exportReport" />
       </div>
       <div class="rd-panel-report-body">
         <div
-          v-for="(report, i) in data"
+          v-for="(report, i) in data.projectReports"
           :key="report.progress?._id || report.incident?._id || i"
           class="rd-report"
           :class="
@@ -45,15 +203,25 @@
                   }}</span></span
                 >
                 <span class="rd-report-name rd-headline-4">{{
-                  `Daily report #${counterProgress[data.length - i - 1]}`
+                  report.kind === "progress"
+                    ? `Progress report #${counterProgress[i]}`
+                    : `Incident report #${counterIncident[i]}`
                 }}</span>
               </div>
-              <div class="rd-report-action-container">
+              <div
+                v-if="report.kind === 'progress'"
+                class="rd-report-action-container"
+              >
                 <rd-input-button-small
                   class="rd-report-action"
                   icon="download"
+                  @clicked="downloadReport(report.progress || report.incident)"
                 />
-                <rd-input-button-small class="rd-report-action" icon="eye" />
+                <rd-input-button-small
+                  class="rd-report-action"
+                  icon="eye"
+                  @clicked="openReport(report.progress || report.incident)"
+                />
               </div>
             </div>
             <div v-if="report.progress" class="rd-report-body">
@@ -89,7 +257,7 @@
                   <span class="rd-report-detail-value rd-headline-5">{{
                     `${
                       report.progress.time
-                        ? formatHours(report.progress.time)
+                        ? formatHours(report.progress.time).toFixed(2)
                         : 0
                     } hrs`
                   }}</span>
@@ -120,6 +288,34 @@
                 </div>
               </div>
             </div>
+            <div v-else-if="report.incident" class="rd-report-body">
+              <div class="rd-report-detail-container">
+                <div class="rd-report-detail">
+                  <span class="rd-report-detail-placeholder rd-caption-text"
+                    >Time</span
+                  >
+                  <span class="rd-report-detail-value rd-headline-5">{{
+                    formatTime(report.incident.date)
+                  }}</span>
+                </div>
+                <div class="rd-report-detail">
+                  <span class="rd-report-detail-placeholder rd-caption-text"
+                    >Type</span
+                  >
+                  <span class="rd-report-detail-value rd-headline-5">{{
+                    getIncidentKind(report.incident.kind)
+                  }}</span>
+                </div>
+                <div class="rd-report-detail">
+                  <span class="rd-report-detail-placeholder rd-caption-text"
+                    >Casualties</span
+                  >
+                  <span class="rd-report-detail-value rd-headline-5">{{
+                    `${report.incident.member?.length || 0} workers`
+                  }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -129,21 +325,115 @@
 
 <script lang="ts" setup>
   import { gsap } from "gsap";
-  import { ProjectReportResponse, ProjectResponse } from "~~/types/project";
+  import {
+    ProjectIncidentReportKind,
+    ProjectIncidentReportResponse,
+  } from "types/project-incident";
+  import { ProjectProgressReportMinResponse } from "types/project-report";
+  import { ProjectTaskMinResponse } from "types/project-task";
+  import {
+    ProjectProgressResponse,
+    ProjectReportResponse,
+    ProjectResponse,
+    ProjectStatusKind,
+  } from "~~/types/project";
 
   const props = defineProps<{
     project: ProjectResponse;
     state: "idle" | "changing";
-    data: ProjectReportResponse[];
+    data: {
+      projectReports: ProjectReportResponse[];
+      projectProgress: ProjectProgressResponse[];
+      projectTimeline: ProjectTaskMinResponse[];
+    };
   }>();
-  const emits = defineEmits(["change-menu", "changing-done", "edit-task"]);
+  const emits = defineEmits([
+    "change-menu",
+    "changing-done",
+    "edit-task",
+    "export-report",
+  ]);
 
   const rdPanel = ref<HTMLDivElement | null>(null);
 
+  const today = ref<number>(
+    props.project.status[0].kind === "finished"
+      ? new Date(props.project.status[0].time).setHours(23, 59, 59, 999)
+      : new Date().setHours(23, 59, 59, 999)
+  );
+
   const counterProgress = computed<number[]>(() => {
-    let count = 1;
-    return props.data.map((a) => (a.kind === "progress" ? count++ : 0));
+    let count = props.data.projectReports.filter(
+      (a) => a.kind === "progress"
+    ).length;
+    return props.data.projectReports.map((a) =>
+      a.kind === "progress" ? count-- : 0
+    );
   });
+  const counterIncident = computed<number[]>(() => {
+    let count = props.data.projectReports.filter(
+      (a) => a.kind === "incident"
+    ).length;
+    return props.data.projectReports.map((a) =>
+      a.kind === "incident" ? count-- : 0
+    );
+  });
+
+  const taskTotal = computed<number>(() => props.data.projectTimeline.length);
+  const taskComplete = computed<number>(
+    () =>
+      props.data.projectTimeline.filter((a) => a.status[0].kind === "finished")
+        .length
+  );
+  const valuePlan = computed<number>(
+    () =>
+      props.data.projectProgress.find(
+        (a) => new Date(a.x).setHours(23, 59, 59, 999) === today.value
+      )?.y[0] || 0
+  );
+  const valueActual = computed<number>(
+    () =>
+      props.data.projectProgress.find(
+        (a) => new Date(a.x).setHours(23, 59, 59, 999) === today.value
+      )?.y[1] || 0
+  );
+  const startDate = computed<number>(() =>
+    new Date(props.project.period.start).getTime()
+  );
+  const endDate = computed<number>(() =>
+    new Date(props.project.period.end).getTime()
+  );
+  const durationPlan = computed<number>(() =>
+    Math.round((endDate.value - startDate.value) / 86400000)
+  );
+  const durationActual = computed<number>(() =>
+    Math.round((today.value - startDate.value) / 86400000)
+  );
+  const breakdownDays = computed<number>(() => {
+    return props.project.status
+      .map((a, i) => ({ ...a, i }))
+      .filter((a) => a.kind === "breakdown")
+      .map((a) => {
+        if (props.project.status[a.i]) {
+          const min = new Date(a.time).getTime();
+          const max = new Date(
+            props.project.status?.[a.i - 1].time || new Date(a.time).getTime()
+          ).getTime();
+          return Math.round((max - min) / 86400000) || 1;
+        }
+        return 1;
+      })
+      .reduce((a, b) => a + b, 0);
+  });
+  const breakdownCount = computed<number>(
+    () => props.project.status.filter((a) => a.kind === "breakdown").length
+  );
+  const incidentCount = computed<number>(
+    () => props.data.projectReports.filter((a) => a.kind === "incident").length
+  );
+  const progressCount = computed<number>(
+    () => props.data.projectReports.filter((a) => a.kind === "progress").length
+  );
 
   const animate = {
     init(rdComponent: HTMLElement, cb: () => void): void {
@@ -191,8 +481,84 @@
       months[date.getMonth()]
     } ${date.getFullYear()}`;
   }
+  function formatTime(x: string): string {
+    const date = new Date(x);
+
+    return `${date.getHours().toString().padStart(2, "0")}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+  }
   function formatHours(x: [[number, number], [number, number]]): number {
     return ((x[1][0] - x[0][0]) * 60 + (x[1][1] - x[0][1])) / 60;
+  }
+  function getStatusClass(status: ProjectStatusKind): string {
+    let str = "";
+
+    if (status === "finished") str = "success";
+    else if (status === "cancelled" || status === "breakdown") str = "error";
+    else if (status === "running" || status === "paused") str = "warning";
+
+    return str;
+  }
+  function getStatusIcon(status: ProjectStatusKind): string {
+    let str = "dots";
+
+    if (status === "finished") str = "check";
+    else if (status === "cancelled") str = "close";
+    else if (status === "breakdown") str = "warning";
+    else if (status === "running") str = "play";
+    else if (status === "paused") str = "pause";
+
+    return str;
+  }
+  function getIncidentKind(kind: ProjectIncidentReportKind): string {
+    let str = "";
+
+    switch (kind) {
+      case "environmental":
+        str = "Environmental";
+        break;
+      case "fatal":
+        str = "Fatal";
+        break;
+      case "first_aid":
+        str = "First Aid";
+        break;
+      case "lost_time_injury":
+        str = "Lost Time Injury";
+        break;
+      case "near_miss":
+        str = "Near Miss";
+        break;
+      case "property_damage":
+        str = "Property Damage";
+        break;
+    }
+
+    return str;
+  }
+  function openReport(
+    report:
+      | ProjectProgressReportMinResponse
+      | ProjectIncidentReportResponse
+      | undefined
+  ): void {
+    if (report) window.open(`/projects/${report.project._id}/${report._id}`);
+  }
+  function downloadReport(
+    report:
+      | ProjectProgressReportMinResponse
+      | ProjectIncidentReportResponse
+      | undefined
+  ): void {
+    if (report)
+      window.open(
+        `/projects/${report.project._id}/${report._id}?download=true`
+      );
+  }
+  function exportReport(): void {
+    emits("export-report");
   }
 
   watch(
@@ -252,13 +618,15 @@
         padding: 0.75rem;
         box-sizing: border-box;
         display: flex;
+        align-items: flex-start;
+        align-content: flex-start;
         gap: 0.75rem;
         flex-wrap: wrap;
         overflow-y: auto;
         .rd-statistic {
           position: relative;
           width: calc((100% - 0.75rem) / 2);
-          height: calc(71rem / 11);
+          height: 6.5rem;
           border: var(--border);
           border-radius: 0.75rem;
           padding: 0.75rem;
@@ -271,13 +639,41 @@
             height: 2rem;
             margin-bottom: 1rem;
             border-radius: 0.5rem;
-            border: var(--border);
+            padding: 0 0.5rem;
+            background: var(--background-depth-two-color);
+            box-sizing: border-box;
+            flex-shrink: 0;
           }
           .rd-statistic-body {
             position: relative;
             width: 100%;
             display: flex;
             flex-direction: column;
+            .rd-statistic-value-container {
+              position: relative;
+              width: 100%;
+              display: flex;
+              gap: 0.25rem;
+              align-items: center;
+              span.rd-statistic-value {
+                &.rd-statistic-value-success {
+                  color: var(--success-color);
+                }
+                &.rd-statistic-value-warning {
+                  color: var(--warning-color);
+                }
+                &.rd-statistic-value-error {
+                  color: var(--error-color);
+                }
+              }
+              span.rd-statistic-target {
+                opacity: 0.5;
+              }
+            }
+            span.rd-statistic-placeholder {
+              position: relative;
+              margin-top: 0.125rem;
+            }
           }
         }
       }
