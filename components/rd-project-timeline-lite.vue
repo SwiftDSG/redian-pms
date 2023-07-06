@@ -195,13 +195,6 @@
     },
     { immediate: true }
   );
-
-  onMounted(() => {
-    for (var i: number = 0; i < datas.value.length; i++) {
-      datas.value[i].position = getPosition(datas.value[i]);
-      if (i === datas.value.length - 1) init.value = false;
-    }
-  });
 </script>
 
 <style lang="scss" scoped>

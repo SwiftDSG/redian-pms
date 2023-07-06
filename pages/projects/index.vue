@@ -11,7 +11,11 @@
             class="rd-project-panel-query-section"
           >
             <rd-input-select :input="sortInput" />
-            <rd-input-button label="new project" @clicked="openProjectPanel" />
+            <rd-input-button
+              v-if="validate('create_project')"
+              label="new project"
+              @clicked="openProjectPanel"
+            />
           </div>
         </div>
         <rd-input-tabs
@@ -52,6 +56,7 @@
   } from "~~/types/general";
 
   const { viewMode } = useMain();
+  const { validate } = useRole();
   const { projects, getProjects } = useProject();
   const emits = defineEmits(["change-page", "open-panel"]);
 
@@ -59,13 +64,15 @@
     middleware: ["auth"],
   });
 
+  const searchTimeout = ref<NodeJS.Timeout | null>(null);
+
   const tabsInput = ref<InputSwitchOption>({
     options: [
       "All",
       "Completed",
-      "On Hold",
-      "Behind Schedule",
-      "Ahead Schedule",
+      "On hold",
+      "Behind schedule",
+      "Ahead schedule",
     ],
     model: "",
   });
@@ -73,17 +80,21 @@
     name: "search",
     placeholder: "Search for projects...",
     model: "",
-    type: "secondary",
   });
   const sortInput = ref<InputOption>({
     name: "search",
     placeholder: "Sort",
-    model: "Time added",
+    model: "Oldest",
+    value: "oldest",
     icon: "sort",
     options: [
       {
         name: "Time added",
-        value: "time_added",
+        value: "latest",
+      },
+      {
+        name: "Oldest",
+        value: "oldest",
       },
       {
         name: "Alphabetically",
@@ -92,12 +103,67 @@
     ],
   });
 
+  const sort = computed<string>(() => sortInput.value.value || "oldest");
+  const search = computed<string>(() => searchInput.value.model);
+  const status = computed<string>(() => {
+    let str = "";
+
+    switch (tabsInput.value.model) {
+      case "All":
+        str = "";
+        break;
+      case "Completed":
+        str = "completed";
+        break;
+      case "On hold":
+        str = "paused,breakdown";
+        break;
+      case "Behind schedule":
+        str = "behind";
+        break;
+      case "Ahead schedule":
+        str = "ahead";
+        break;
+    }
+
+    return str;
+  });
+
   function openProjectPanel(): void {
     emits("open-panel", {
       state: "show",
       type: "project-add",
     });
   }
+  async function refreshProjects(): Promise<void> {
+    await getProjects({
+      sort: sort.value,
+      search: search.value,
+      status: status.value,
+    });
+  }
+
+  watch(
+    () => sort.value,
+    () => {
+      if (searchTimeout.value) clearTimeout(searchTimeout.value);
+      searchTimeout.value = setTimeout(refreshProjects, 500);
+    }
+  );
+  watch(
+    () => search.value,
+    () => {
+      if (searchTimeout.value) clearTimeout(searchTimeout.value);
+      searchTimeout.value = setTimeout(refreshProjects, 500);
+    }
+  );
+  watch(
+    () => status.value,
+    () => {
+      if (searchTimeout.value) clearTimeout(searchTimeout.value);
+      searchTimeout.value = setTimeout(refreshProjects, 500);
+    }
+  );
 
   onMounted(async () => {
     tabsInput.value.model = "";

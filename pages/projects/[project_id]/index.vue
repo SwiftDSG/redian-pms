@@ -14,6 +14,7 @@
       <div class="rd-project-menu-section">
         <rd-input-button
           v-if="
+            validate('create_task') &&
             projectMenu === 'tasks' &&
             project.data?.status[0]?.kind === 'pending'
           "
@@ -22,6 +23,7 @@
         />
         <rd-input-button
           v-else-if="
+            !projectWarning &&
             projectMenu === 'reports' &&
             project.data?.status[0]?.kind !== 'finished' &&
             project.data?.status[0]?.kind !== 'breakdown' &&
@@ -161,7 +163,10 @@
     ProjectReportResponse,
     ProjectUserResponse,
   } from "~~/types/project";
-  import { ProjectRoleResponse } from "~~/types/project-role";
+  import {
+    ProjectRolePermission,
+    ProjectRoleResponse,
+  } from "~~/types/project-role";
   import { ProjectTaskMinResponse } from "~~/types/project-task";
 
   type ProjectMenuKind =
@@ -175,6 +180,7 @@
     title: string;
     name: ProjectMenuKind;
     icon: string;
+    permit?: ProjectRolePermission;
   };
   type ProjectWarning =
     | "empty-area"
@@ -270,39 +276,45 @@
       return "incomplete-period";
     return null;
   });
-
-  const projectMenus: ProjectMenu[] = [
-    {
-      title: "Project Overview",
-      name: "overview",
-      icon: "chart",
-    },
-    {
-      title: "Project Progress",
-      name: "progress",
-      icon: "line-chart",
-    },
-    {
-      title: "Project Timeline",
-      name: "timeline",
-      icon: "gantt",
-    },
-    {
-      title: "Project Users",
-      name: "users",
-      icon: "account-group",
-    },
-    {
-      title: "Project Tasks",
-      name: "tasks",
-      icon: "clipboard",
-    },
-    {
-      title: "Project Reports",
-      name: "reports",
-      icon: "file",
-    },
-  ];
+  const projectMenus = computed<ProjectMenu[]>(() => {
+    const menus: ProjectMenu[] = [
+      {
+        title: "Project Overview",
+        name: "overview",
+        icon: "chart",
+      },
+      {
+        title: "Project Progress",
+        name: "progress",
+        icon: "line-chart",
+      },
+      {
+        title: "Project Timeline",
+        name: "timeline",
+        icon: "gantt",
+        permit: "get_tasks",
+      },
+      {
+        title: "Project Users",
+        name: "users",
+        icon: "account-group",
+        permit: "get_roles",
+      },
+      {
+        title: "Project Tasks",
+        name: "tasks",
+        icon: "clipboard",
+        permit: "get_tasks",
+      },
+      {
+        title: "Project Reports",
+        name: "reports",
+        icon: "file",
+        permit: "create_report",
+      },
+    ];
+    return menus.filter((a) => (a.permit ? validate(a.permit) : true));
+  });
 
   function projectWarningName(): string {
     let str = "";

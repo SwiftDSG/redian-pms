@@ -27,17 +27,13 @@
     </nav>
     <section class="rd-section">
       <header class="rd-header">
-        <div class="rd-header-title-container" ref="rdHeaderTitle">
-          <h1 v-if="routeCurrent" class="rd-header-title rd-headline-1">
-            {{ routeCurrent.title }}
-          </h1>
-          <h1
-            v-if="routeChanging"
-            class="rd-header-title rd-header-title-decoy rd-headline-1"
-          >
-            {{ routeChanging.title }}
-          </h1>
-        </div>
+        <h1
+          v-if="routeCurrent"
+          ref="rdHeaderTitle"
+          class="rd-header-title rd-headline-1"
+        >
+          {{ routeCurrent.title }}
+        </h1>
         <div v-if="user" class="rd-header-action">
           <div v-if="viewMode === 'desktop'" class="rd-header-action-profile">
             <span class="rd-header-action-profile-name rd-headline-5">{{
@@ -49,8 +45,7 @@
           </div>
           <rd-input-button-small v-if="viewMode !== 'desktop'" icon="account" />
           <rd-input-button-small v-if="viewMode === 'desktop'" icon="account" />
-          <rd-input-button-small v-if="viewMode === 'desktop'" icon="bell" />
-          <rd-input-button-small icon="dots" />
+          <rd-input-button-small icon="logout" @clicked="exit" />
         </div>
       </header>
       <main class="rd-main" ref="rdMain">
@@ -277,10 +272,10 @@
   const route = useRoute();
   const router = useRouter();
   const { viewMode, rem } = useMain();
-  const { user } = useUser();
+  const { user, logout } = useUser();
 
-  const routeCurrent = computed<Route | undefined>(() =>
-    routes.find((a) => a.name === route?.name)
+  const routeCurrent = computed<Route>(
+    () => routes.find((a) => a.name === route?.name) || routes[0]
   );
   const routeChanging = ref<Route | undefined>(undefined);
 
@@ -297,46 +292,29 @@
     leavePage(
       rdMain: HTMLElement,
       rdHeaderTitle: HTMLElement,
-      cb?: () => void
+      cb: () => void
     ): void {
       const tl: GSAPTimeline = gsap.timeline({
-        onComplete: () => {
-          if (cb) cb();
-          setTimeout(() => {
-            rdHeaderTitleActual.removeAttribute("style");
-          }, 50);
-        },
+        onComplete: cb,
       });
-
-      const rdHeaderTitleActual = rdHeaderTitle.children[0];
-      const rdHeaderTitleDecoy = rdHeaderTitle.children[1];
 
       tl.to(rdMain, {
         opacity: 0,
         duration: 0.25,
-      })
-        .to(
-          rdHeaderTitleDecoy,
-          {
-            filter: "blur(0)",
-            opacity: 1,
-            duration: 0.25,
-            ease: "power2.inOut",
-          },
-          "<0"
-        )
-        .to(
-          rdHeaderTitleActual,
-          {
-            filter: "blur(0.5rem)",
-            opacity: 0,
-            duration: 0.25,
-            ease: "power2.inOut",
-          },
-          "<0"
-        );
+      }).to(
+        rdHeaderTitle,
+        {
+          opacity: 0,
+          duration: 0.25,
+        },
+        "<0"
+      );
     },
-    enterPage(rdMain: HTMLElement, cb?: () => void): void {
+    enterPage(
+      rdMain: HTMLElement,
+      rdHeaderTitle: HTMLElement,
+      cb?: () => void
+    ): void {
       const tl: GSAPTimeline = gsap.timeline({
         onComplete: cb,
       });
@@ -344,7 +322,14 @@
       tl.to(rdMain, {
         opacity: 1,
         duration: 0.25,
-      });
+      }).to(
+        rdHeaderTitle,
+        {
+          opacity: 1,
+          duration: 0.25,
+        },
+        "<0"
+      );
     },
   };
 
@@ -390,24 +375,18 @@
     }
   }
   function changeHandler(to: Route, e?: MouseEvent): MouseEvent | undefined {
-    if (!routeChanging.value) {
+    if (!routeChanging.value && route.path !== (to.href || "/")) {
       routeChanging.value = routes.find((a) => a.name === to.name);
-      if (routeChanging.value) {
-        if (route.path !== (to.href || "/")) {
+      if (routeChanging.value && rdMain.value && rdHeaderTitle.value) {
+        animate.leavePage(rdMain.value, rdHeaderTitle.value, () => {
+          router.push(to.href || "/");
           setTimeout(() => {
             if (rdMain.value && rdHeaderTitle.value) {
-              animate.leavePage(rdMain.value, rdHeaderTitle.value, () => {
-                router.push(to.href || "/");
-                setTimeout(() => {
-                  if (rdMain.value) {
-                    routeChanging.value = undefined;
-                    animate.enterPage(rdMain.value);
-                  }
-                }, 250);
-              });
+              routeChanging.value = undefined;
+              animate.enterPage(rdMain.value, rdHeaderTitle.value);
             }
-          }, 100);
-        }
+          }, 250);
+        });
       }
     }
     return e;
@@ -416,6 +395,17 @@
     if (e.matches) viewMode.value = "mobile";
     else viewMode.value = "desktop";
     rem.value = parseInt(getComputedStyle?.(document.body)?.fontSize) || 24;
+  }
+  function exit(): void {
+    logout();
+    if (rdMain.value && rdHeaderTitle.value) {
+      animate.leavePage(rdMain.value, rdHeaderTitle.value, () => {
+        router.push("/auth");
+        if (rdMain.value && rdHeaderTitle.value) {
+          animate.enterPage(rdMain.value, rdHeaderTitle.value);
+        }
+      });
+    }
   }
   function shake(): void {
     if (rdLayout.value) rdLayout.value.classList.add("rd-layout-shake");
@@ -535,31 +525,12 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-
-        .rd-header-title-container {
+        h1.rd-header-title {
           position: relative;
-          width: 10rem;
           height: 100%;
+          white-space: nowrap;
           display: flex;
-          flex-shrink: 0;
-          flex-direction: column;
-
-          // overflow: hidden;
-          h1.rd-header-title {
-            position: relative;
-            height: 100%;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-
-            &.rd-header-title-decoy {
-              pointer-events: none;
-              position: absolute;
-              top: 0;
-              opacity: 0;
-              filter: blur(0.5rem);
-            }
-          }
+          align-items: center;
         }
 
         .rd-header-action {

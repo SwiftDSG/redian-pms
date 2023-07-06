@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="rd-input-component"
-    :class="input.type ? `rd-input-component-${input.type}` : ''"
-  >
+  <div class="rd-input-component">
     <div class="rd-input-icon-container">
       <rd-svg :name="'magnify'" />
     </div>
@@ -44,10 +41,11 @@
     display: flex;
     align-items: center;
     .rd-input-icon-container {
+      pointer-events: none;
+      z-index: 2;
       position: relative;
       width: 2rem;
       height: 2rem;
-      background: rgba(0, 0, 0, 0.05);
       border-top-left-radius: 0.5rem;
       border-bottom-left-radius: 0.5rem;
       padding: 0 0.5rem;
@@ -56,10 +54,13 @@
       justify-content: center;
       align-items: center;
       overflow: hidden;
+      & ~ input.rd-input {
+        padding: 0 0.5rem 0 2rem;
+      }
     }
     input.rd-input {
-      position: relative;
-      width: calc(100% - 2rem);
+      position: absolute;
+      width: 100%;
       height: 100%;
       padding: 0 0.5rem;
       border: none;
@@ -116,14 +117,6 @@
         box-sizing: border-box;
         opacity: 0;
         transition: 0.25s opacity;
-      }
-    }
-    &.rd-input-component-secondary {
-      .rd-input-icon-container {
-        background: transparent;
-      }
-      input.rd-input {
-        padding: 0 0.5rem 0 0;
       }
     }
   }

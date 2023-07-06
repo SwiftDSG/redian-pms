@@ -6,6 +6,7 @@
           >Customers list</span
         >
         <rd-input-button-small
+          v-if="validate('create_customer')"
           :icon="'plus'"
           :type="'primary'"
           @clicked="openCustomerPanel"
@@ -33,6 +34,7 @@
 
 <script lang="ts" setup>
   const { customers, getCustomers } = useCustomer();
+  const { validate } = useRole();
   const emits = defineEmits(["change-page", "open-panel"]);
 
   definePageMeta({

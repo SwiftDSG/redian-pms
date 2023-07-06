@@ -9,41 +9,26 @@
       >
         <div class="rd-report-header">
           <div class="rd-report-detail-container">
-            <span class="rd-report-title">{{ project.data?.name }}</span>
             <span class="rd-report-name">Progress Report</span>
-            <span class="rd-report-name">{{
+            <span class="rd-report-title">{{ project.data?.name }}</span>
+            <span class="rd-report-description">{{
               `${formatDate(startDate || 0)} - ${formatDate(endDate || 0)}`
             }}</span>
           </div>
         </div>
         <div class="rd-report-body">
           <div class="rd-report-axis-container">
-            <div class="rd-report-axis rd-caption-text">100%</div>
-            <div class="rd-report-axis rd-caption-text">75%</div>
-            <div class="rd-report-axis rd-caption-text">50%</div>
-            <div class="rd-report-axis rd-caption-text">25%</div>
+            <span class="rd-report-axis">100%</span>
+            <span class="rd-report-axis">75%</span>
+            <span class="rd-report-axis">50%</span>
+            <span class="rd-report-axis">25%</span>
           </div>
           <div class="rd-report-sparkline-container">
             <svg class="rd-report-sparkline" ref="rdReportSparkline"></svg>
           </div>
           <div class="rd-report-legend-container">
             <div v-for="data in datas" :key="data.x" class="rd-report-legend">
-              <svg
-                class="rd-report-legend-line"
-                width="2"
-                height="1000"
-                viewBox="0 0 2 1000"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M1 0L1 1000"
-                  stroke="#CFCFCF"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-dasharray="5 3"
-                />
-              </svg>
+              <div class="rd-report-legend-line"></div>
               <div
                 class="rd-report-legend-plan"
                 :style="data.y[0] < 50 ? 'top: 0.5cm' : 'bottom: 0.5cm'"
@@ -75,45 +60,23 @@
               class="rd-report-cursor"
               :style="`width: cm`"
             >
-              <svg
+              <div
                 class="rd-report-cursor-circle"
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                :style="`bottom: ${data.y[0]}%; translate: 0 6px`"
+                :style="`background: var(--warning-color); bottom: ${data.y[0]}%; translate: 0 6px`"
               >
-                <rect
-                  width="12"
-                  height="12"
-                  rx="6"
-                  style="fill: var(--warning-color)"
-                />
-                <rect x="3" y="3" width="6" height="6" rx="3" fill="white" />
-              </svg>
-              <svg
+                <div class="rd-report-cursor-circle-inner"></div>
+              </div>
+              <div
                 v-if="data.x <= today"
                 class="rd-report-cursor-circle"
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                :style="`bottom: ${data.y[1]}%; translate: 0 6px`"
+                :style="`background: ${
+                  data.y[1] > data.y[0]
+                    ? 'var(--success-color)'
+                    : 'var(--error-color)'
+                }; bottom: ${data.y[1]}%; translate: 0 6px`"
               >
-                <rect
-                  width="12"
-                  height="12"
-                  rx="6"
-                  :style="`fill: ${
-                    data.y[1] > data.y[0]
-                      ? 'var(--success-color)'
-                      : 'var(--error-color)'
-                  }`"
-                />
-                <rect x="3" y="3" width="6" height="6" rx="3" fill="white" />
-              </svg>
+                <div class="rd-report-cursor-circle-inner"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -167,13 +130,7 @@
                     : ''
                 "
                 >{{
-                  data.x <= today
-                    ? (
-                        data.y[1] -
-                        (datas[i - 1]?.y[1] || 0) -
-                        (data.y[0] - (datas[i - 1]?.y[0] || 0))
-                      ).toFixed(2)
-                    : "-"
+                  data.x <= today ? (data.y[1] - data.y[0]).toFixed(2) : "-"
                 }}</span
               >
             </div>
@@ -367,13 +324,6 @@
 
           return a;
         }, []);
-        datas.value = [
-          {
-            x: datas.value[0].x,
-            y: [0, 0],
-          },
-          ...datas.value,
-        ];
       } else if (groupKind.value === "monthly") {
         datas.value = datas.value.reduce((a: ProjectProgressResponse[], b) => {
           const index = a.findIndex((c) => {
@@ -394,14 +344,14 @@
 
           return a;
         }, []);
-        datas.value = [
-          {
-            x: datas.value[0].x,
-            y: [0, 0],
-          },
-          ...datas.value,
-        ];
       }
+      datas.value = [
+        {
+          x: datas.value[0].x,
+          y: [0, 0],
+        },
+        ...datas.value,
+      ];
     } else {
       window.close();
     }
@@ -441,24 +391,10 @@
         font-size: 0.625cm;
         text-transform: uppercase;
       }
-      span.rd-report-section-name {
-        font-weight: bold;
-        font-size: 0.5cm;
+      span.rd-report-description {
+        font-size: 0.375cm;
         text-transform: uppercase;
       }
-      span.rd-report-section-placeholder {
-        font-size: 0.375cm;
-      }
-      span.rd-report-section-value {
-        font-weight: bold;
-        font-size: 0.375cm;
-      }
-      span.rd-report-section-wrapper-name {
-        font-weight: bold;
-        font-size: 0.375cm;
-        margin-bottom: 0.125cm;
-      }
-
       .rd-report {
         position: absolute;
         min-width: 20cm;
@@ -498,12 +434,13 @@
             display: flex;
             flex-direction: column;
             opacity: 0.375;
-            .rd-report-axis {
+            span.rd-report-axis {
               position: relative;
               width: 100%;
               height: 100%;
               padding-top: 0.25rem;
-              border-top: 1px solid rgba(0, 0, 0, 0.375);
+              font-size: 0.375cm;
+              border-top: 1px solid var(--border-color);
               color: var(--font-sub-color);
               box-sizing: border-box;
               flex-shrink: 1;
@@ -541,12 +478,23 @@
               &:last-child {
                 opacity: 0;
               }
-              svg.rd-report-cursor-circle {
+              .rd-report-cursor-circle {
                 position: absolute;
                 right: -6px;
                 bottom: 0;
                 width: 12px;
                 height: 12px;
+                border-radius: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                .rd-report-cursor-circle-inner {
+                  position: relative;
+                  width: 6px;
+                  height: 6px;
+                  border-radius: 50%;
+                  background: #fff;
+                }
               }
             }
           }
@@ -567,13 +515,13 @@
               &:last-child {
                 opacity: 0;
               }
-              svg.rd-report-legend-line {
+              .rd-report-legend-line {
                 position: absolute;
-                left: calc(50% - 1px);
+                left: calc(50% - 0.5px);
+                width: 1px;
                 height: 100%;
-                path {
-                  height: 100%;
-                }
+                background: var(--border-color);
+                opacity: 0.5;
               }
               .rd-report-legend-plan,
               .rd-report-legend-actual {

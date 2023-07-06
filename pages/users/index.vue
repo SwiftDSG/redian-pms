@@ -7,6 +7,7 @@
             >Role list</span
           >
           <rd-input-button-small
+            v-if="validate('create_role')"
             icon="plus"
             type="primary"
             @clicked="openRolePanel"
@@ -33,6 +34,7 @@
               class="rd-panel-role-action-container"
             >
               <rd-input-button-small
+                v-if="validate('create_role')"
                 icon="dots"
                 @clicked="openRolePanel(role)"
               />
@@ -46,6 +48,7 @@
             >Users list</span
           >
           <rd-input-button-small
+            v-if="validate('create_user')"
             icon="plus"
             type="primary"
             @clicked="openUserPanel"
@@ -79,7 +82,7 @@
   import { UserResponse } from "types/user";
 
   const { users, getUsers } = useUser();
-  const { roles, getRoles } = useRole();
+  const { roles, getRoles, validate } = useRole();
   const emits = defineEmits(["change-page", "open-panel"]);
 
   definePageMeta({
@@ -224,6 +227,7 @@
           box-sizing: border-box;
           display: flex;
           justify-content: space-between;
+          align-content: flex-start;
           flex-wrap: wrap;
           gap: 0.75rem;
 

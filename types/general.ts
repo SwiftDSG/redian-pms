@@ -177,7 +177,6 @@ export type InputSearchOption = {
   name: string
   placeholder: string
   model: string
-  type?: 'primary' | 'secondary'
 }
 export type InputGeneric<T> = {
   name: string

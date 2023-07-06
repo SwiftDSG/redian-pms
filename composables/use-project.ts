@@ -34,10 +34,14 @@ export default () => {
     }
     return false
   }
-  const getProjects = async (): Promise<ProjectMinResponse[]> => {
+  const getProjects = async (filter?: {
+    sort?: string,
+    search?: string,
+    status?: string,
+  }): Promise<ProjectMinResponse[]> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/projects`,
+        `${config.public.apiBase}/projects?${filter?.sort ? `sort=${filter.sort}&` : ''}${filter?.search ? `search=${filter.search}&` : ''}${filter?.status ? `status=${filter.status}&` : ''}`,
         "get"
       );
       if (response.status !== 200) throw new Error("");

@@ -88,6 +88,7 @@
       <div class="rd-panel-header">
         <span class="rd-panel-name rd-headline-3">Timeline</span>
         <rd-input-button
+          v-if="validate('get_tasks')"
           label="More"
           @clicked="emits('change-menu', 'timeline')"
         />
@@ -98,10 +99,11 @@
         :project="project"
       />
     </div>
-    <div class="rd-panel rd-panel-chart">
+    <div class="rd-panel rd-panel-chart" style="margin-bottom: 2rem">
       <div class="rd-panel-header">
         <span class="rd-panel-name rd-headline-3">Members</span>
         <rd-input-button
+          v-if="validate('get_roles')"
           label="More"
           @clicked="emits('change-menu', 'users')"
         />
@@ -132,8 +134,9 @@
         </div>
       </div>
     </div>
-    <div class="rd-panel-container">
+    <div class="rd-panel-container" style="margin-bottom: 2rem">
       <div
+        v-if="validate('get_tasks')"
         class="rd-panel rd-panel-counter"
         @click="emits('change-menu', 'tasks')"
       >
@@ -152,6 +155,7 @@
         </div>
       </div>
       <div
+        v-if="validate('create_report')"
         class="rd-panel rd-panel-counter"
         @click="emits('change-menu', 'reports')"
       >
@@ -170,6 +174,7 @@
         </div>
       </div>
       <div
+        v-if="validate('get_roles')"
         class="rd-panel rd-panel-counter"
         @click="emits('change-menu', 'users')"
       >
@@ -228,6 +233,7 @@
     };
   }>();
   const emits = defineEmits(["change-menu", "changing-done"]);
+  const { validate } = useProject();
 
   const rdComponent = ref<HTMLDivElement | null>(null);
 
