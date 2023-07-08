@@ -99,7 +99,10 @@
         :project="project"
       />
     </div>
-    <div class="rd-panel rd-panel-chart" style="margin-bottom: 2rem">
+    <div
+      class="rd-panel rd-panel-chart rd-panel-members"
+      style="margin-bottom: 2rem"
+    >
       <div class="rd-panel-header">
         <span class="rd-panel-name rd-headline-3">Members</span>
         <rd-input-button
@@ -440,9 +443,45 @@
       opacity: 0;
     }
     @media only screen and (max-width: 1024px) {
-      padding: 0 1rem;
+      padding: 0;
+      gap: 0.75rem;
+      .rd-panel-container {
+        width: 100%;
+        gap: 0.75rem;
+        margin-bottom: 1rem !important;
+        .rd-panel.rd-panel-counter {
+          width: 100%;
+        }
+      }
       .rd-panel {
         width: 100%;
+        &.rd-panel-chart {
+          width: 100%;
+        }
+        &.rd-panel-counter {
+          width: calc(50% - 0.375rem);
+          flex-direction: column;
+          align-items: flex-start;
+          .rd-panel-icon-container {
+            width: 2rem;
+            height: 2rem;
+            padding: 0 0.5rem;
+          }
+          .rd-panel-detail-container {
+            width: 100%;
+            span.rd-panel-detail-placeholder {
+              width: 100%;
+              opacity: 0.5;
+            }
+          }
+        }
+        &.rd-panel-members {
+          height: auto;
+          margin: 0 !important;
+          .rd-panel-body {
+            height: auto;
+          }
+        }
       }
     }
   }

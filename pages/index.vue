@@ -212,5 +212,28 @@
         }
       }
     }
+    @media only screen and (max-width: 1024px) {
+      padding: 0 1rem 1rem 1rem;
+      gap: 0.75rem;
+      .rd-panel {
+        &.rd-panel-counter {
+          width: calc(50% - 0.375rem);
+          flex-direction: column;
+          align-items: flex-start;
+          .rd-panel-icon-container {
+            width: 2rem;
+            height: 2rem;
+            padding: 0 0.5rem;
+          }
+          .rd-panel-detail-container {
+            width: 100%;
+            span.rd-panel-detail-placeholder {
+              width: 60%;
+              opacity: 0.5;
+            }
+          }
+        }
+      }
+    }
   }
 </style>

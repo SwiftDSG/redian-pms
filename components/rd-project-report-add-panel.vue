@@ -796,7 +796,6 @@
         }
       }
     }
-
     .rd-panel-footer {
       position: fixed;
       bottom: 0;
@@ -822,6 +821,20 @@
         width: 100%;
         height: 1px;
         background: var(--border-color);
+      }
+    }
+    @media only screen and (max-width: 1024px) {
+      .rd-panel-body {
+        .rd-panel-form {
+          .rd-panel-form-image-container {
+            left: -1rem;
+            width: calc(100% + 2rem);
+          }
+        }
+      }
+      .rd-panel-footer {
+        height: 4rem;
+        padding: 1rem;
       }
     }
   }

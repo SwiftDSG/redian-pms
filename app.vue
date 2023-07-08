@@ -1,7 +1,7 @@
 <template>
   <div class="rd-layout" ref="rdLayout">
-    <nav class="rd-navigation">
-      <div class="rd-navigation-logo-container">
+    <nav ref="rdNavigation" class="rd-navigation">
+      <div v-if="viewMode === 'desktop'" class="rd-navigation-logo-container">
         <rd-svg name="logo" class="rd-navigation-logo" />
       </div>
       <a
@@ -26,9 +26,16 @@
       </a>
     </nav>
     <section class="rd-section">
-      <header class="rd-header">
+      <header
+        class="rd-header"
+        :class="
+          (viewMode !== 'desktop' && menuScroll > 0) || menuOpened
+            ? 'rd-header-active'
+            : ''
+        "
+      >
         <h1
-          v-if="routeCurrent"
+          v-if="viewMode === 'desktop' && routeCurrent"
           ref="rdHeaderTitle"
           class="rd-header-title rd-headline-1"
         >
@@ -43,12 +50,23 @@
               user.role[0].name
             }}</span>
           </div>
-          <rd-input-button-small v-if="viewMode !== 'desktop'" icon="account" />
+          <rd-input-button-small
+            v-if="viewMode !== 'desktop'"
+            icon="dots"
+            @clicked="menuHandler"
+          />
           <rd-input-button-small v-if="viewMode === 'desktop'" icon="account" />
           <rd-input-button-small icon="logout" @clicked="exit" />
         </div>
       </header>
-      <main class="rd-main" ref="rdMain">
+      <main class="rd-main" ref="rdMain" @scroll="scroll">
+        <h1
+          v-if="viewMode !== 'desktop' && routeCurrent"
+          ref="rdHeaderTitle"
+          class="rd-header-title rd-headline-1"
+        >
+          {{ routeCurrent.title }}
+        </h1>
         <nuxt-page
           @open-panel="panelHandler"
           @change-page="changeHandler"
@@ -282,11 +300,15 @@
   const rdLayout = ref<HTMLDivElement | undefined>(undefined);
   const rdMain = ref<HTMLDivElement | undefined>(undefined);
   const rdHeaderTitle = ref<HTMLDivElement | undefined>(undefined);
+  const rdNavigation = ref<HTMLDivElement | undefined>(undefined);
 
   const panelState = ref<"idle" | "hide">("idle");
   const panelData = ref<any[]>([]);
   const panelOpened = ref<PanelType | undefined>(undefined);
   const panelSequence = ref<(PanelType | undefined)[]>([]);
+
+  const menuOpened = ref<boolean>(false);
+  const menuScroll = ref<number>(0);
 
   const animate = {
     leavePage(
@@ -330,6 +352,24 @@
         },
         "<0"
       );
+    },
+    openMenu(rdNavigation: HTMLElement): void {
+      const tl: GSAPTimeline = gsap.timeline();
+
+      tl.to(rdNavigation, {
+        x: "100%",
+        duration: 0.375,
+        ease: "power2.out",
+      });
+    },
+    closeMenu(rdNavigation: HTMLElement): void {
+      const tl: GSAPTimeline = gsap.timeline();
+
+      tl.to(rdNavigation, {
+        x: 0,
+        duration: 0.375,
+        ease: "power2.inOut",
+      });
     },
   };
 
@@ -385,6 +425,7 @@
               routeChanging.value = undefined;
               animate.enterPage(rdMain.value, rdHeaderTitle.value);
             }
+            if (menuOpened.value) menuHandler();
           }, 250);
         });
       }
@@ -395,6 +436,17 @@
     if (e.matches) viewMode.value = "mobile";
     else viewMode.value = "desktop";
     rem.value = parseInt(getComputedStyle?.(document.body)?.fontSize) || 24;
+  }
+  function menuHandler(): void {
+    if (rdNavigation.value) {
+      if (!menuOpened.value) {
+        menuOpened.value = true;
+        animate.openMenu(rdNavigation.value);
+      } else {
+        menuOpened.value = false;
+        animate.closeMenu(rdNavigation.value);
+      }
+    }
   }
   function exit(): void {
     logout();
@@ -412,6 +464,11 @@
     setTimeout(() => {
       if (rdLayout.value) rdLayout.value.classList.remove("rd-layout-shake");
     }, 500);
+  }
+  function scroll(e: Event): void {
+    if (e.target instanceof HTMLElement) {
+      menuScroll.value = e.target.scrollTop;
+    }
   }
 
   watch(
@@ -435,8 +492,8 @@
     min-height: 100vh;
     background: var(--background-depth-two-color);
     display: flex;
-
     nav.rd-navigation {
+      z-index: 3;
       position: relative;
       width: 15rem;
       height: 100vh;
@@ -507,7 +564,6 @@
         }
       }
     }
-
     section.rd-section {
       position: relative;
       width: 100%;
@@ -577,27 +633,40 @@
       nav.rd-navigation {
         position: absolute;
         left: -100%;
-        top: 0;
+        top: 4rem;
         width: 100vw;
-        height: 100vh;
+        height: calc(100vh - 4rem);
+        padding: 1rem;
       }
-
       section.rd-section {
         header.rd-header {
-          position: relative;
-          height: auto;
+          position: fixed;
+          top: 0;
+          height: 4rem;
           padding: 1rem;
-          flex-direction: column-reverse;
-
+          box-sizing: border-box;
+          background: rgba(0, 0, 0, 0);
+          transition: 0.25s background-color;
           .rd-header-action {
             width: 100%;
-            margin-bottom: 1rem;
             justify-content: space-between;
           }
-
-          .rd-header-title-container {
+          &.rd-header-active {
+            background: var(--background-depth-one-color);
+          }
+        }
+        main.rd-main {
+          top: 4rem;
+          width: 100%;
+          height: calc(100% - 4rem);
+          flex-direction: column;
+          overflow-y: auto;
+          h1.rd-header-title {
+            position: relative;
             width: 100%;
             height: 2rem;
+            padding: 0 1rem;
+            box-sizing: border-box;
           }
         }
       }

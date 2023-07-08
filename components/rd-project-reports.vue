@@ -209,7 +209,7 @@
                 }}</span>
               </div>
               <div
-                v-if="report.kind === 'progress'"
+                v-if="report.kind === 'progress' && viewMode === 'desktop'"
                 class="rd-report-action-container"
               >
                 <rd-input-button-small
@@ -353,6 +353,8 @@
     "edit-task",
     "export-report",
   ]);
+  const config = useRuntimeConfig();
+  const { viewMode } = useMain();
 
   const rdPanel = ref<HTMLDivElement | null>(null);
 
@@ -477,9 +479,21 @@
   function formatDate(x: string): string {
     const date = new Date(x);
 
-    return `${date.getDate().toString().padStart(2, "0")} ${
-      months[date.getMonth()]
-    } ${date.getFullYear()}`;
+    if (viewMode.value === "desktop") {
+      return `${date.getDate().toString().padStart(2, "0")} ${
+        months[date.getMonth()]
+      } ${date.getFullYear()}`;
+    } else {
+      return `${date.getDate().toString().padStart(2, "0")}/${(
+        date.getMonth() + 1
+      )
+        .toString()
+        .padStart(2, "0")}/${date
+        .getFullYear()
+        .toString()
+        .slice(2)
+        .padStart(2, "0")}`;
+    }
   }
   function formatTime(x: string): string {
     const date = new Date(x);
@@ -544,7 +558,10 @@
       | ProjectIncidentReportResponse
       | undefined
   ): void {
-    if (report) window.open(`/projects/${report.project._id}/${report._id}`);
+    if (report)
+      window.open(
+        `${config.public.base}/projects/${report.project._id}/${report._id}`
+      );
   }
   function downloadReport(
     report:
@@ -554,7 +571,7 @@
   ): void {
     if (report)
       window.open(
-        `/projects/${report.project._id}/${report._id}?download=true`
+        `${config.public.base}/projects/${report.project._id}/${report._id}?download=true`
       );
   }
   function exportReport(): void {
@@ -844,6 +861,75 @@
         width: 1px;
         height: calc(100% - 3.5rem);
         background: var(--border-color);
+      }
+    }
+    @media only screen and (max-width: 1024px) {
+      height: auto;
+      border: none;
+      background: transparent;
+      margin-bottom: 1rem;
+      flex-direction: column;
+      flex: 0;
+      gap: 0.75rem;
+      .rd-panel-statistic-container {
+        width: 100%;
+        height: auto;
+        border-radius: 1rem;
+        border: var(--border);
+        background: var(--background-depth-one-color);
+        .rd-panel-statistic-body {
+          height: auto;
+          flex-direction: row;
+          flex-wrap: nowrap;
+          overflow-y: hidden;
+          overflow-x: auto;
+          .rd-statistic {
+            min-width: 75%;
+            height: 3.5rem;
+            flex-shrink: 0;
+            flex-direction: row;
+            gap: 0.75rem;
+            span.rd-statistic-placeholder {
+              white-space: nowrap;
+            }
+          }
+          &::-webkit-scrollbar {
+            display: none;
+          }
+        }
+      }
+      .rd-panel-report-container {
+        width: 100%;
+        height: auto;
+        border-radius: 1rem;
+        border: var(--border);
+        background: var(--background-depth-one-color);
+        .rd-panel-report-body {
+          flex-direction: column;
+          overflow-y: auto;
+          .rd-report {
+            width: 100%;
+            .rd-report-container {
+              .rd-report-header {
+                span {
+                  white-space: nowrap;
+                }
+              }
+              .rd-report-body {
+                .rd-report-detail-container {
+                  justify-content: flex-start;
+                  align-items: flex-start;
+                  flex-wrap: wrap;
+                  gap: 0.25rem 0;
+                  .rd-report-detail {
+                    width: 50%;
+                    flex-shrink: 0;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

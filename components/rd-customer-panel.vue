@@ -18,7 +18,7 @@
       <div class="rd-panel-input-wrapper">
         <rd-input-text :input="phoneInput" class="rd-panel-input" />
       </div>
-      <div class="rd-panel-fieldset" style="margin-bottom: 6rem">
+      <div class="rd-panel-fieldset">
         <div class="rd-panel-fieldset-header">
           <span class="rd-panel-fieldset-name rd-headline-4"
             >Contact person(s)</span
@@ -396,6 +396,9 @@
             }
           }
         }
+        &:last-child {
+          margin-bottom: 6rem;
+        }
       }
     }
     .rd-panel-footer {
@@ -423,6 +426,19 @@
         width: 100%;
         height: 1px;
         background: var(--border-color);
+      }
+    }
+    @media only screen and (max-width: 1024px) {
+      .rd-panel-body {
+        .rd-panel-fieldset {
+          &:last-child {
+            margin-bottom: 5rem;
+          }
+        }
+      }
+      .rd-panel-footer {
+        height: 4rem;
+        padding: 1rem;
       }
     }
   }

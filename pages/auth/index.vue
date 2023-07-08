@@ -1,6 +1,6 @@
 <template>
   <div class="rd-container">
-    <div v-if="!createUser" class="rd-panel" ref="rdPanel">
+    <div v-if="createUser === false" class="rd-panel" ref="rdPanel">
       <div class="rd-panel-logo-container">
         <rd-svg name="logo" color="primary" />
       </div>
@@ -28,7 +28,7 @@
         </div>
       </form>
     </div>
-    <div v-else class="rd-panel" ref="rdPanel">
+    <div v-else-if="createUser === true" class="rd-panel" ref="rdPanel">
       <div class="rd-panel-logo-container">
         <rd-svg name="logo" color="primary" />
       </div>
@@ -52,7 +52,7 @@
           <rd-input-button
             class="rd-panel-form-input"
             label="Submit"
-            :disabled="!email || !password || (createUser && !name)"
+            :disabled="!email || !password || (!!createUser && !name)"
             :loading="submitLoading"
             @clicked="submit"
           />
@@ -78,7 +78,7 @@
   const rdPanel = ref<HTMLDivElement>();
 
   const submitLoading = ref<boolean>(false);
-  const createUser = ref<boolean>(false);
+  const createUser = ref<boolean | null>(null);
 
   const nameInput = ref<InputOption>({
     name: "name",
@@ -171,16 +171,21 @@
     }, 100);
   }
 
+  watch(
+    () => rdPanel.value,
+    (val) => {
+      if (val)
+        gsap.to(val, {
+          opacity: 1,
+          y: 0,
+          duration: 0.25,
+          ease: "power2.out",
+        });
+    }
+  );
+
   onMounted(async () => {
     createUser.value = !(await getUsers())?.length;
-
-    setTimeout(() => {
-      if (rdPanel.value)
-        gsap.to(rdPanel.value, {
-          opacity: 1,
-          duration: 0.25,
-        });
-    }, 100);
   });
 </script>
 

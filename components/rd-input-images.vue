@@ -622,22 +622,22 @@
     }
     @media only screen and (max-width: 1024px) {
       label.rd-input-label {
-        padding: 0 1.5rem;
+        padding: 0 1rem;
       }
       label.rd-input-area {
-        width: calc(100% - 3rem);
-        margin: 0 1.5rem;
+        width: calc(100% - 2rem);
+        margin: 0 1rem;
       }
       .rd-images-wrapper {
-        padding-left: 1.5rem;
+        padding-left: 1rem;
         .rd-image-container {
           &:last-child {
-            margin-right: 1.5rem;
+            margin-right: 1rem;
           }
         }
         &::after {
-          width: 1.5rem;
-          margin-left: -1.5rem;
+          width: 1rem;
+          margin-left: -1rem;
         }
       }
     }

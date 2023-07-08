@@ -129,9 +129,17 @@
   function formatDate(x: string): string {
     const date = new Date(x);
 
-    return `${date.getDate().toString().padStart(2, "0")} ${
-      months[date.getMonth()]
-    } ${date.getFullYear()}`;
+    if (viewMode.value === "desktop")
+      return `${date.getDate().toString().padStart(2, "0")} ${
+        months[date.getMonth()]
+      } ${date.getFullYear()}`;
+    else {
+      return `${date.getDate().toString().padStart(2, "0")}/${(
+        date.getMonth() + 1
+      )
+        .toString()
+        .padStart(2, "0")}/${date.getFullYear()}`;
+    }
   }
 </script>
 

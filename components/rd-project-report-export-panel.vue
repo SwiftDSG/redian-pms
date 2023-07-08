@@ -39,6 +39,7 @@
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
+  const config = useRuntimeConfig();
 
   const panelState = ref<"idle" | "hide">("idle");
 
@@ -100,7 +101,7 @@
 
   async function submit(): Promise<void> {
     window.open(
-      `/projects/${props.data.project_id}/export?${
+      `${config.public.base}/projects/${props.data.project_id}/export?${
         group.value ? `group=${group.value}&` : ""
       }${start.value ? `start=${start.value}&` : ""}${
         end.value ? `end=${end.value}&` : ""
@@ -171,6 +172,12 @@
         width: 100%;
         height: 1px;
         background: var(--border-color);
+      }
+    }
+    @media only screen and (max-width: 1024px) {
+      .rd-panel-footer {
+        height: 4rem;
+        padding: 1rem;
       }
     }
   }

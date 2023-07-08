@@ -304,5 +304,45 @@
         }
       }
     }
+    @media only screen and (max-width: 1024px) {
+      height: auto;
+      border: none;
+      background: transparent;
+      margin-bottom: 1rem;
+      flex-direction: column;
+      flex: 0;
+      gap: 0.75rem;
+      .rd-panel-role-container {
+        width: 100%;
+        height: auto;
+        border-radius: 1rem;
+        border: var(--border);
+        background: var(--background-depth-one-color);
+        .rd-panel-role-body {
+          height: auto;
+          flex-direction: row;
+          overflow-y: hidden;
+          overflow-x: auto;
+          .rd-panel-role {
+            width: 75%;
+            flex-shrink: 0;
+          }
+        }
+      }
+      .rd-panel-user-container {
+        width: 100%;
+        height: auto;
+        border-radius: 1rem;
+        border: var(--border);
+        background: var(--background-depth-one-color);
+        .rd-panel-user-body {
+          flex-direction: column;
+          overflow-y: auto;
+          .rd-panel-user {
+            width: 100%;
+          }
+        }
+      }
+    }
   }
 </style>

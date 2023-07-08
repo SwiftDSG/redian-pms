@@ -242,6 +242,7 @@
     "edit-task",
     "open-task",
   ]);
+  const { viewMode } = useMain();
 
   const rdPanel = ref<HTMLDivElement | null>(null);
   const rdPanelTaskBody = ref<HTMLDivElement | null>(null);
@@ -328,7 +329,21 @@
   }
   function formatDate(str: string): string {
     const date = new Date(str);
-    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    if (viewMode.value === "desktop") {
+      return `${date.getDate()} ${
+        months[date.getMonth()]
+      } ${date.getFullYear()}`;
+    } else {
+      return `${date.getDate().toString().padStart(2, "0")}/${(
+        date.getMonth() + 2
+      )
+        .toString()
+        .padStart(2, "0")}/${date
+        .getFullYear()
+        .toString()
+        .slice(2)
+        .padStart(2, "0")}`;
+    }
   }
   function getDaysDiff(start: Date, end: Date): number {
     return Math.round((end.getTime() - start.getTime()) / 86400000);
@@ -925,6 +940,17 @@
             }
           }
         }
+      }
+    }
+    @media only screen and (max-width: 1024px) {
+      height: auto;
+      margin-bottom: 1rem;
+      .rd-panel-task-container {
+        width: 100%;
+        border: none;
+      }
+      .rd-panel-timeline-container {
+        display: none;
       }
     }
   }

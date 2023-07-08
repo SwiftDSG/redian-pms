@@ -147,28 +147,40 @@
           gap: 0.5rem;
         }
       }
-    }
-
-    .rd-project-area-body {
-      display: flex;
-      position: relative;
-      width: 100%;
-      flex-wrap: wrap;
-      padding: 0.75rem;
-      box-sizing: border-box;
-      gap: 0.75rem;
-      .rd-project-area-empty {
+      .rd-project-area-body {
+        display: flex;
         position: relative;
         width: 100%;
-        padding: 1rem 0;
+        flex-wrap: wrap;
+        padding: 0.75rem;
         box-sizing: border-box;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        gap: 0.75rem;
+        .rd-project-area-empty {
+          position: relative;
+          width: 100%;
+          padding: 1rem 0;
+          box-sizing: border-box;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .rd-project-task {
+          position: relative;
+          width: calc((100% - 2.25rem) / 4);
+        }
       }
-      .rd-project-task {
-        position: relative;
-        width: calc((100% - 2.25rem) / 4) !important;
+    }
+    @media only screen and (max-width: 1024px) {
+      gap: 0.75rem;
+      .rd-project-area {
+        .rd-project-area-body {
+          .rd-project-task {
+            width: 100%;
+          }
+        }
+        &:last-child {
+          margin-bottom: 1rem;
+        }
       }
     }
   }

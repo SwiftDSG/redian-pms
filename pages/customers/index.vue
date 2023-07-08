@@ -37,6 +37,7 @@
   const { validate } = useRole();
   const emits = defineEmits(["change-page", "open-panel"]);
 
+  const { viewMode } = useMain();
   definePageMeta({
     middleware: ["auth"],
   });
@@ -116,6 +117,20 @@
         &::-webkit-scrollbar {
           display: none;
         }
+      }
+    }
+    @media only screen and (max-width: 1024px) {
+      padding: 0 1rem 1rem 1rem;
+      .rd-customer-panel {
+        .rd-customer-panel-body {
+          .rd-customer {
+            width: 100%;
+          }
+        }
+      }
+      .rd-customer-add-button {
+        bottom: 2rem;
+        right: 2rem;
       }
     }
   }

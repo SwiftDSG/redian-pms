@@ -14,7 +14,7 @@
           />
         </div>
         <div class="rd-panel-role-body">
-          <div v-for="role in roles" :key="role._id" class="rd-role">
+          <div v-for="role in roles" :key="role._id" class="rd-panel-role">
             <div class="rd-panel-role-detail">
               <span class="rd-panel-role-name rd-headline-5">{{
                 role.name
@@ -159,7 +159,7 @@
           gap: 0.75rem;
           flex-direction: column;
           overflow-y: auto;
-          .rd-role {
+          .rd-panel-role {
             position: relative;
             width: 100%;
             height: 3.5rem;
@@ -290,6 +290,46 @@
 
           &::-webkit-scrollbar {
             display: none;
+          }
+        }
+      }
+    }
+    @media only screen and (max-width: 1024px) {
+      padding: 0 1rem 1rem 1rem;
+      .rd-panel {
+        height: auto;
+        border: none;
+        background: transparent;
+        flex-direction: column;
+        gap: 0.75rem;
+        .rd-panel-role-container {
+          width: 100%;
+          height: auto;
+          border-radius: 1rem;
+          border: var(--border);
+          background: var(--background-depth-one-color);
+          .rd-panel-role-body {
+            height: auto;
+            flex-direction: row;
+            overflow-y: hidden;
+            overflow-x: auto;
+            .rd-panel-role {
+              width: 75%;
+              flex-shrink: 0;
+            }
+          }
+        }
+        .rd-panel-user-container {
+          width: 100%;
+          border-radius: 1rem;
+          border: var(--border);
+          background: var(--background-depth-one-color);
+          .rd-panel-user-body {
+            flex-direction: column;
+            overflow-y: auto;
+            .rd-panel-user {
+              width: 100%;
+            }
           }
         }
       }

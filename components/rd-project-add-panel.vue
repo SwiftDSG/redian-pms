@@ -199,5 +199,11 @@
         background: var(--border-color);
       }
     }
+    @media only screen and (max-width: 1024px) {
+      .rd-panel-footer {
+        height: 4rem;
+        padding: 1rem;
+      }
+    }
   }
 </style>

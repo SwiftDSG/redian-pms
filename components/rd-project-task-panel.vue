@@ -735,33 +735,5 @@
         }
       }
     }
-
-    .rd-panel-footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 6rem;
-      background: var(--background-depth-one-color);
-      padding: 2rem;
-      box-sizing: border-box;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      .rd-panel-button {
-        width: 100%;
-      }
-
-      &::after {
-        content: "";
-        position: absolute;
-        bottom: 100%;
-        left: 0;
-        width: 100%;
-        height: 1px;
-        background: var(--border-color);
-      }
-    }
   }
 </style>

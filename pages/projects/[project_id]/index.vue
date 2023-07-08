@@ -2,7 +2,7 @@
   <div class="rd-container">
     <div class="rd-project-menu">
       <div class="rd-project-menu-section">
-        <rd-input-select :input="projectInput" />
+        <rd-input-select v-if="viewMode === 'desktop'" :input="projectInput" />
         <rd-input-button-small
           :icon="menu.icon"
           v-for="menu in projectMenus"
@@ -11,7 +11,7 @@
           @clicked="projectMenuChange(menu.name)"
         />
       </div>
-      <div class="rd-project-menu-section">
+      <div v-if="viewMode === 'desktop'" class="rd-project-menu-section">
         <rd-input-button
           v-if="
             validate('create_task') &&
@@ -24,6 +24,7 @@
         <rd-input-button
           v-else-if="
             !projectWarning &&
+            validate('create_report') &&
             projectMenu === 'reports' &&
             project.data?.status[0]?.kind !== 'finished' &&
             project.data?.status[0]?.kind !== 'breakdown' &&
@@ -151,6 +152,31 @@
       @add-user="openUser"
       @edit-user="openUser"
     />
+    <rd-input-button-floating
+      v-if="
+        viewMode === 'mobile' &&
+        validate('create_task') &&
+        projectMenu === 'tasks' &&
+        project.data?.status[0]?.kind === 'pending'
+      "
+      class="rd-project-menu-action"
+      label="Add stage"
+      @clicked="openAddArea"
+    />
+    <rd-input-button-floating
+      v-else-if="
+        viewMode === 'mobile' &&
+        !projectWarning &&
+        validate('create_report') &&
+        projectMenu === 'reports' &&
+        project.data?.status[0]?.kind !== 'finished' &&
+        project.data?.status[0]?.kind !== 'breakdown' &&
+        project.data?.status[0]?.kind !== 'cancelled'
+      "
+      class="rd-project-menu-action"
+      label="Add report"
+      @clicked="openAddReport"
+    />
   </div>
 </template>
 
@@ -202,6 +228,7 @@
     getProjectUsers,
     getProjectReports,
   } = useProject();
+  const { viewMode } = useMain();
   const route = useRoute();
 
   definePageMeta({
@@ -592,6 +619,48 @@
       }
       &.rd-project-warning-breakdown {
         background: var(--error-color);
+      }
+    }
+    @media only screen and (max-width: 1024px) {
+      padding: 0 1rem;
+      gap: 0.75rem;
+      .rd-project-menu {
+        left: -1rem;
+        width: calc(100% + 2rem);
+        padding: 0 1rem;
+        box-sizing: border-box;
+        flex-shrink: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        &::-webkit-scrollbar {
+          display: none;
+        }
+        .rd-project-menu-section {
+          flex-shrink: 0;
+        }
+      }
+      .rd-project-warning {
+        flex-direction: column;
+        .rd-project-warning-detail {
+          width: 100%;
+          flex-direction: column;
+          align-items: flex-start;
+          .rd-project-warning-icon-container {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+          }
+        }
+        .rd-project-warning-action {
+          position: absolute;
+          top: 0.75rem;
+          right: 0.75rem;
+        }
+      }
+      .rd-project-menu-action {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
       }
     }
   }

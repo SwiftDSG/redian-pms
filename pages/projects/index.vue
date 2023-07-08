@@ -17,6 +17,12 @@
               @clicked="openProjectPanel"
             />
           </div>
+          <rd-input-button-small
+            v-else-if="validate('create_customer')"
+            :icon="'plus'"
+            :type="'primary'"
+            @clicked="openProjectPanel"
+          />
         </div>
         <rd-input-tabs
           :input="tabsInput"
@@ -39,12 +45,6 @@
         />
       </div>
     </div>
-    <rd-input-button-floating
-      v-if="viewMode !== 'desktop'"
-      class="rd-project-add-button"
-      label="new project"
-      @clicked="openProjectPanel"
-    />
   </div>
 </template>
 
@@ -234,11 +234,11 @@
       .rd-project-panel {
         .rd-project-panel-header {
           .rd-project-panel-query {
-            padding: 0;
+            padding: 0 0.75rem;
             .rd-project-panel-query-section {
               width: 100%;
               &:first-child {
-                padding: 0 0.75rem;
+                width: calc(100% - 2.75rem);
               }
             }
           }
@@ -248,8 +248,8 @@
         }
       }
       .rd-project-add-button {
-        bottom: 1rem;
-        right: 1rem;
+        bottom: 2rem;
+        right: 2rem;
       }
     }
   }

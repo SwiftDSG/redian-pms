@@ -590,5 +590,8 @@
         }
       }
     }
+    @media only screen and (max-width: 1024px) {
+      margin-bottom: 1rem;
+    }
   }
 </style>
