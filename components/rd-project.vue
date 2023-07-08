@@ -194,6 +194,12 @@
           display: flex;
           flex-direction: column;
           justify-content: center;
+          span {
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: none;
+          }
         }
       }
       &.rd-project-data-person {

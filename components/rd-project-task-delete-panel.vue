@@ -33,7 +33,8 @@
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
-  const { project, deleteProjectTask, getProjectAreas } = useProject();
+  const { project, deleteProjectTask, getProjectAreas, getProjectTasks } =
+    useProject();
 
   const panelState = ref<"idle" | "hide">("idle");
 
@@ -50,6 +51,9 @@
       await deleteProjectTask(payload);
 
       project.value.areas = await getProjectAreas({
+        _id: props.data.project_id,
+      });
+      project.value.timeline = await getProjectTasks({
         _id: props.data.project_id,
       });
 
