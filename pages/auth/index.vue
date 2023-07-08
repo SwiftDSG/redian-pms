@@ -174,13 +174,22 @@
   watch(
     () => rdPanel.value,
     (val) => {
-      if (val)
-        gsap.to(val, {
-          opacity: 1,
-          y: 0,
-          duration: 0.25,
-          ease: "power2.out",
-        });
+      if (val) {
+        if (viewMode.value === "mobile") {
+          gsap.to(val, {
+            opacity: 1,
+            y: 0,
+            duration: 0.25,
+            ease: "power2.out",
+          });
+        } else {
+          gsap.to(val, {
+            opacity: 1,
+            duration: 0.25,
+            ease: "power2.out",
+          });
+        }
+      }
     }
   );
 

@@ -8,6 +8,7 @@
           v-for="menu in projectMenus"
           :key="menu.name"
           :type="projectMenu === menu.name ? 'primary' : 'default'"
+          :tooltip="menu.title"
           @clicked="projectMenuChange(menu.name)"
         />
       </div>

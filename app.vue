@@ -493,7 +493,6 @@
     background: var(--background-depth-two-color);
     display: flex;
     nav.rd-navigation {
-      z-index: 3;
       position: relative;
       width: 15rem;
       height: 100vh;
@@ -631,6 +630,7 @@
     }
     @media only screen and (max-width: 1024px) {
       nav.rd-navigation {
+        z-index: 3;
         position: absolute;
         left: -100%;
         top: 4rem;
