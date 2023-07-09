@@ -200,6 +200,7 @@
           height: 3.5rem;
           padding: 0.75rem;
           border-radius: 0.75rem;
+          background: var(--background-depth-two-color);
           border: var(--border);
           box-sizing: border-box;
           display: flex;
@@ -271,6 +272,7 @@
           height: 4rem;
           padding: 0.75rem;
           border-radius: 0.75rem;
+          background: var(--background-depth-two-color);
           border: var(--border);
           box-sizing: border-box;
           display: flex;

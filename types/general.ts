@@ -1,4 +1,4 @@
-export type ViewMode = 'desktop' | 'mobile' | null
+export type View = 'desktop' | 'mobile' | null
 
 export type Address = {
   _id?: string

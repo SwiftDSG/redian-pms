@@ -34,6 +34,7 @@
       </div>
       <rd-progress-bar
         :state="loading ? 'show' : 'hide'"
+        :immediate="true"
         class="rd-panel-overlay-loading"
         type="overlay"
       />
@@ -44,9 +45,9 @@
 <script lang="ts" setup>
   import gsap from "gsap";
   import { ComputedRef } from "vue";
-  import { ViewMode } from "~~/types/general";
+  import { View } from "~~/types/general";
 
-  const { viewMode, rem } = useMain();
+  const { view, rem } = useMain();
   const props = defineProps<{
     label?: string;
     action?: string;
@@ -86,7 +87,7 @@
       );
     },
     exit(
-      viewMode: ViewMode,
+      view: View,
       rdBackground: HTMLElement,
       rdPanel: HTMLElement,
       cb?: () => void
@@ -102,7 +103,7 @@
         duration: 0.5,
       });
 
-      if (viewMode === "mobile") {
+      if (view === "mobile") {
         tl.to(
           rdPanel,
           {
@@ -135,7 +136,7 @@
 
   function exit(): void {
     if (rdBackground.value && rdPanel.value) {
-      animate.exit(viewMode.value, rdBackground.value, rdPanel.value, () => {
+      animate.exit(view.value, rdBackground.value, rdPanel.value, () => {
         emits("exit");
       });
     }

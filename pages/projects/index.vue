@@ -6,10 +6,7 @@
           <div class="rd-project-panel-query-section">
             <rd-input-search :input="searchInput" />
           </div>
-          <div
-            v-if="viewMode === 'desktop'"
-            class="rd-project-panel-query-section"
-          >
+          <div v-if="view === 'desktop'" class="rd-project-panel-query-section">
             <rd-input-select :input="sortInput" />
             <rd-input-button
               v-if="validate('create_project')"
@@ -55,7 +52,7 @@
     InputOption,
   } from "~~/types/general";
 
-  const { viewMode } = useMain();
+  const { view, init } = useMain();
   const { validate } = useRole();
   const { projects, getProjects } = useProject();
   const emits = defineEmits(["change-page", "open-panel"]);
@@ -168,6 +165,9 @@
   onMounted(async () => {
     tabsInput.value.model = "";
     await getProjects();
+    setTimeout(() => {
+      init.value = false;
+    }, 250);
   });
 </script>
 

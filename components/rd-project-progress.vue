@@ -561,6 +561,7 @@
               span.rd-panel-cursor-legend-date {
                 position: relative;
                 width: 100%;
+                white-space: nowrap;
                 margin-bottom: 0.5rem;
               }
               .rd-panel-cursor-legend {
@@ -591,7 +592,13 @@
       }
     }
     @media only screen and (max-width: 1024px) {
+      min-height: calc(100vh - 12rem);
       margin-bottom: 1rem;
+      flex: 0;
+      // .rd-panel-body {
+      //   flex: 0;
+      //   flex-shrink: 0;
+      // }
     }
   }
 </style>

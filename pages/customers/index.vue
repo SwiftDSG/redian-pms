@@ -33,11 +33,11 @@
 </template>
 
 <script lang="ts" setup>
+  const { init } = useMain();
   const { customers, getCustomers } = useCustomer();
   const { validate } = useRole();
   const emits = defineEmits(["change-page", "open-panel"]);
 
-  const { viewMode } = useMain();
   definePageMeta({
     middleware: ["auth"],
   });
@@ -51,6 +51,9 @@
 
   onMounted(async () => {
     customers.value = await getCustomers();
+    setTimeout(() => {
+      init.value = false;
+    }, 250);
   });
 </script>
 
@@ -97,6 +100,7 @@
           width: calc((100% - 1.5rem) / 3);
           padding: 0.75rem;
           border-radius: 0.75rem;
+          background: var(--background-depth-two-color);
           border: var(--border);
           box-sizing: border-box;
           display: flex;

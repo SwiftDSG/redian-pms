@@ -242,7 +242,7 @@
     "edit-task",
     "open-task",
   ]);
-  const { viewMode } = useMain();
+  const { view } = useMain();
 
   const rdPanel = ref<HTMLDivElement | null>(null);
   const rdPanelTaskBody = ref<HTMLDivElement | null>(null);
@@ -329,7 +329,7 @@
   }
   function formatDate(str: string): string {
     const date = new Date(str);
-    if (viewMode.value === "desktop") {
+    if (view.value === "desktop") {
       return `${date.getDate()} ${
         months[date.getMonth()]
       } ${date.getFullYear()}`;
@@ -553,7 +553,7 @@
             padding: 0.75rem;
             border-radius: 0.75rem;
             border: var(--border);
-            background: var(--background-depth-one-color);
+            background: var(--background-depth-two-color);
             box-sizing: border-box;
             display: flex;
             justify-content: space-between;
@@ -620,8 +620,6 @@
             width: 100%;
             height: 100%;
             border-radius: 0.75rem;
-            border: var(--border);
-            border-color: var(--primary-color);
             box-sizing: border-box;
             .rd-panel-task-actual-message-container {
               position: absolute;
@@ -852,8 +850,6 @@
                 height: 100%;
                 padding: 0.75rem;
                 border-radius: 0.75rem;
-                border: var(--border);
-                border-color: var(--primary-color);
                 box-sizing: border-box;
                 display: flex;
                 flex-direction: column;

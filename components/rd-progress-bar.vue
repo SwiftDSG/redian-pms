@@ -2,7 +2,9 @@
   <div
     ref="rdComponent"
     class="rd-component"
-    :class="type === 'overlay' ? 'rd-component-overlay' : ''"
+    :class="`${type === 'overlay' ? 'rd-component-overlay' : ''} ${
+      immediate && state === 'show' ? 'rd-component-immediate' : ''
+    } ${fixed && type === 'overlay' ? 'rd-component-fixed' : ''}`"
   >
     <div class="rd-progress-bar-outer">
       <div class="rd-progress-bar-inner"></div>
@@ -16,11 +18,13 @@
   const props = defineProps<{
     state: "show" | "hide";
     type?: "default" | "overlay";
+    immediate?: boolean;
+    fixed?: boolean;
   }>();
   const rdComponent = ref<HTMLDivElement | null>(null);
 
   const animate = {
-    init(rdComponent: HTMLElement): void {
+    init(rdComponent: HTMLElement): GSAPTimeline {
       const tl: GSAPTimeline = gsap.timeline();
       tl.to(rdComponent, {
         pointerEvents: "auto",
@@ -29,6 +33,7 @@
         duration: 0.5,
         ease: "power2.inOut",
       });
+      return tl;
     },
     exit(rdComponent: HTMLElement): void {
       const tl: GSAPTimeline = gsap.timeline();
@@ -106,12 +111,17 @@
       height: 100%;
       padding: 0 2rem;
       border-radius: 0;
-      backdrop-filter: blur(5px);
-      background: rgba(0, 0, 0, 0.25);
+      background: var(--background-depth-one-color);
       opacity: 0;
       transform: scale(1) !important;
       .rd-progress-bar-outer {
         max-width: 15rem;
+      }
+      &.rd-component-immediate {
+        opacity: 1;
+      }
+      &.rd-component-fixed {
+        position: fixed;
       }
     }
   }

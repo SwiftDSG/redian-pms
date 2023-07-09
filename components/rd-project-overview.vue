@@ -414,6 +414,7 @@
             width: 100%;
             height: 4rem;
             padding: 0.75rem;
+            background: var(--background-depth-two-color);
             border: var(--border);
             border-radius: 0.75rem;
             box-sizing: border-box;

@@ -64,56 +64,9 @@
   const buttonAnimating = ref<boolean>(false);
   const buttonClicking = ref<boolean>(false);
   const buttonPressed = ref<boolean>(false);
-  const buttonHovered = ref<boolean>(false);
   const buttonLoadingAnim = ref<GSAPTimeline | null>(null);
 
   const animate = {
-    hover(rdInputComponent: HTMLElement, cb?: () => void): void {
-      const tl: GSAPTimeline = gsap.timeline({
-        onComplete() {
-          gsap.to(rdLetter, {
-            y: 0,
-            opacity: 1,
-            duration: 0,
-          });
-          gsap.to(rdOverlayLetter, {
-            y: "100%",
-            opacity: 0,
-            duration: 0,
-          });
-          if (cb) cb();
-        },
-      });
-
-      const rdLetter: HTMLElement[] = gsap.utils.toArray(
-        rdInputComponent.querySelectorAll(
-          "label.rd-input-label-main .rd-letter"
-        )
-      );
-      const rdOverlayLetter: HTMLElement[] = gsap.utils.toArray(
-        rdInputComponent.querySelectorAll(
-          "label.rd-input-label-overlay .rd-letter"
-        )
-      );
-
-      tl.to(rdLetter, {
-        y: "-100%",
-        opacity: 0,
-        duration: 0.25,
-        ease: "power2.in",
-        stagger: 0.05,
-      }).to(
-        rdOverlayLetter,
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.25,
-          ease: "powr2.out",
-          stagger: 0.05,
-        },
-        "<0.125"
-      );
-    },
     click(rdInputComponent: HTMLElement, cb?: () => void): void {
       const tl: GSAPTimeline = gsap.timeline({
         onComplete() {
@@ -266,7 +219,7 @@
         position: absolute;
         width: 100%;
         height: 100%;
-        color: #fff;
+        color: var(--font-secondary-color);
         display: flex;
         justify-content: center;
         align-items: center;

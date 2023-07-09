@@ -83,6 +83,7 @@
 
   const { users, getUsers } = useUser();
   const { roles, getRoles, validate } = useRole();
+  const { init } = useMain();
   const emits = defineEmits(["change-page", "open-panel"]);
 
   definePageMeta({
@@ -111,6 +112,9 @@
   onMounted(async () => {
     await getUsers();
     await getRoles();
+    setTimeout(() => {
+      init.value = false;
+    }, 250);
   });
 </script>
 
@@ -165,6 +169,7 @@
             height: 3.5rem;
             padding: 0.75rem;
             border-radius: 0.75rem;
+            background: var(--background-depth-two-color);
             border: var(--border);
             box-sizing: border-box;
             display: flex;
@@ -237,6 +242,7 @@
             height: 4rem;
             padding: 0.75rem;
             border-radius: 0.75rem;
+            background: var(--background-depth-two-color);
             border: var(--border);
             box-sizing: border-box;
             display: flex;

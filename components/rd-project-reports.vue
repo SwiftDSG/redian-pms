@@ -209,7 +209,7 @@
                 }}</span>
               </div>
               <div
-                v-if="report.kind === 'progress' && viewMode === 'desktop'"
+                v-if="report.kind === 'progress' && view === 'desktop'"
                 class="rd-report-action-container"
               >
                 <rd-input-button-small
@@ -354,7 +354,7 @@
     "export-report",
   ]);
   const config = useRuntimeConfig();
-  const { viewMode } = useMain();
+  const { view } = useMain();
 
   const rdPanel = ref<HTMLDivElement | null>(null);
 
@@ -479,7 +479,7 @@
   function formatDate(x: string): string {
     const date = new Date(x);
 
-    if (viewMode.value === "desktop") {
+    if (view.value === "desktop") {
       return `${date.getDate().toString().padStart(2, "0")} ${
         months[date.getMonth()]
       } ${date.getFullYear()}`;
@@ -644,6 +644,7 @@
           position: relative;
           width: calc((100% - 0.75rem) / 2);
           height: 6.5rem;
+          background: var(--background-depth-two-color);
           border: var(--border);
           border-radius: 0.75rem;
           padding: 0.75rem;
@@ -755,6 +756,7 @@
           .rd-report-container {
             position: relative;
             width: calc(100% - 2.25rem);
+            background: var(--background-depth-two-color);
             border: var(--border);
             border-radius: 0.75rem;
             padding: 0.75rem;
@@ -810,7 +812,6 @@
                 align-items: center;
                 .rd-report-detail {
                   position: relative;
-                  // width: calc(100% / 6);
                   display: flex;
                   flex-direction: column;
                   span.rd-report-detail-placeholder {

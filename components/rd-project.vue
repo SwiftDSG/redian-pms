@@ -44,18 +44,16 @@
       </div>
     </div>
     <div
-      v-if="viewMode === 'desktop'"
+      v-if="view === 'desktop'"
       class="rd-project-data rd-project-data-person"
     >
       <span class="rd-project-data-value rd-headline-4">{{
-        project.user?.name || "N/A"
+        project.code
       }}</span>
-      <span class="rd-project-data-placeholder rd-body-text"
-        >person in charge</span
-      >
+      <span class="rd-project-data-placeholder rd-body-text">Project code</span>
     </div>
     <div
-      v-if="viewMode === 'desktop'"
+      v-if="view === 'desktop'"
       class="rd-project-data rd-project-data-customer"
     >
       <span class="rd-project-data-value rd-headline-4">{{
@@ -83,7 +81,7 @@
   const props = defineProps<{
     project: ProjectMinResponse;
   }>();
-  const { viewMode } = useMain();
+  const { view } = useMain();
 
   const months = [
     "January",
@@ -129,7 +127,7 @@
   function formatDate(x: string): string {
     const date = new Date(x);
 
-    if (viewMode.value === "desktop")
+    if (view.value === "desktop")
       return `${date.getDate().toString().padStart(2, "0")} ${
         months[date.getMonth()]
       } ${date.getFullYear()}`;
@@ -145,17 +143,22 @@
 
 <style lang="scss" scoped>
   .rd-project {
+    cursor: pointer;
     position: relative;
     width: 100%;
     height: 4rem;
     padding: 0.75rem;
     border: var(--border);
+    background: var(--background-depth-two-color);
     border-radius: 0.75rem;
     box-sizing: border-box;
     display: flex;
     flex-shrink: 0;
     justify-content: space-between;
     align-items: center;
+    * {
+      pointer-events: none;
+    }
     .rd-project-data {
       position: relative;
       height: 100%;

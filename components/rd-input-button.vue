@@ -238,7 +238,7 @@
         position: absolute;
         width: 100%;
         height: 100%;
-        color: #fff;
+        color: var(--font-secondary-color);
         text-transform: uppercase;
         display: flex;
         justify-content: center;

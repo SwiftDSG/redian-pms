@@ -76,7 +76,7 @@
       <div v-if="projectsActive.length" class="rd-panel-body">
         <rd-project
           class="rd-project"
-          v-for="project in projectsActive"
+          v-for="project in projectsActive.slice(0, 3)"
           :key="project._id"
           :project="project"
           @click="
@@ -98,6 +98,7 @@
   import { ProjectMinResponse } from "types/project";
 
   const { projects, getProjects } = useProject();
+  const { init } = useMain();
   const emits = defineEmits(["change-page"]);
 
   definePageMeta({
@@ -128,6 +129,9 @@
 
   onMounted(async () => {
     await getProjects();
+    setTimeout(() => {
+      init.value = false;
+    }, 250);
   });
 </script>
 
@@ -144,7 +148,7 @@
     .rd-panel {
       position: relative;
       width: 100%;
-      padding: 0.75rem;
+      padding: 0.75rem 0;
       border: var(--border);
       border-radius: 1rem;
       box-sizing: border-box;
@@ -154,8 +158,11 @@
       .rd-panel-header {
         position: relative;
         width: 100%;
-        height: 2rem;
+        height: 2.75rem;
         margin-bottom: 0.75rem;
+        padding: 0 0.75rem 0.75rem 0.75rem;
+        border-bottom: var(--border);
+        box-sizing: border-box;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -163,6 +170,8 @@
       .rd-panel-body {
         position: relative;
         width: 100%;
+        padding: 0 0.75rem;
+        box-sizing: border-box;
         display: flex;
         gap: 0.75rem;
         flex-grow: 1;
@@ -177,6 +186,7 @@
       }
       &.rd-panel-counter {
         width: calc((100% - 3rem) / 4);
+        padding: 0.75rem;
         flex-direction: row;
         align-items: center;
         gap: 0.75rem;

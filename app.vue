@@ -1,8 +1,26 @@
 <template>
   <div class="rd-layout" ref="rdLayout">
+    <rd-progress-bar
+      v-if="route.name !== 'auth'"
+      class="rd-loading"
+      type="overlay"
+      :state="routeLoading ? 'show' : 'hide'"
+      :immediate="true"
+      :fixed="true"
+    />
     <nav ref="rdNavigation" class="rd-navigation">
-      <div v-if="viewMode === 'desktop'" class="rd-navigation-logo-container">
-        <rd-svg name="logo" class="rd-navigation-logo" />
+      <div class="rd-navigation-company">
+        <div class="rd-navigation-company-logo-container">
+          <rd-svg name="logo" class="rd-navigation-company-logo" />
+        </div>
+        <div class="rd-navigation-company-detail-container">
+          <span class="rd-navigation-company-name rd-headline-5"
+            >Company name</span
+          >
+          <span class="rd-navigation-company-category rd-caption-text"
+            >Category</span
+          >
+        </div>
       </div>
       <a
         v-for="link in links"
@@ -24,25 +42,40 @@
           link.title
         }}</span>
       </a>
+      <div class="rd-navigation-theme-switch">
+        <div class="rd-navigation-theme-switch-icon-container">
+          <rd-svg
+            class="rd-navigation-theme-switch-icon"
+            name="weather-night"
+          />
+        </div>
+        <span class="rd-navigation-theme-switch-name rd-headline-6"
+          >Dark Mode</span
+        >
+        <rd-input-toggle
+          class="rd-navigation-theme-switch-input"
+          :input="themeInput"
+        />
+      </div>
     </nav>
     <section class="rd-section">
       <header
         class="rd-header"
         :class="
-          (viewMode !== 'desktop' && menuScroll > 0) || menuOpened
+          (view !== 'desktop' && menuScroll > 0) || menuOpened
             ? 'rd-header-active'
             : ''
         "
       >
         <h1
-          v-if="viewMode === 'desktop' && routeCurrent"
+          v-if="view === 'desktop' && routeCurrent"
           ref="rdHeaderTitle"
           class="rd-header-title rd-headline-1"
         >
           {{ routeCurrent.title }}
         </h1>
         <div v-if="user" class="rd-header-action">
-          <div v-if="viewMode === 'desktop'" class="rd-header-action-profile">
+          <div v-if="view === 'desktop'" class="rd-header-action-profile">
             <span class="rd-header-action-profile-name rd-headline-5">{{
               user.name
             }}</span>
@@ -51,17 +84,17 @@
             }}</span>
           </div>
           <rd-input-button-small
-            v-if="viewMode !== 'desktop'"
+            v-if="view !== 'desktop'"
             icon="dots"
             @clicked="menuHandler"
           />
-          <rd-input-button-small v-if="viewMode === 'desktop'" icon="account" />
+          <rd-input-button-small v-if="view === 'desktop'" icon="account" />
           <rd-input-button-small icon="logout" @clicked="exit" />
         </div>
       </header>
-      <main class="rd-main" ref="rdMain" @scroll="scroll">
+      <main class="rd-main" ref="rdMain">
         <h1
-          v-if="viewMode !== 'desktop' && routeCurrent"
+          v-if="view !== 'desktop' && routeCurrent"
           ref="rdHeaderTitle"
           class="rd-header-title rd-headline-1"
         >
@@ -199,6 +232,7 @@
 
 <script lang="ts" setup>
   import { gsap } from "gsap";
+  import { InputToggleOption } from "types/general";
 
   type Link = {
     title: string;
@@ -289,13 +323,8 @@
 
   const route = useRoute();
   const router = useRouter();
-  const { viewMode, rem } = useMain();
+  const { view, rem, init, theme, getTheme, setTheme } = useMain();
   const { user, logout } = useUser();
-
-  const routeCurrent = computed<Route>(
-    () => routes.find((a) => a.name === route?.name) || routes[0]
-  );
-  const routeChanging = ref<Route | undefined>(undefined);
 
   const rdLayout = ref<HTMLDivElement | undefined>(undefined);
   const rdMain = ref<HTMLDivElement | undefined>(undefined);
@@ -309,6 +338,16 @@
 
   const menuOpened = ref<boolean>(false);
   const menuScroll = ref<number>(0);
+
+  const routeChanging = ref<Route | undefined>(undefined);
+  const routeLoading = ref<boolean>(true);
+  const routeCurrent = computed<Route>(
+    () => routes.find((a) => a.name === route?.name) || routes[0]
+  );
+
+  const themeInput = ref<InputToggleOption>({
+    model: false,
+  });
 
   const animate = {
     leavePage(
@@ -433,8 +472,8 @@
     return e;
   }
   function resizeHandler(e: MediaQueryList | MediaQueryListEvent): void {
-    if (e.matches) viewMode.value = "mobile";
-    else viewMode.value = "desktop";
+    if (e.matches) view.value = "mobile";
+    else view.value = "desktop";
     rem.value = parseInt(getComputedStyle?.(document.body)?.fontSize) || 24;
   }
   function menuHandler(): void {
@@ -465,23 +504,42 @@
       if (rdLayout.value) rdLayout.value.classList.remove("rd-layout-shake");
     }, 500);
   }
-  function scroll(e: Event): void {
-    if (e.target instanceof HTMLElement) {
-      menuScroll.value = e.target.scrollTop;
-    }
+  function scroll(): void {
+    menuScroll.value = document.documentElement.scrollTop;
   }
 
   watch(
-    () => viewMode.value,
+    () => view.value,
     (val, oldVal) => {
       if (val && oldVal) location.reload();
     }
   );
 
+  watch(
+    () => init.value,
+    (val, oldVal) => {
+      if (oldVal && !val) routeLoading.value = false;
+    }
+  );
+  watch(
+    () => themeInput.value.model,
+    (val) => {
+      setTheme(val ? "dark" : "light");
+      if (val) document.documentElement.classList.add("rd-dark");
+      else document.documentElement.classList.remove("rd-dark");
+    }
+  );
+
+  onBeforeMount(() => {
+    getTheme();
+    themeInput.value.model = theme.value === "dark";
+  });
   onMounted(() => {
     const mediaQuery: MediaQueryList = window.matchMedia("(max-width: 1024px)");
     mediaQuery.addEventListener("change", resizeHandler);
     resizeHandler(mediaQuery);
+
+    window.addEventListener("scroll", scroll);
   });
 </script>
 
@@ -492,6 +550,9 @@
     min-height: 100vh;
     background: var(--background-depth-two-color);
     display: flex;
+    .rd-loading {
+      z-index: 2000;
+    }
     nav.rd-navigation {
       position: relative;
       width: 15rem;
@@ -503,22 +564,38 @@
       display: flex;
       flex-direction: column;
 
-      .rd-navigation-logo-container {
+      .rd-navigation-company {
         position: relative;
         width: 100%;
         height: 6rem;
         padding: 2rem 0;
         box-sizing: border-box;
         display: flex;
-        justify-content: center;
         align-items: center;
-
-        .rd-navigation-logo {
+        gap: 0.5rem;
+        .rd-navigation-company-logo-container {
           position: relative;
-          height: 100%;
+          width: 2rem;
+          height: 2rem;
+          padding: 0.5rem 0;
+          border-radius: 0.75rem;
+          box-sizing: border-box;
+          background: var(--background-depth-two-color);
+        }
+        .rd-navigation-company-detail-container {
+          position: relative;
+          width: calc(100% - 2.5rem);
+          display: flex;
+          flex-direction: column;
+          span {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
         }
       }
-
       a.rd-navigation-link {
         cursor: pointer;
         position: relative;
@@ -531,8 +608,8 @@
         box-sizing: border-box;
         display: flex;
         align-items: center;
-        transition: 0.25s background-color;
-
+        transition: 0.25s background-color, 0.25s opacity;
+        opacity: 0.375;
         .rd-navigation-link-icon-container {
           position: relative;
           width: 2rem;
@@ -556,10 +633,53 @@
 
         &.rd-navigation-link-active {
           background-color: var(--primary-color);
-
+          opacity: 1;
           span.rd-navigation-link-name {
             color: var(--font-secondary-color);
           }
+        }
+        &:hover {
+          opacity: 1;
+        }
+      }
+      .rd-navigation-theme-switch {
+        position: absolute;
+        bottom: 2rem;
+        width: calc(100% - 4rem);
+        border-radius: 0.75rem;
+        border: var(--border);
+        text-decoration: none;
+        padding: 0.5rem;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        transition: 0.25s opacity;
+        opacity: 0.375;
+        .rd-navigation-theme-switch-icon-container {
+          position: relative;
+          width: 2rem;
+          height: 2rem;
+          padding: 0 0.5rem;
+          border-radius: 0.5rem;
+          border: var(--border);
+          box-sizing: border-box;
+          margin-right: 0.5rem;
+          background-color: var(--background-depth-one-color);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        span.rd-navigation-theme-sitch-name {
+          color: var(--font-main-color);
+          text-decoration: none;
+          transition: 0.25s color;
+        }
+        .rd-navigation-theme-switch-input {
+          position: absolute;
+          right: 0.75rem;
+        }
+        &:hover {
+          opacity: 1;
         }
       }
     }
@@ -637,9 +757,20 @@
         width: 100vw;
         height: calc(100vh - 4rem);
         padding: 1rem;
+        touch-action: none;
+        .rd-navigation-company {
+          height: 3rem;
+          padding: 0 0 1rem 0;
+        }
+        .rd-navigation-theme-switch {
+          bottom: 1rem;
+          width: calc(100% - 2rem);
+        }
       }
       section.rd-section {
+        height: auto;
         header.rd-header {
+          z-index: 2;
           position: fixed;
           top: 0;
           height: 4rem;
@@ -656,16 +787,18 @@
           }
         }
         main.rd-main {
-          top: 4rem;
+          z-index: 1;
           width: 100%;
-          height: calc(100% - 4rem);
+          min-height: auto;
+          padding-top: 4rem;
+          box-sizing: border-box;
           flex-direction: column;
-          overflow-y: auto;
           h1.rd-header-title {
             position: relative;
             width: 100%;
             height: 2rem;
             padding: 0 1rem;
+            margin: 1rem 0;
             box-sizing: border-box;
           }
         }
@@ -677,29 +810,23 @@
 <style lang="scss">
   :root {
     -webkit-tap-highlight-color: transparent;
-    --primary-color: #000;
-    --secondary-color: #fff;
-    // --secondary-color: #fff37c;
+    --primary-color: #fff37a;
+    --secondary-color: #242529;
     --error-color: #ff584c;
-    --warning-color: #ffc904;
+    --warning-color: #fff37a;
     --success-color: #6bc785;
-    --border-color: #cfcfcf;
-    --font-main-color: #000;
-    --font-secondary-color: #fff;
+    --border-color: #fafafa;
+    --font-main-color: #242529;
+    --font-secondary-color: #242529;
     --font-sub-color: rgba(0, 0, 0, 0.375);
     --background-depth-one-color: #ffffff;
-    --background-depth-two-color: #efefef;
-    --background-depth-three-color: #dfdfdf;
+    --background-depth-two-color: #fafafa;
+    --background-depth-three-color: #f0f0f0;
     --border: 1px solid var(--border-color);
     --box-shadow: 0 0.5rem 1rem rgba(199, 199, 199, 0.125);
-    // @media (prefers-color-scheme: dark) {
-    //   --background-depth-one-color: #290e17;
-    //   --background-depth-two-color: #36121f;
-    //   --background-depth-three-color: #3e1422;
-    //   --border-color: #4a2532;
-    //   --box-shadow: 0 0.5rem 1rem rgba(56, 56, 56, 0.125);
-    //   --font-main-color: #bba5ad;
-    // }
+  }
+  ::-webkit-scrollbar {
+    display: none;
   }
 
   html,
@@ -753,6 +880,17 @@
       .rd-title-2 {
         font-size: 1.125rem;
       }
+    }
+
+    &.rd-dark {
+      --background-depth-one-color: #2d2e32;
+      --background-depth-two-color: #242529;
+      --background-depth-three-color: #202124;
+      --border-color: #242529;
+      --box-shadow: 0 0.5rem 1rem rgba(36, 37, 41, 0.125);
+      --font-main-color: #fdebdd;
+      --font-secondary-color: #242529;
+      --font-sub-color: rgba(253, 235, 221, 0.375);
     }
   }
 

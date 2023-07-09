@@ -90,6 +90,7 @@
   .rd-project-task {
     position: relative;
     width: 100%;
+    background: var(--background-depth-two-color);
     border: var(--border);
     border-radius: 0.75rem;
     padding: 0.75rem;
@@ -142,10 +143,8 @@
         flex-direction: column;
         width: 100%;
         position: relative;
-        // justify-content: space-between;
         display: flex;
       }
-
       .rd-project-task-collaborators {
         flex-direction: column;
         width: 100%;

@@ -63,10 +63,10 @@
 </template>
 
 <script lang="ts" setup>
-  import { InputOption, ViewMode } from "~~/types/general";
+  import { InputOption, View } from "~~/types/general";
   import { gsap } from "gsap";
 
-  const { viewMode } = useMain();
+  const { view } = useMain();
   const { login, getUsers, createUser: createOwner } = useUser();
   const router = useRouter();
   const emits = defineEmits(["shake"]);
@@ -112,14 +112,14 @@
   const password = computed<string>(() => passwordInput.value.model);
 
   const animate = {
-    exit(viewMode: ViewMode, rdPanel: HTMLElement, cb?: () => void): void {
+    exit(view: View, rdPanel: HTMLElement, cb?: () => void): void {
       const tl: GSAPTimeline = gsap.timeline({
         onComplete() {
           if (cb) cb();
         },
       });
 
-      if (viewMode === "desktop") {
+      if (view === "desktop") {
         tl.to(rdPanel, {
           scale: 1.125,
           opacity: 0,
@@ -165,7 +165,7 @@
   function exit(path: string = "/"): void {
     setTimeout(() => {
       if (rdPanel.value)
-        animate.exit(viewMode.value, rdPanel.value, () => {
+        animate.exit(view.value, rdPanel.value, () => {
           router.push(path);
         });
     }, 100);
@@ -175,7 +175,7 @@
     () => rdPanel.value,
     (val) => {
       if (val) {
-        if (viewMode.value === "mobile") {
+        if (view.value === "mobile") {
           gsap.to(val, {
             opacity: 1,
             y: 0,

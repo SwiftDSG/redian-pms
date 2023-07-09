@@ -96,7 +96,7 @@
                 class="rd-report-section-image"
               >
                 <div
-                  :style="`background-image: url(${config.public.apiBase}/files?kind=project_documentation&name=${image._id}.${image.extension})`"
+                  :style="`background-image: url(${config.public.apiBase}/files?kind=project_documentation&name=${report._id}/${image._id}.${image.extension})`"
                 ></div>
               </div>
             </div>

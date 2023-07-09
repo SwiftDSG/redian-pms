@@ -324,7 +324,7 @@
         rdLine1.setAttributeNS(null, "x2", x.toString());
         rdLine1.setAttributeNS(null, "y2", y1.toString());
 
-        rdLine1.setAttributeNS(null, "stroke", "#ffc904");
+        rdLine1.setAttributeNS(null, "stroke", "#fff37a");
         rdLine1.setAttributeNS(null, "stroke-width", "2");
 
         rdSparkline.value.appendChild(rdLine1);
@@ -497,6 +497,7 @@
               position: relative;
               width: 100%;
               margin-bottom: 0.5rem;
+              white-space: nowrap;
             }
             .rd-cursor-legend {
               position: relative;

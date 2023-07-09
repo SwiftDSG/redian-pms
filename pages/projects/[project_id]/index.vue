@@ -2,7 +2,7 @@
   <div class="rd-container">
     <div class="rd-project-menu">
       <div class="rd-project-menu-section">
-        <rd-input-select v-if="viewMode === 'desktop'" :input="projectInput" />
+        <rd-input-select v-if="view === 'desktop'" :input="projectInput" />
         <rd-input-button-small
           :icon="menu.icon"
           v-for="menu in projectMenus"
@@ -12,7 +12,7 @@
           @clicked="projectMenuChange(menu.name)"
         />
       </div>
-      <div v-if="viewMode === 'desktop'" class="rd-project-menu-section">
+      <div v-if="view === 'desktop'" class="rd-project-menu-section">
         <rd-input-button
           v-if="
             validate('create_task') &&
@@ -50,7 +50,11 @@
     >
       <div class="rd-project-warning-detail">
         <div class="rd-project-warning-icon-container">
-          <rd-svg class="rd-project-warning-icon" name="warning" />
+          <rd-svg
+            class="rd-project-warning-icon"
+            name="warning"
+            color="secondary"
+          />
         </div>
         <div class="rd-project-warning-message-container">
           <span class="rd-project-warning-name rd-headline-5">{{
@@ -65,7 +69,7 @@
         v-if="projectWarning !== 'breakdown'"
         class="rd-project-warning-action"
         icon="chevron-right"
-        type="primary"
+        type="secondary"
         @clicked="
           projectMenuChange(
             projectWarning !== 'incomplete-period' ? 'tasks' : 'timeline'
@@ -76,6 +80,7 @@
         v-else-if="validate('create_incident')"
         class="rd-project-warning-action"
         label="continue project"
+        type="secondary"
         @clicked="openRemoveIncident"
       />
     </div>
@@ -155,7 +160,7 @@
     />
     <rd-input-button-floating
       v-if="
-        viewMode === 'mobile' &&
+        view === 'mobile' &&
         validate('create_task') &&
         projectMenu === 'tasks' &&
         project.data?.status[0]?.kind === 'pending'
@@ -166,7 +171,7 @@
     />
     <rd-input-button-floating
       v-else-if="
-        viewMode === 'mobile' &&
+        view === 'mobile' &&
         !projectWarning &&
         validate('create_report') &&
         projectMenu === 'reports' &&
@@ -229,7 +234,7 @@
     getProjectUsers,
     getProjectReports,
   } = useProject();
-  const { viewMode } = useMain();
+  const { view, init } = useMain();
   const route = useRoute();
 
   definePageMeta({
@@ -375,49 +380,52 @@
 
     return str;
   }
-  function projectMenuChange(name: ProjectMenuKind): void {
-    projectMenuState.value = "changing";
-    setTimeout(async () => {
-      projectMenu.value = name;
-      switch (name) {
-        case "overview":
-          project.value.progress = await getProjectProgress({
-            _id: project.value.data?._id || "",
-          });
-          project.value.timeline = await getProjectTasks({
-            _id: project.value.data?._id || "",
-          });
-          project.value.users = await getProjectUsers({
-            _id: project.value.data?._id || "",
-          });
-          break;
-        case "progress":
-          project.value.progress = await getProjectProgress({
-            _id: project.value.data?._id || "",
-          });
-          break;
-        case "reports":
-          project.value.reports = await getProjectReports({
-            _id: project.value.data?._id || "",
-          });
-          break;
-        case "tasks":
-          project.value.areas = await getProjectAreas({
-            _id: project.value.data?._id || "",
-          });
-          break;
-        case "timeline":
-          project.value.timeline = await getProjectTasks({
-            _id: project.value.data?._id || "",
-          });
-          break;
-        case "users":
-          project.value.users = await getProjectUsers({
-            _id: project.value.data?._id || "",
-          });
-          break;
-      }
-    }, 250);
+  function projectMenuChange(name: ProjectMenuKind): Promise<void> {
+    return new Promise((resolve) => {
+      projectMenuState.value = "changing";
+      setTimeout(async () => {
+        projectMenu.value = name;
+        switch (name) {
+          case "overview":
+            project.value.progress = await getProjectProgress({
+              _id: project.value.data?._id || "",
+            });
+            project.value.timeline = await getProjectTasks({
+              _id: project.value.data?._id || "",
+            });
+            project.value.users = await getProjectUsers({
+              _id: project.value.data?._id || "",
+            });
+            break;
+          case "progress":
+            project.value.progress = await getProjectProgress({
+              _id: project.value.data?._id || "",
+            });
+            break;
+          case "reports":
+            project.value.reports = await getProjectReports({
+              _id: project.value.data?._id || "",
+            });
+            break;
+          case "tasks":
+            project.value.areas = await getProjectAreas({
+              _id: project.value.data?._id || "",
+            });
+            break;
+          case "timeline":
+            project.value.timeline = await getProjectTasks({
+              _id: project.value.data?._id || "",
+            });
+            break;
+          case "users":
+            project.value.users = await getProjectUsers({
+              _id: project.value.data?._id || "",
+            });
+            break;
+        }
+        resolve();
+      }, 250);
+    });
   }
   function openAddArea(): void {
     emits("open-panel", {
@@ -534,7 +542,7 @@
       reports: null,
     };
 
-    projectMenuChange("overview");
+    await projectMenuChange("overview");
 
     if (areaInput.value.options) {
       areaInput.value.options.push(
@@ -556,6 +564,10 @@
       }
     }
     projectInit.value = false;
+
+    setTimeout(() => {
+      init.value = false;
+    }, 250);
   });
 </script>
 
@@ -616,6 +628,9 @@
           gap: 0.25rem;
           display: flex;
           flex-direction: column;
+          span {
+            color: var(--font-secondary-color);
+          }
         }
       }
       &.rd-project-warning-breakdown {
@@ -623,6 +638,7 @@
       }
     }
     @media only screen and (max-width: 1024px) {
+      min-height: auto;
       padding: 0 1rem;
       gap: 0.75rem;
       .rd-project-menu {
