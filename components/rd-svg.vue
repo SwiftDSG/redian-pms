@@ -66,7 +66,7 @@
           fill: var(--font-main-color);
         }
         .rd-svg-filled-secondary {
-          fill: var(--secondary-color);
+          fill: var(--font-secondary-color);
         }
       }
       &.rd-svg-outlined {
@@ -74,7 +74,7 @@
           stroke: var(--font-main-color);
         }
         .rd-svg-outlined-secondary {
-          stroke: var(--secondary-color);
+          stroke: var(--font-secondary-color);
         }
       }
     }
@@ -82,18 +82,18 @@
       svg {
         &.rd-svg-filled {
           .rd-svg-filled-main {
-            fill: var(--secondary-color);
+            fill: var(--font-secondary-color);
           }
           .rd-svg-filled-secondary {
-            fill: #fff;
+            fill: var(--font-main-color);
           }
         }
         &.rd-svg-outlined {
           .rd-svg-outlined-main {
-            stroke: var(--secondary-color);
+            stroke: var(--font-secondary-color);
           }
           .rd-svg-outlined-secondary {
-            stroke: #fff;
+            stroke: var(--font-main-color);
           }
         }
       }

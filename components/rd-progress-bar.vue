@@ -59,7 +59,7 @@
 
   onMounted(() => {
     setTimeout(() => {
-      if (props.state === "show" && rdComponent.value)
+      if (props.state === "show" && rdComponent.value && !props.immediate)
         animate.init(rdComponent.value);
     }, 250);
   });

@@ -349,7 +349,7 @@
         rdLine1.setAttributeNS(null, "x2", x.toString());
         rdLine1.setAttributeNS(null, "y2", y1.toString());
 
-        rdLine1.setAttributeNS(null, "stroke", "#ffc904");
+        rdLine1.setAttributeNS(null, "stroke", "var(--warning-color)");
         rdLine1.setAttributeNS(null, "stroke-width", "2");
 
         rdSparkline.value.appendChild(rdLine1);
@@ -374,8 +374,8 @@
             "stroke",
             datas.value[i + 1].y[1] > 0
               ? datas.value[i + 1].y[1] >= datas.value[i + 1].y[0]
-                ? "#6bc785"
-                : "#ff584c"
+                ? "var(--success-color)"
+                : "var(--error-color)"
               : "transparent"
           );
           rdLine2.setAttributeNS(null, "stroke-width", "2");
@@ -595,10 +595,6 @@
       min-height: calc(100vh - 12rem);
       margin-bottom: 1rem;
       flex: 0;
-      // .rd-panel-body {
-      //   flex: 0;
-      //   flex-shrink: 0;
-      // }
     }
   }
 </style>

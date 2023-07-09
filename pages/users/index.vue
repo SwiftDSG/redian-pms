@@ -255,7 +255,7 @@
               height: 2.5rem;
               width: 2.5rem;
               border-radius: 0.5rem;
-              background: var(--border-color);
+              background: var(--background-depth-one-color);
               display: flex;
               justify-content: center;
               align-items: center;

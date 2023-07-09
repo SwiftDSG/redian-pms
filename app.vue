@@ -323,6 +323,7 @@
 
   const route = useRoute();
   const router = useRouter();
+  const config = useRuntimeConfig();
   const { view, rem, init, theme, getTheme, setTheme } = useMain();
   const { user, logout } = useUser();
 
@@ -491,10 +492,7 @@
     logout();
     if (rdMain.value && rdHeaderTitle.value) {
       animate.leavePage(rdMain.value, rdHeaderTitle.value, () => {
-        router.push("/auth");
-        if (rdMain.value && rdHeaderTitle.value) {
-          animate.enterPage(rdMain.value, rdHeaderTitle.value);
-        }
+        window.location.assign(`${config.public.base}/auth`);
       });
     }
   }
@@ -540,6 +538,10 @@
     resizeHandler(mediaQuery);
 
     window.addEventListener("scroll", scroll);
+    document.documentElement.style.setProperty(
+      "--vh",
+      `${window.innerHeight * 0.01}px`
+    );
   });
 </script>
 
@@ -580,7 +582,7 @@
           padding: 0.5rem 0;
           border-radius: 0.75rem;
           box-sizing: border-box;
-          background: var(--background-depth-two-color);
+          background: #fafafa;
         }
         .rd-navigation-company-detail-container {
           position: relative;
@@ -749,18 +751,20 @@
       animation: rd-shake 0.25s infinite;
     }
     @media only screen and (max-width: 1024px) {
+      min-height: auto;
       nav.rd-navigation {
         z-index: 3;
-        position: absolute;
+        position: fixed;
         left: -100%;
         top: 4rem;
         width: 100vw;
         height: calc(100vh - 4rem);
+        height: calc((var(--vh, 1vh) * 100) - 4rem);
         padding: 1rem;
         touch-action: none;
         .rd-navigation-company {
           height: 3rem;
-          padding: 0 0 1rem 0;
+          padding: 0 0 2rem 0;
         }
         .rd-navigation-theme-switch {
           bottom: 1rem;
@@ -810,10 +814,10 @@
 <style lang="scss">
   :root {
     -webkit-tap-highlight-color: transparent;
-    --primary-color: #fff37a;
+    --primary-color: #ffd975;
     --secondary-color: #242529;
     --error-color: #ff584c;
-    --warning-color: #fff37a;
+    --warning-color: #ffd975;
     --success-color: #6bc785;
     --border-color: #fafafa;
     --font-main-color: #242529;
@@ -883,11 +887,13 @@
     }
 
     &.rd-dark {
+      --primary-color: #fff37a;
+      --warning-color: #fff37a;
       --background-depth-one-color: #2d2e32;
       --background-depth-two-color: #242529;
       --background-depth-three-color: #202124;
       --border-color: #242529;
-      --box-shadow: 0 0.5rem 1rem rgba(36, 37, 41, 0.125);
+      --box-shadow: 0 0.5rem 1rem rgba(15, 16, 17, 0.25);
       --font-main-color: #fdebdd;
       --font-secondary-color: #242529;
       --font-sub-color: rgba(253, 235, 221, 0.375);

@@ -11,7 +11,7 @@
     }}</label>
     <div class="rd-input-container">
       <div v-if="input.icon" class="rd-input-icon-container">
-        <rd-svg :name="input.icon" :color="'primary'" />
+        <rd-svg :name="input.icon" />
       </div>
       <input
         class="rd-input rd-body-text"
@@ -60,7 +60,7 @@
         </div>
       </div>
       <div class="rd-input-chevron-container">
-        <rd-svg name="chevron-down" :color="'primary'" />
+        <rd-svg name="chevron-down" />
       </div>
     </div>
     <span

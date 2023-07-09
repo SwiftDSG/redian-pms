@@ -1,6 +1,6 @@
 <template>
   <div ref="rdComponent" class="rd-component rd-component-overview">
-    <div class="rd-panel rd-panel-counter">
+    <div class="rd-panel rd-panel-counter rd-panel-counter-primary">
       <div class="rd-panel-icon-container">
         <rd-svg class="rd-panel-icon" name="finish" />
       </div>
@@ -21,39 +21,7 @@
     </div>
     <div class="rd-panel rd-panel-counter">
       <div class="rd-panel-icon-container">
-        <rd-svg class="rd-panel-icon" name="timeline" />
-      </div>
-      <div class="rd-panel-detail-container">
-        <div class="rd-panel-detail-value-container">
-          <span class="rd-panel-detail-value rd-headline-3">{{
-            `${valueActual.toFixed(2)}%`
-          }}</span>
-          <span class="rd-panel-detail-target rd-headline-3">/</span>
-          <span class="rd-panel-detail-target rd-headline-3">{{
-            `${valuePlan.toFixed(2)}%`
-          }}</span>
-        </div>
-        <span class="rd-panel-detail-placeholder rd-headline-6"
-          >Actual vs planned</span
-        >
-      </div>
-    </div>
-    <div class="rd-panel rd-panel-counter">
-      <div class="rd-panel-icon-container">
-        <rd-svg class="rd-panel-icon" name="crosshairs-gps" />
-      </div>
-      <div class="rd-panel-detail-container">
-        <div class="rd-panel-detail-value-container">
-          <span class="rd-panel-detail-value rd-headline-3">{{
-            `${(valueActual - valuePlan).toFixed(2)}%`
-          }}</span>
-        </div>
-        <span class="rd-panel-detail-placeholder rd-headline-6">Deviation</span>
-      </div>
-    </div>
-    <div class="rd-panel rd-panel-counter">
-      <div class="rd-panel-icon-container">
-        <rd-svg class="rd-panel-icon" name="clock-outline" />
+        <rd-svg class="rd-panel-icon" name="clock-outline" color="primary" />
       </div>
       <div class="rd-panel-detail-container">
         <div class="rd-panel-detail-value-container">
@@ -68,6 +36,64 @@
         <span class="rd-panel-detail-placeholder rd-headline-6"
           >Duration (days)</span
         >
+      </div>
+    </div>
+    <div class="rd-panel rd-panel-counter">
+      <div class="rd-panel-icon-container">
+        <rd-svg
+          class="rd-panel-icon"
+          name="timeline"
+          :color="valueActual - valuePlan >= 0 ? 'success' : 'error'"
+        />
+      </div>
+      <div class="rd-panel-detail-container">
+        <div class="rd-panel-detail-value-container">
+          <span
+            class="rd-panel-detail-value rd-headline-3"
+            :style="`color: ${
+              valueActual - valuePlan >= 0
+                ? 'var(--success-color)'
+                : 'var(--error-color)'
+            }`"
+            >{{ `${valueActual.toFixed(2)}%` }}</span
+          >
+          <span
+            v-if="view === 'desktop'"
+            class="rd-panel-detail-target rd-headline-3"
+            >/</span
+          >
+          <span
+            v-if="view === 'desktop'"
+            class="rd-panel-detail-target rd-headline-3"
+            >{{ `${valuePlan.toFixed(2)}%` }}</span
+          >
+        </div>
+        <span class="rd-panel-detail-placeholder rd-headline-6">{{
+          view === "desktop" ? "Actual vs planned" : "Actual value"
+        }}</span>
+      </div>
+    </div>
+    <div class="rd-panel rd-panel-counter">
+      <div class="rd-panel-icon-container">
+        <rd-svg
+          class="rd-panel-icon"
+          name="crosshairs-gps"
+          :color="valueActual - valuePlan >= 0 ? 'success' : 'error'"
+        />
+      </div>
+      <div class="rd-panel-detail-container">
+        <div class="rd-panel-detail-value-container">
+          <span
+            class="rd-panel-detail-value rd-headline-3"
+            :style="`color: ${
+              valueActual - valuePlan >= 0
+                ? 'var(--success-color)'
+                : 'var(--error-color)'
+            }`"
+            >{{ `${(valueActual - valuePlan).toFixed(2)}%` }}</span
+          >
+        </div>
+        <span class="rd-panel-detail-placeholder rd-headline-6">Deviation</span>
       </div>
     </div>
     <div class="rd-panel rd-panel-chart">
@@ -236,6 +262,7 @@
     };
   }>();
   const emits = defineEmits(["change-menu", "changing-done"]);
+  const { view } = useMain();
   const { validate } = useProject();
 
   const rdComponent = ref<HTMLDivElement | null>(null);
@@ -389,6 +416,12 @@
             }
           }
         }
+        &.rd-panel-counter-primary {
+          background: var(--primary-color);
+          span {
+            color: var(--font-secondary-color) !important;
+          }
+        }
       }
       &.rd-panel-chart {
         width: calc(50% - 0.5rem);
@@ -425,7 +458,7 @@
               width: 2.5rem;
               height: 2.5rem;
               border-radius: 0.5rem;
-              background: var(--background-depth-two-color);
+              background: var(--background-depth-one-color);
               margin-right: 0.75rem;
             }
             .rd-panel-member-detail-container {
@@ -435,6 +468,12 @@
               display: flex;
               flex-direction: column;
               justify-content: center;
+              span {
+                width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
             }
           }
         }

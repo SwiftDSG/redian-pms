@@ -66,7 +66,7 @@
   import { InputOption, View } from "~~/types/general";
   import { gsap } from "gsap";
 
-  const { view } = useMain();
+  const { view, init } = useMain();
   const { login, getUsers, createUser: createOwner } = useUser();
   const router = useRouter();
   const emits = defineEmits(["shake"]);
@@ -195,6 +195,7 @@
 
   onMounted(async () => {
     createUser.value = !(await getUsers())?.length;
+    init.value = false;
   });
 </script>
 

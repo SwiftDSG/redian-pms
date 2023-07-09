@@ -1,6 +1,6 @@
 <template>
   <div class="rd-container">
-    <div class="rd-panel rd-panel-counter">
+    <div class="rd-panel rd-panel-counter rd-panel-counter-primary">
       <div class="rd-panel-icon-container">
         <rd-svg class="rd-panel-icon" name="timeline" />
       </div>
@@ -17,7 +17,7 @@
     </div>
     <div class="rd-panel rd-panel-counter">
       <div class="rd-panel-icon-container">
-        <rd-svg class="rd-panel-icon" name="percent" />
+        <rd-svg class="rd-panel-icon" name="percent" color="primary" />
       </div>
       <div class="rd-panel-detail-container">
         <div class="rd-panel-detail-value-container">
@@ -32,7 +32,7 @@
     </div>
     <div class="rd-panel rd-panel-counter">
       <div class="rd-panel-icon-container">
-        <rd-svg class="rd-panel-icon" name="finish" />
+        <rd-svg class="rd-panel-icon" name="finish" color="success" />
       </div>
       <div class="rd-panel-detail-container">
         <div class="rd-panel-detail-value-container">
@@ -47,7 +47,7 @@
     </div>
     <div class="rd-panel rd-panel-counter">
       <div class="rd-panel-icon-container">
-        <rd-svg class="rd-panel-icon" name="timer" />
+        <rd-svg class="rd-panel-icon" name="timer" color="error" />
       </div>
       <div class="rd-panel-detail-container">
         <div class="rd-panel-detail-value-container">
@@ -218,6 +218,12 @@
             span.rd-panel-detail-target {
               opacity: 0.5;
             }
+          }
+        }
+        &.rd-panel-counter-primary {
+          background: var(--primary-color);
+          span {
+            color: var(--font-secondary-color) !important;
           }
         }
       }
