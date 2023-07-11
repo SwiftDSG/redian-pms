@@ -28,7 +28,7 @@
     >
       <div class="rd-input-icon-wrapper">
         <div class="rd-input-icon-container">
-          <rd-svg :name="'upload'" :color="'secondary'" />
+          <rd-svg name="upload" color="primary" />
         </div>
         <div class="rd-input-icon-progress-bar">
           <div class="rd-input-icon-progress-bar-outer">

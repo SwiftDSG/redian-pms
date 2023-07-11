@@ -52,8 +52,17 @@
           class="rd-panel-user"
           @click="editUser(user)"
         >
-          <div class="rd-panel-user-image"></div>
-          <div class="rd-panel-user-detail">
+          <div class="rd-panel-user-image-container">
+            <img
+              :src="
+                user.image
+                  ? `${config.public.apiBase}/files?name=${user._id}/${user.image._id}.${user.image.extension}&kind=user_image`
+                  : '/default_user.svg'
+              "
+              class="rd-panel-user-image"
+            />
+          </div>
+          <div class="rd-panel-user-detail-container">
             <span class="rd-panel-user-name rd-headline-4">{{
               user.name
             }}</span>
@@ -89,6 +98,7 @@
     "edit-user",
     "add-user",
   ]);
+  const config = useRuntimeConfig();
 
   const rdPanel = ref<HTMLDivElement | null>(null);
 
@@ -276,11 +286,11 @@
           border: var(--border);
           box-sizing: border-box;
           display: flex;
-          gap: 0.75rem;
+          gap: 0.5rem;
           justify-content: flex-start;
           align-items: center;
 
-          .rd-panel-user-image {
+          .rd-panel-user-image-container {
             position: relative;
             height: 2.5rem;
             width: 2.5rem;
@@ -289,9 +299,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+            img {
+              position: relative;
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
           }
 
-          .rd-panel-user-detail {
+          .rd-panel-user-detail-container {
             position: relative;
             width: calc(100% - 3.75rem);
             height: 100%;

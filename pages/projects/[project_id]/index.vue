@@ -234,7 +234,7 @@
     getProjectUsers,
     getProjectReports,
   } = useProject();
-  const { view, init } = useMain();
+  const { view, init, state } = useMain();
   const route = useRoute();
 
   definePageMeta({
@@ -567,6 +567,7 @@
 
     setTimeout(() => {
       init.value = false;
+      state.value = "idle";
     }, 250);
   });
 </script>

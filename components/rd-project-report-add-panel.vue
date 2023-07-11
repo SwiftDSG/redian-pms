@@ -117,7 +117,16 @@
             class="rd-panel-form-user"
             @click="removeMember(member._id)"
           >
-            <div class="rd-panel-form-user-image"></div>
+            <div class="rd-panel-form-user-image-container">
+              <img
+                :src="
+                  member.image
+                    ? `${config.public.apiBase}/files?name=${member._id}/${member.image._id}.${member.image.extension}&kind=user_image`
+                    : '/default_user.svg'
+                "
+                class="rd-panel-form-user-image"
+              />
+            </div>
             <span class="rd-panel-form-user-name rd-headline-5">{{
               member.name
             }}</span>
@@ -179,7 +188,16 @@
             class="rd-panel-form-user"
             @click="removeMember(member._id)"
           >
-            <div class="rd-panel-form-user-image"></div>
+            <div class="rd-panel-form-user-image-container">
+              <img
+                :src="
+                  member.image
+                    ? `${config.public.apiBase}/files?name=${member._id}/${member.image._id}.${member.image.extension}&kind=user_image`
+                    : '/default_user.svg'
+                "
+                class="rd-panel-form-user-image"
+              />
+            </div>
             <span class="rd-panel-form-user-name rd-headline-5">{{
               member.name
             }}</span>
@@ -248,6 +266,7 @@
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
+  const config = useRuntimeConfig();
   const {
     project,
     getProject,
@@ -369,7 +388,6 @@
   const documentation = computed<ProjectProgressReportRequest["documentation"]>(
     () =>
       imagesInput.value.file.map((a) => ({
-        _id: a.name,
         extension: a.type,
       }))
   );
@@ -773,13 +791,22 @@
             * {
               pointer-events: none;
             }
-            .rd-panel-form-user-image {
+            .rd-panel-form-user-image-container {
               position: relative;
               width: 1rem;
               height: 1rem;
               background: var(--border-color);
               border-radius: 50%;
               margin-right: 0.5rem;
+              overflow: hidden;
+              display: flex;
+              img {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                object-position: center center;
+              }
             }
             .rd-panel-form-user-icon {
               position: relative;

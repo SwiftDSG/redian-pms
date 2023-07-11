@@ -98,7 +98,7 @@
   import { ProjectMinResponse } from "types/project";
 
   const { projects, getProjects } = useProject();
-  const { init } = useMain();
+  const { init, state } = useMain();
   const emits = defineEmits(["change-page"]);
 
   definePageMeta({
@@ -131,6 +131,7 @@
     await getProjects();
     setTimeout(() => {
       init.value = false;
+      state.value = "idle";
     }, 250);
   });
 </script>

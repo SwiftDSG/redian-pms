@@ -1,13 +1,19 @@
 <template>
   <rd-panel
     class="rd-panel"
-    label="Add customer"
+    :label="data.customer ? 'Edit customer' : 'Add customer'"
     :state="panelState"
     @exit="emits('exit')"
   >
     <div class="rd-panel-body">
       <div class="rd-panel-input-wrapper">
+        <rd-input-image :input="imageInput" class="rd-panel-input" />
+      </div>
+      <div class="rd-panel-input-wrapper">
         <rd-input-text :input="nameInput" class="rd-panel-input" />
+      </div>
+      <div class="rd-panel-input-wrapper">
+        <rd-input-text :input="fieldInput" class="rd-panel-input" />
       </div>
       <div class="rd-panel-input-wrapper">
         <rd-input-textarea :input="addressInput" class="rd-panel-input" />
@@ -136,7 +142,7 @@
       <rd-input-button
         class="rd-panel-button"
         label="submit"
-        :disabled="!name || !contact.address || !persons?.length"
+        :disabled="!name || !field || !contact.address || !persons?.length"
         :loading="loading"
         @clicked="submit"
       />
@@ -145,14 +151,19 @@
 </template>
 
 <script lang="ts" setup>
-  import { CustomerPerson, CustomerRequest } from "~~/types/customer";
-  import { InputOption } from "~~/types/general";
+  import { Customer, CustomerPerson, CustomerRequest } from "~~/types/customer";
+  import { InputFileOption, InputOption } from "~~/types/general";
 
   const props = defineProps<{
     state: "idle" | "hide";
+    data: {
+      customer?: Customer;
+    };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
-  const { customers, createCustomer, getCustomers } = useCustomer();
+  const config = useRuntimeConfig();
+  const { customers, createCustomer, updateCustomer, getCustomers } =
+    useCustomer();
 
   const panelState = ref<"idle" | "hide">("idle");
 
@@ -160,11 +171,22 @@
 
   const persons = ref<CustomerPerson[]>([]);
 
+  const imageInput = ref<InputFileOption>({
+    file: undefined,
+    label: "Customer logo",
+    type: "image",
+  });
   const nameInput = ref<InputOption>({
     label: "Customer name",
     name: "name",
     model: "",
-    placeholder: "PT. ABC",
+    placeholder: "PT. Redian Grup Sejahtera",
+  });
+  const fieldInput = ref<InputOption>({
+    label: "Company field",
+    name: "field",
+    model: "",
+    placeholder: "Digital Creative Agency",
   });
   const addressInput = ref<InputOption>({
     label: "Customer address",
@@ -177,7 +199,7 @@
     name: "email",
     model: "",
     type: "email",
-    placeholder: "abc@xyz.com",
+    placeholder: "hello@redian.id",
   });
   const phoneInput = ref<InputOption>({
     label: "Customer phone",
@@ -218,11 +240,24 @@
   });
 
   const name = computed<CustomerRequest["name"]>(() => nameInput.value.model);
+  const field = computed<CustomerRequest["field"]>(
+    () => fieldInput.value.model
+  );
   const contact = computed<CustomerRequest["contact"]>(() => ({
     address: addressInput.value.model,
     email: emailInput.value.model,
     phone: phoneInput.value.model,
   }));
+  const image = computed<CustomerRequest["image"]>(() =>
+    imageInput.value.file
+      ? {
+          extension: imageInput.value.file.type,
+        }
+      : undefined
+  );
+  const image_photo = computed<CustomerRequest["image_photo"]>(
+    () => imageInput.value.file
+  );
   const person = computed<CustomerPerson>(() => ({
     name: personNameInput.value.model,
     address: personAddressInput.value.model,
@@ -247,14 +282,22 @@
     loading.value = true;
 
     const payload = {
+      customer_id: "",
       request: {
         name: name.value,
+        field: field.value,
         contact: contact.value,
         person: persons.value,
+        image: image.value,
+        image_photo: image_photo.value,
       },
     };
-
-    await createCustomer(payload);
+    if (props.data.customer) {
+      payload.customer_id = props.data.customer._id;
+      await updateCustomer(payload);
+    } else {
+      await createCustomer(payload);
+    }
 
     customers.value = await getCustomers();
 
@@ -267,6 +310,22 @@
       if (val === "hide") panelState.value = "hide";
     }
   );
+
+  onMounted(() => {
+    if (props.data.customer) {
+      nameInput.value.model = props.data.customer.name;
+      fieldInput.value.model = props.data.customer.field;
+      addressInput.value.model = props.data.customer.contact.address;
+      emailInput.value.model = props.data.customer.contact.email || "";
+      phoneInput.value.model = props.data.customer.contact.phone || "";
+      for (const person of props.data.customer.person) {
+        persons.value.push(person);
+      }
+      if (props.data.customer.image) {
+        imageInput.value.image_url = `${config.public.apiBase}/files?name=${props.data.customer._id}/${props.data.customer.image._id}.${props.data.customer.image.extension}&kind=company_image`;
+      }
+    }
+  });
 </script>
 
 <style lang="scss" scoped>

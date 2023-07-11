@@ -52,7 +52,7 @@
     InputOption,
   } from "~~/types/general";
 
-  const { view, init } = useMain();
+  const { view, init, state } = useMain();
   const { validate } = useRole();
   const { projects, getProjects } = useProject();
   const emits = defineEmits(["change-page", "open-panel"]);
@@ -167,6 +167,7 @@
     await getProjects();
     setTimeout(() => {
       init.value = false;
+      state.value = "idle";
     }, 250);
   });
 </script>

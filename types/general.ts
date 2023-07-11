@@ -121,7 +121,7 @@ export type InputToggleOption = {
   disabled?: boolean
 }
 export type InputFileOption = {
-  file: File
+  file?: File
   type?: 'any' | 'image'
   disabled?: boolean
   label?: string

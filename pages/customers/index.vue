@@ -17,13 +17,24 @@
           v-for="customer in customers"
           :key="customer._id"
           class="rd-customer"
+          @click="openCustomerPanel(customer)"
         >
-          <div class="rd-customer-detail">
+          <div class="rd-customer-image-container">
+            <img
+              :src="
+                customer.image
+                  ? `${config.public.apiBase}/files?name=${customer._id}/${customer.image._id}.${customer.image.extension}&kind=customer_image`
+                  : '/default_customer.svg'
+              "
+              class="rd-customer-image"
+            />
+          </div>
+          <div class="rd-customer-detail-container">
             <span class="rd-customer-name rd-headline-5">{{
               customer.name
             }}</span>
             <span class="rd-customer-contact rd-caption-text">{{
-              ` ${customer.person.length} contact`
+              customer.field
             }}</span>
           </div>
         </div>
@@ -33,19 +44,25 @@
 </template>
 
 <script lang="ts" setup>
-  const { init } = useMain();
+  import { Customer } from "types/customer";
+
+  const { init, state } = useMain();
   const { customers, getCustomers } = useCustomer();
   const { validate } = useRole();
   const emits = defineEmits(["change-page", "open-panel"]);
+  const config = useRuntimeConfig();
 
   definePageMeta({
     middleware: ["auth"],
   });
 
-  function openCustomerPanel(): void {
+  function openCustomerPanel(customer?: Customer): void {
     emits("open-panel", {
       state: "show",
       type: "customer",
+      data: {
+        customer,
+      },
     });
   }
 
@@ -53,6 +70,7 @@
     customers.value = await getCustomers();
     setTimeout(() => {
       init.value = false;
+      state.value = "idle";
     }, 250);
   });
 </script>
@@ -104,12 +122,28 @@
           border: var(--border);
           box-sizing: border-box;
           display: flex;
-          gap: 0.75rem;
+          gap: 0.5rem;
           justify-content: flex-start;
           align-items: center;
-          .rd-customer-detail {
+          .rd-customer-image-container {
             position: relative;
-            width: 100%;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 0.5rem;
+            background: #fafafa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            img {
+              position: relative;
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+          }
+          .rd-customer-detail-container {
+            position: relative;
             height: 100%;
             display: flex;
             gap: 0.25rem;

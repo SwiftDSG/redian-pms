@@ -12,10 +12,13 @@ export type ProjectProgressReportRequest = {
   actual?: ProjectProgressReportActual[];
   plan?: ProjectProgressReportPlan;
   weather?: ProjectProgressReportWeather;
-  documentation?: ProjectProgressReportDocumentation[];
+  documentation?: ProjectProgressReportDocumentationRequest[];
   documentation_photo?: File[]
 };
-
+export type ProjectProgressReportDocumentationRequest = {
+  description?: string;
+  extension: string;
+};
 export type ProjectProgressReportActual = {
   task_id: string;
   value: number;
@@ -28,9 +31,9 @@ export type ProjectProgressReportWeather = {
   kind: ProjectProgressReportWeatherKind;
 };
 export type ProjectProgressReportDocumentation = {
-  _id?: string;
+  _id: string;
   description?: string;
-  extension?: string;
+  extension: string;
 };
 export type ProjectProgressReportResponse = {
   _id: string;

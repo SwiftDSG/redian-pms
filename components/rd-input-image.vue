@@ -24,14 +24,14 @@
             @click="inputHandler('hide')"
           >
             <div class="rd-input-image-icon-container">
-              <rd-svg :name="'delete'" />
+              <rd-svg name="delete" />
             </div>
           </div>
         </div>
       </div>
       <div class="rd-input-icon-wrapper">
         <div class="rd-input-icon-container">
-          <rd-svg :name="'upload'" :color="'secondary'" />
+          <rd-svg name="upload" color="primary" />
         </div>
         <div class="rd-input-icon-progress-bar">
           <div class="rd-input-icon-progress-bar-outer">
@@ -62,20 +62,81 @@
     file?: File;
   }
 
-  const config = useRuntimeConfig();
-  const { setAlert } = useAlert();
   const props = defineProps<{
     input: InputFileOption;
   }>();
 
   const rdInputArea = ref<HTMLLabelElement | null>(null);
-  const rdImage = ref<HTMLDivElement[] | null>(null);
-
-  const inputDragging = ref<boolean>(false);
   const inputLoading = ref<boolean>(false);
   const inputFile = ref<ImageFile | null>(null);
 
   const file = computed<File | undefined>(() => inputFile.value?.file);
+
+  const types: { [k: string]: string } = {
+    "text/html": "html",
+    "text/css": "css",
+    "text/xml": "xml",
+    "image/gif": "gif",
+    "image/jpeg": "jpeg",
+    "application/x-javascript": "js",
+    "application/atom+xml": "atom",
+    "application/rss+xml": "rss",
+    "text/mathml": "mml",
+    "text/plain": "txt",
+    "text/vnd.sun.j2me.app-descriptor": "jad",
+    "text/vnd.wap.wml": "wml",
+    "text/x-component": "htc",
+    "image/png": "png",
+    "image/tiff": "tif",
+    "image/vnd.wap.wbmp": "wbmp",
+    "image/x-icon": "ico",
+    "image/x-jng": "jng",
+    "image/x-ms-bmp": "bmp",
+    "image/svg+xml": "svg",
+    "image/webp": "webp",
+    "application/java-archive": "jar",
+    "application/mac-binhex40": "hqx",
+    "application/msword": "doc",
+    "application/pdf": "pdf",
+    "application/postscript": "ps",
+    "application/rtf": "rtf",
+    "application/vnd.ms-excel": "xls",
+    "application/vnd.ms-powerpoint": "ppt",
+    "application/vnd.wap.wmlc": "wmlc",
+    "application/vnd.google-earth.kml+xml": "kml",
+    "application/vnd.google-earth.kmz": "kmz",
+    "application/x-7z-compressed": "7z",
+    "application/x-cocoa": "cco",
+    "application/x-java-archive-diff": "jardiff",
+    "application/x-java-jnlp-file": "jnlp",
+    "application/x-makeself": "run",
+    "application/x-perl": "pl",
+    "application/x-pilot": "prc",
+    "application/x-rar-compressed": "rar",
+    "application/x-redhat-package-manager": "rpm",
+    "application/x-sea": "sea",
+    "application/x-shockwave-flash": "swf",
+    "application/x-stuffit": "sit",
+    "application/x-tcl": "tcl",
+    "application/x-x509-ca-cert": "pem",
+    "application/x-xpinstall": "xpi",
+    "application/xhtml+xml": "xhtml",
+    "application/zip": "zip",
+    "application/octet-stream": "bin",
+    "audio/midi": "mid",
+    "audio/mpeg": "mp3",
+    "audio/ogg": "ogg",
+    "audio/x-realaudio": "ra",
+    "video/3gpp": "3gp",
+    "video/mpeg": "mpeg",
+    "video/quicktime": "mov",
+    "video/x-flv": "flv",
+    "video/x-mng": "mng",
+    "video/x-ms-asf": "asx",
+    "video/x-ms-wmv": "wmv",
+    "video/x-msvideo": "avi",
+    "video/mp4": "mp4",
+  };
 
   const animate = {
     initImage(rdInputArea: HTMLElement): void {
@@ -159,6 +220,15 @@
       }
     }
   }
+  function generateId(): string {
+    let str = "";
+    for (var i: number = 0; i < 10; i++) {
+      str += "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[
+        Math.round(Math.random() * 25)
+      ];
+    }
+    return str;
+  }
 
   watch(
     () => file.value,
@@ -168,13 +238,19 @@
   );
 
   onMounted(() => {
-    setTimeout(() => {
+    setTimeout(async () => {
       if (props.input.image_url) {
+        const response = await fetch(props.input.image_url);
+        const blob: Blob = await response.blob();
+
         inputFile.value = {
           name: "",
           type: "",
           size: 0,
           image_url: props.input.image_url,
+          file: new File([blob], `${generateId()}.${types[blob.type] || ""}`, {
+            type: blob.type,
+          }),
         };
         setTimeout(() => {
           inputHandler("show");
@@ -201,7 +277,6 @@
       position: relative;
       width: 100%;
       height: 1rem;
-      padding: 0 1rem;
       box-sizing: border-box;
       color: var(--font-main-color);
       opacity: 0.5;
@@ -211,10 +286,9 @@
     }
     label.rd-input-area {
       position: relative;
-      width: calc(100% - 2rem);
+      width: 100%;
       height: 13rem;
-      margin: 0 1rem;
-      background: var(--background-depth-three-color);
+      background: var(--background-depth-one-color);
       border-radius: 0.5rem;
       box-sizing: border-box;
       display: flex;

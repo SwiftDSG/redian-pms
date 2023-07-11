@@ -124,7 +124,16 @@
               class="rd-panel-fieldset-user"
               @click="removeUser(user._id)"
             >
-              <div class="rd-panel-fieldset-user-image"></div>
+              <div class="rd-panel-fieldset-user-image-container">
+                <img
+                  :src="
+                    user.image
+                      ? `${config.public.apiBase}/files?name=${user._id}/${user.image._id}.${user.image.extension}&kind=user_image`
+                      : '/default_user.svg'
+                  "
+                  class="rd-panel-fieldset-user-image"
+                />
+              </div>
               <span class="rd-panel-fieldset-user-name rd-headline-5">{{
                 user.name
               }}</span>
@@ -234,6 +243,7 @@
     };
   }>();
   const emits = defineEmits(["exit", "open-panel"]);
+  const config = useRuntimeConfig();
   const {
     project,
     getProjectUsers,
@@ -684,13 +694,21 @@
               * {
                 pointer-events: none;
               }
-              .rd-panel-fieldset-user-image {
+              .rd-panel-fieldset-user-image-container {
                 position: relative;
                 width: 1rem;
                 height: 1rem;
                 background: var(--border-color);
                 border-radius: 50%;
                 margin-right: 0.5rem;
+                display: flex;
+                overflow: hidden;
+                img {
+                  position: relative;
+                  width: 100%;
+                  height: 100%;
+                  object-fit: contain;
+                }
               }
               .rd-panel-fieldset-user-icon {
                 position: relative;

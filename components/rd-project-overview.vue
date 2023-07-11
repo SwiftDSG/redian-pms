@@ -143,7 +143,16 @@
           :key="member._id"
           class="rd-panel-member"
         >
-          <div class="rd-panel-member-image-container"></div>
+          <div class="rd-panel-member-image-container">
+            <img
+              :src="
+                member.image
+                  ? `${config.public.apiBase}/files?name=${member._id}/${member.image._id}.${member.image.extension}&kind=user_image`
+                  : '/default_user.svg'
+              "
+              class="rd-panel-member-image"
+            />
+          </div>
           <div class="rd-panel-member-detail-container">
             <span class="rd-panel-member-placeholder rd-caption-text"
               >Name</span
@@ -262,6 +271,7 @@
     };
   }>();
   const emits = defineEmits(["change-menu", "changing-done"]);
+  const config = useRuntimeConfig();
   const { view } = useMain();
   const { validate } = useProject();
 
@@ -459,7 +469,17 @@
               height: 2.5rem;
               border-radius: 0.5rem;
               background: var(--background-depth-one-color);
-              margin-right: 0.75rem;
+              margin-right: 0.5rem;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              overflow: hidden;
+              img {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+              }
             }
             .rd-panel-member-detail-container {
               position: relative;

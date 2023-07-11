@@ -9,17 +9,27 @@
       :fixed="true"
     />
     <nav ref="rdNavigation" class="rd-navigation">
-      <div class="rd-navigation-company">
+      <div
+        class="rd-navigation-company"
+        @click="panelHandler({ state: 'show', type: 'company' })"
+      >
         <div class="rd-navigation-company-logo-container">
-          <rd-svg name="logo" class="rd-navigation-company-logo" />
+          <img
+            :src="
+              company?.image
+                ? `${config.public.apiBase}/files?name=${company._id}/${company.image._id}.${company.image.extension}&kind=company_image`
+                : `${config.public.base}/logo.svg`
+            "
+            class="rd-navigation-company-image"
+          />
         </div>
         <div class="rd-navigation-company-detail-container">
-          <span class="rd-navigation-company-name rd-headline-5"
-            >Company name</span
-          >
-          <span class="rd-navigation-company-category rd-caption-text"
-            >Category</span
-          >
+          <span class="rd-navigation-company-name rd-headline-5">{{
+            company?.name || "Edit company here"
+          }}</span>
+          <span class="rd-navigation-company-category rd-caption-text">{{
+            company?.field || "Company field"
+          }}</span>
         </div>
       </div>
       <a
@@ -107,6 +117,14 @@
         />
       </main>
     </section>
+    <rd-company-panel
+      v-if="panelOpened === 'company'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
     <rd-customer-panel
       v-if="panelOpened === 'customer'"
       :state="panelState"
@@ -251,6 +269,7 @@
     data?: any;
   };
   type PanelType =
+    | "company"
     | "customer"
     | "role"
     | "user"
@@ -324,7 +343,8 @@
   const route = useRoute();
   const router = useRouter();
   const config = useRuntimeConfig();
-  const { view, rem, init, theme, getTheme, setTheme } = useMain();
+  const { view, rem, init, theme, state, getTheme, setTheme } = useMain();
+  const { company, getCompany } = useCompany();
   const { user, logout } = useUser();
 
   const rdLayout = ref<HTMLDivElement | undefined>(undefined);
@@ -456,17 +476,11 @@
   }
   function changeHandler(to: Route, e?: MouseEvent): MouseEvent | undefined {
     if (!routeChanging.value && route.path !== (to.href || "/")) {
+      state.value = "changing";
       routeChanging.value = routes.find((a) => a.name === to.name);
       if (routeChanging.value && rdMain.value && rdHeaderTitle.value) {
         animate.leavePage(rdMain.value, rdHeaderTitle.value, () => {
           router.push(to.href || "/");
-          setTimeout(() => {
-            if (rdMain.value && rdHeaderTitle.value) {
-              routeChanging.value = undefined;
-              animate.enterPage(rdMain.value, rdHeaderTitle.value);
-            }
-            if (menuOpened.value) menuHandler();
-          }, 250);
         });
       }
     }
@@ -512,11 +526,22 @@
       if (val && oldVal) location.reload();
     }
   );
-
   watch(
     () => init.value,
     (val, oldVal) => {
       if (oldVal && !val) routeLoading.value = false;
+    }
+  );
+  watch(
+    () => state.value,
+    (val, oldVal) => {
+      if (oldVal === "changing" && val === "idle") {
+        if (rdMain.value && rdHeaderTitle.value) {
+          routeChanging.value = undefined;
+          animate.enterPage(rdMain.value, rdHeaderTitle.value);
+        }
+        if (menuOpened.value) menuHandler();
+      }
     }
   );
   watch(
@@ -531,6 +556,7 @@
   onBeforeMount(() => {
     getTheme();
     themeInput.value.model = theme.value === "dark";
+    getCompany();
   });
   onMounted(() => {
     const mediaQuery: MediaQueryList = window.matchMedia("(max-width: 1024px)");
@@ -579,10 +605,18 @@
           position: relative;
           width: 2rem;
           height: 2rem;
-          padding: 0.5rem 0;
           border-radius: 0.75rem;
           box-sizing: border-box;
           background: #fafafa;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          img {
+            position: relative;
+            width: 60%;
+            height: 60%;
+            object-fit: contain;
+          }
         }
         .rd-navigation-company-detail-container {
           position: relative;

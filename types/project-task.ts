@@ -1,3 +1,5 @@
+import { UserImage } from "./user";
+
 export type ProjectTaskStatusKind =
   | "running"
   | "paused"
@@ -92,5 +94,5 @@ export type ProjectTaskTaskResponse = {
 export type ProjectTaskUserResponse = {
   _id: string;
   name: string;
-  image_url?: string;
+  image?: UserImage;
 }

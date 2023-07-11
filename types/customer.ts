@@ -1,10 +1,11 @@
 export type Customer = {
   _id: string;
   name: string;
-  contact: CustomerPerson[];
-  person: CustomerContact[];
+  field: string;
+  contact: CustomerContact;
+  person: CustomerPerson[];
+  image?: CustomerImage,
 };
-
 export type CustomerContact = {
   address: string;
   email?: string;
@@ -17,10 +18,20 @@ export type CustomerPerson = {
   email?: String;
   role: String;
 };
+export type CustomerImage = {
+  _id: string,
+  extension: string,
+}
 export type CustomerRequest = {
   name: string;
+  field: string;
   contact: CustomerContact;
   person: CustomerPerson[];
+  image?: CustomerImageRequest;
+  image_photo?: File;
+};
+export type CustomerImageRequest = {
+  extension: string;
 };
 export type CustomerMin = {
   _id: string;
