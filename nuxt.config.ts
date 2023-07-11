@@ -16,10 +16,14 @@ export default defineNuxtConfig({
       meta: [
         { charset: "utf-8" },
         { name: "keywords", content: "Website, Application, Digital Agency" },
-        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' },
         { name: "format-detection", content: "telephone=no" },
         { name: "googlebot", content: "notranslate" },
+        { hid: 'description', name: 'description', content: 'PMS | Project Management System' }
       ],
+      link: [
+        { rel: 'preconnect', href: process.env.API_URL, crossorigin: 'use-credentials' }
+      ]
     },
   },
   css: ["~/assets/fonts.scss"],
