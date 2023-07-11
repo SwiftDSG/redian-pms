@@ -71,11 +71,7 @@
     <section class="rd-section">
       <header
         class="rd-header"
-        :class="
-          (view !== 'desktop' && menuScroll > 0) || menuOpened
-            ? 'rd-header-active'
-            : ''
-        "
+        :class="view !== 'desktop' && menuScroll > 0 ? 'rd-header-active' : ''"
       >
         <h1
           v-if="view === 'desktop' && routeCurrent"
@@ -790,11 +786,11 @@
         z-index: 3;
         position: fixed;
         left: -100%;
-        top: 4rem;
         width: 100vw;
-        height: calc(100vh - 4rem);
-        height: calc((var(--vh, 1vh) * 100) - 4rem);
-        padding: 1rem;
+        height: calc(100vh);
+        height: calc(var(--vh, 1vh) * 100);
+        padding: 5rem 1rem 1rem 1rem;
+        box-sizing: border-box;
         touch-action: none;
         .rd-navigation-company {
           height: 3rem;
@@ -808,7 +804,7 @@
       section.rd-section {
         height: auto;
         header.rd-header {
-          z-index: 2;
+          z-index: 4;
           position: fixed;
           top: 0;
           height: 4rem;
