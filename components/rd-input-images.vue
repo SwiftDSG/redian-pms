@@ -453,7 +453,7 @@
         width: 100%;
         height: 100%;
         border-radius: 0.5rem;
-        border: 1px solid rgba(0, 0, 0, 0.125);
+        border: var(--border);
         box-sizing: border-box;
         transition: 0.25s border-color, 0.25s border-width;
         &::before {
