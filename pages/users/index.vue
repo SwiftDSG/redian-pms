@@ -61,7 +61,7 @@
                 :src="
                   user.image
                     ? `${config.public.apiBase}/files?name=${user._id}/${user.image._id}.${user.image.extension}&kind=user_image`
-                    : '/default_user.svg'
+                    : `${config.public.base}/default_user.svg`
                 "
                 class="rd-panel-user-image"
               />

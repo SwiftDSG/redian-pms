@@ -24,7 +24,7 @@
               :src="
                 customer.image
                   ? `${config.public.apiBase}/files?name=${customer._id}/${customer.image._id}.${customer.image.extension}&kind=customer_image`
-                  : '/default_customer.svg'
+                  : `${config.public.base}/default_customer.svg`
               "
               class="rd-customer-image"
             />
