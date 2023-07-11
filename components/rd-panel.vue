@@ -165,6 +165,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: calc(var(--vh) * 100);
     display: flex;
     .rd-background {
       position: absolute;
@@ -182,6 +183,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
+      height: calc(var(--vh) * 100);
       background: var(--background-depth-one-color);
       overflow-y: hidden;
       overflow-x: visible;
