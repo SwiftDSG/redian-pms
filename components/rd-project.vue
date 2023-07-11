@@ -170,7 +170,7 @@
         width: 2.5rem;
         height: 2.5rem;
         border-radius: 0.5rem;
-        margin-right: 0.75rem;
+        margin-right: 0.5rem;
         padding: 0.5rem;
         box-sizing: border-box;
         display: flex;
@@ -197,12 +197,6 @@
           display: flex;
           flex-direction: column;
           justify-content: center;
-          span {
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          }
         }
       }
       &.rd-project-data-person {
@@ -229,6 +223,13 @@
             background: var(--primary-color);
           }
         }
+      }
+      span {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       span.rd-project-data-placeholder {
         margin-top: 0.25rem;
@@ -270,6 +271,12 @@
       align-items: flex-start;
       .rd-project-data {
         width: 100% !important;
+        &.rd-project-data-main {
+          width: 100%;
+          .rd-project-data-container {
+            width: calc(100% - 3rem);
+          }
+        }
         &.rd-project-data-progress {
           margin-top: 0.75rem;
           .rd-project-data-bar-outer {
