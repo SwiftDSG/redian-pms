@@ -514,14 +514,5 @@
         }
       }
     }
-    @media only screen and (max-width: 1024px) {
-      label.rd-input-label {
-        padding: 0 1.5rem;
-      }
-      label.rd-input-area {
-        width: calc(100% - 3rem);
-        margin: 0 1.5rem;
-      }
-    }
   }
 </style>
