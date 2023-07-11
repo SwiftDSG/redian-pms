@@ -28,7 +28,7 @@
       />
       <div class="rd-input-border"></div>
       <div class="rd-input-calendar-container" @click="dropDownHandler('open')">
-        <rd-svg class="rd-input-calendar" name="calendar" />
+        <rd-svg class="rd-input-calendar" name="calendar" color="primary" />
       </div>
       <div
         v-if="dropDownOpened && selectedMonth"
