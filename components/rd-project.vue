@@ -33,7 +33,7 @@
         />
       </div>
       <div class="rd-project-data-container">
-        <span class="rd-project-data-value rd-headline-4">{{
+        <span class="rd-project-data-value rd-headline-5">{{
           project.name
         }}</span>
         <span class="rd-project-data-placeholder rd-body-text">{{
@@ -47,7 +47,7 @@
       v-if="view === 'desktop'"
       class="rd-project-data rd-project-data-person"
     >
-      <span class="rd-project-data-value rd-headline-4">{{
+      <span class="rd-project-data-value rd-headline-5">{{
         project.code
       }}</span>
       <span class="rd-project-data-placeholder rd-body-text">Project code</span>
@@ -56,7 +56,7 @@
       v-if="view === 'desktop'"
       class="rd-project-data rd-project-data-customer"
     >
-      <span class="rd-project-data-value rd-headline-4">{{
+      <span class="rd-project-data-value rd-headline-5">{{
         project.customer.name
       }}</span>
       <span class="rd-project-data-placeholder rd-body-text">customer</span>
