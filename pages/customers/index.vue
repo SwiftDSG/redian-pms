@@ -107,7 +107,6 @@
         position: relative;
         width: 100%;
         padding: 0.75rem;
-        border-radius: 0.75rem;
         box-sizing: border-box;
         display: flex;
         flex-wrap: wrap;
@@ -144,11 +143,19 @@
           }
           .rd-customer-detail-container {
             position: relative;
+            width: calc(100% - 2.5rem);
             height: 100%;
             display: flex;
             gap: 0.25rem;
             flex-direction: column;
             justify-content: center;
+            span {
+              position: relative;
+              width: 100%;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
           }
         }
 

@@ -97,7 +97,7 @@
 <script lang="ts" setup>
   import { ProjectMinResponse } from "types/project";
 
-  const { projects, getProjects } = useProject();
+  const { query, projects, getProjects } = useProject();
   const { init, state } = useMain();
   const emits = defineEmits(["change-page"]);
 
@@ -128,6 +128,13 @@
   });
 
   onMounted(async () => {
+    query.value = {
+      status: "running",
+      sort: "",
+      text: "",
+      skip: 0,
+      limit: 10,
+    };
     await getProjects();
     setTimeout(() => {
       init.value = false;

@@ -77,6 +77,22 @@
     return e;
   }
 
+  watch(
+    () => props.input.model,
+    (val) => {
+      const index = props.input.options.findIndex((a) => a === val);
+      if (index > -1) {
+        const { width, left }: Size = sizes.value[index];
+        gsap.to(rdInputBorder.value, {
+          x: left - windowLeft.value - 0.75 * rem.value,
+          width,
+          duration: 0.25,
+          ease: "power2.out",
+        });
+      }
+    }
+  );
+
   onMounted(() => {
     if (rdInputComponent.value && rdInputLabel.value) {
       windowLeft.value = rdInputComponent.value.getBoundingClientRect().left;

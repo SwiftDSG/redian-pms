@@ -94,7 +94,11 @@
             icon="dots"
             @clicked="menuHandler"
           />
-          <rd-input-button-small v-if="view === 'desktop'" icon="account" />
+          <rd-input-button-small
+            v-if="view === 'desktop'"
+            icon="account"
+            @clicked="panelHandler({ state: 'show', type: 'profile' })"
+          />
           <rd-input-button-small icon="logout" @clicked="exit" />
         </div>
       </header>
@@ -113,6 +117,14 @@
         />
       </main>
     </section>
+    <rd-profile-panel
+      v-if="panelOpened === 'profile'"
+      :state="panelState"
+      :data="panelData[0]"
+      @exit="panelHandler({ state: 'hide' })"
+      @open-panel="panelHandler"
+      @change-page="changeHandler"
+    />
     <rd-company-panel
       v-if="panelOpened === 'company'"
       :state="panelState"
@@ -265,6 +277,7 @@
     data?: any;
   };
   type PanelType =
+    | "profile"
     | "company"
     | "customer"
     | "role"

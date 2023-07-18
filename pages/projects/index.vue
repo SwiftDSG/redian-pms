@@ -40,6 +40,7 @@
             })
           "
         />
+        <div class="rd-project-observer"></div>
       </div>
     </div>
   </div>
@@ -54,7 +55,7 @@
 
   const { view, init, state } = useMain();
   const { validate } = useRole();
-  const { projects, getProjects } = useProject();
+  const { query, projects, getProjects } = useProject();
   const emits = defineEmits(["change-page", "open-panel"]);
 
   definePageMeta({
@@ -63,11 +64,15 @@
 
   const searchTimeout = ref<NodeJS.Timeout | null>(null);
 
+  const skip = ref<number>(0);
+
   const tabsInput = ref<InputSwitchOption>({
     options: [
       "All",
       "Completed",
+      "Cancelled",
       "On hold",
+      "On going",
       "Behind schedule",
       "Ahead schedule",
     ],
@@ -95,13 +100,13 @@
       },
       {
         name: "Alphabetically",
-        value: "alphabetically",
+        value: "alphabetical",
       },
     ],
   });
 
   const sort = computed<string>(() => sortInput.value.value || "oldest");
-  const search = computed<string>(() => searchInput.value.model);
+  const text = computed<string>(() => searchInput.value.model);
   const status = computed<string>(() => {
     let str = "";
 
@@ -112,8 +117,14 @@
       case "Completed":
         str = "completed";
         break;
+      case "Cancelled":
+        str = "cancelled";
+        break;
       case "On hold":
-        str = "paused,breakdown";
+        str = "paused";
+        break;
+      case "On going":
+        str = "running";
         break;
       case "Behind schedule":
         str = "behind";
@@ -133,11 +144,11 @@
     });
   }
   async function refreshProjects(): Promise<void> {
-    await getProjects({
-      sort: sort.value,
-      search: search.value,
-      status: status.value,
-    });
+    query.value.status = status.value;
+    query.value.text = text.value;
+    query.value.sort = sort.value;
+    query.value.skip = skip.value;
+    await getProjects();
   }
 
   watch(
@@ -148,7 +159,7 @@
     }
   );
   watch(
-    () => search.value,
+    () => text.value,
     () => {
       if (searchTimeout.value) clearTimeout(searchTimeout.value);
       searchTimeout.value = setTimeout(refreshProjects, 500);
@@ -163,7 +174,36 @@
   );
 
   onMounted(async () => {
-    tabsInput.value.model = "";
+    let str = "";
+    switch (query.value.status) {
+      case "completed":
+        str = "Completed";
+        break;
+      case "cancelled":
+        str = "Cancelled";
+        break;
+      case "paused":
+        str = "On hold";
+        break;
+      case "running":
+        str = "On going";
+        break;
+      case "behind":
+        str = "Behind schedule";
+        break;
+      case "ahead":
+        str = "Ahead schedule";
+        break;
+      default:
+        str = "All";
+        break;
+    }
+    tabsInput.value.model = str;
+
+    query.value.status = status.value;
+    query.value.text = text.value;
+    query.value.sort = sort.value;
+    query.value.skip = skip.value;
     await getProjects();
     setTimeout(() => {
       init.value = false;

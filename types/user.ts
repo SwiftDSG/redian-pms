@@ -20,6 +20,11 @@ export type UserRequest = {
   email: string;
   password: string;
   role_id?: string[];
+  image?: UserImageRequest;
+  image_photo?: File;
+};
+export type UserImageRequest = {
+  extension: string;
 };
 export type UserImage = {
   _id: string;

@@ -9,6 +9,19 @@ export default () => {
   const { user } = useUser()
   const config = useRuntimeConfig();
 
+  const query = useState<{
+    status?: string,
+    sort?: string,
+    text?: string,
+    skip: number,
+    limit: number
+  }>('projects-query', () => ({
+    status: '',
+    sort: '',
+    text: '',
+    skip: 0,
+    limit: 10
+  }))
   const projects = useState<ProjectMinResponse[] | null>("projects", () => null);
   const project = useState<{
     data: ProjectResponse | null,
@@ -34,17 +47,15 @@ export default () => {
     }
     return false
   }
-  const getProjects = async (filter?: {
-    sort?: string,
-    search?: string,
-    status?: string,
-  }): Promise<ProjectMinResponse[]> => {
+  const getProjects = async (): Promise<ProjectMinResponse[]> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/projects?${filter?.sort ? `sort=${filter.sort}&` : ''}${filter?.search ? `search=${filter.search}&` : ''}${filter?.status ? `status=${filter.status}&` : ''}`,
+        `${config.public.apiBase}/projects?${query.value?.sort ? `sort=${query.value.sort}&` : ''}${query.value?.text ? `text=${query.value.text}&` : ''}${query.value?.status ? `status=${query.value.status}&` : ''}${query.value?.limit ? `limit=${query.value.limit}&` : ''}${query.value?.skip ? `skip=${query.value.skip}&` : ''}`,
         "get"
       );
-      if (response.status !== 200) throw new Error("");
+      if (response.status !== 200) {
+        projects.value = [];
+      }
 
       const result = await response.json();
       projects.value = result;
@@ -435,6 +446,7 @@ export default () => {
   };
 
   return {
+    query,
     projects,
     project,
     validate,

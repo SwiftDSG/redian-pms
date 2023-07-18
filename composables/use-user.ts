@@ -46,6 +46,33 @@ export default () => {
       return [];
     }
   };
+  const updateUser = async (payload: { user_id: string, request: UserRequest }): Promise<string> => {
+    try {
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/users/${payload.user_id}`,
+        "put",
+        JSON.stringify(payload.request)
+      );
+      const result = await response.text();
+      if (response.status === 200) {
+        if (payload.request.image && payload.request.image_photo) {
+          const data = new FormData()
+          data.append('file', payload.request.image_photo, payload.request.image_photo.name)
+          const response: Response = await $fetch(
+            `${config.public.apiBase}/users/${result}/image`,
+            "put",
+            data
+          );
+          if (response.status !== 200) throw new Error(await response.json())
+        }
+        await getUser({ user_id: result })
+        return result;
+      }
+      throw new Error("");
+    } catch (e) {
+      return '';
+    }
+  };
   const createUser = async (payload: { request: UserRequest }): Promise<string> => {
     try {
       const response: Response = await $fetch(
@@ -123,5 +150,5 @@ export default () => {
     });
   };
 
-  return { user, users, getUser, getUsers, createUser, login, logout, refresh };
+  return { user, users, getUser, getUsers, createUser, updateUser, login, logout, refresh };
 };
