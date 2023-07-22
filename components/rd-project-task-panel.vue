@@ -465,6 +465,7 @@
 
       task.value.task.push({
         _id: `temp-${new Date().toISOString()}`,
+        area_id: task.value.area._id,
         user: undefined,
         task: undefined,
         name: name.value,
@@ -571,6 +572,8 @@
         project_id: props.data.project_id,
         task_id: props.data.task_id,
       });
+
+      if (!task.value) panelState.value = "hide";
 
       if (task.value?.task?.length) taskPrepared.value = true;
 
