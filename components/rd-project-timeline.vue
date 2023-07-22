@@ -566,7 +566,7 @@
             align-items: center;
             .rd-panel-task-detail {
               position: relative;
-              width: calc(100% - 3rem);
+              width: calc(100% - 5rem);
               height: 100%;
               display: flex;
               flex-direction: column;
@@ -595,7 +595,7 @@
             }
             .rd-panel-task-value-container {
               position: relative;
-              width: 3rem;
+              width: 5rem;
               height: 100%;
               display: flex;
               justify-content: flex-end;
@@ -606,6 +606,7 @@
                 height: 1rem;
                 margin-left: 0.5rem;
                 display: flex;
+                flex-shrink: 0;
                 justify-content: center;
                 align-items: center;
                 &::before {
