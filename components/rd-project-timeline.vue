@@ -566,6 +566,7 @@
             align-items: center;
             .rd-panel-task-detail {
               position: relative;
+              width: calc(100% - 3rem);
               height: 100%;
               display: flex;
               flex-direction: column;
@@ -573,11 +574,19 @@
               span.rd-panel-task-name {
                 cursor: pointer;
                 position: relative;
+                width: 100%;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
                 margin-bottom: 0.25rem;
               }
               span.rd-panel-task-period {
                 cursor: pointer;
                 position: relative;
+                width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
                 transition: 0.125s opacity;
                 &:hover {
                   opacity: 1;
@@ -586,6 +595,7 @@
             }
             .rd-panel-task-value-container {
               position: relative;
+              width: 3rem;
               height: 100%;
               display: flex;
               justify-content: flex-end;
