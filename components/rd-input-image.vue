@@ -5,14 +5,13 @@
     </label>
     <input
       type="file"
-      id="rd-input"
+      :id="id"
       class="rd-input"
       @change="changeHandler"
       accept="image/*"
     />
     <label
       ref="rdInputArea"
-      for="rd-input"
       class="rd-input-area"
       :class="inputLoading ? 'rd-input-area-loading' : ''"
     >
@@ -41,7 +40,9 @@
       </div>
       <span class="rd-input-text rd-caption-text">
         click
-        <span class="rd-input-text-highlight rd-headline-6">here</span>
+        <label class="rd-input-text-highlight rd-headline-6" :for="id"
+          >here</label
+        >
         to select image
       </span>
       <div class="rd-input-border"></div>
@@ -71,6 +72,7 @@
   const inputFile = ref<ImageFile | null>(null);
 
   const file = computed<File | undefined>(() => inputFile.value?.file);
+  const id = computed<string>(() => `rd-input-${generateId()}`);
 
   const types: { [k: string]: string } = {
     "text/html": "html",
@@ -216,6 +218,7 @@
       } else {
         animate.exitImage(rdInputArea.value, () => {
           inputFile.value = null;
+          props.input.file = undefined;
         });
       }
     }
@@ -362,6 +365,12 @@
             opacity: 1;
           }
         }
+        & ~ .rd-input-icon-wrapper {
+          opacity: 0;
+        }
+        & ~ .rd-input-text {
+          opacity: 0;
+        }
       }
       .rd-input-icon-wrapper {
         z-index: 1;
@@ -432,7 +441,7 @@
         justify-content: center;
         align-items: center;
         transition: 0.25s transform, 0.25s opacity;
-        span.rd-input-text-highlight {
+        label.rd-input-text-highlight {
           cursor: pointer;
           position: relative;
           margin: 0 1%;

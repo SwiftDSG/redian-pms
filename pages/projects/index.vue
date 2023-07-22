@@ -174,31 +174,7 @@
   );
 
   onMounted(async () => {
-    let str = "";
-    switch (query.value.status) {
-      case "completed":
-        str = "Completed";
-        break;
-      case "cancelled":
-        str = "Cancelled";
-        break;
-      case "paused":
-        str = "On hold";
-        break;
-      case "running":
-        str = "On going";
-        break;
-      case "behind":
-        str = "Behind schedule";
-        break;
-      case "ahead":
-        str = "Ahead schedule";
-        break;
-      default:
-        str = "All";
-        break;
-    }
-    tabsInput.value.model = str;
+    tabsInput.value.model = "All";
 
     query.value.status = status.value;
     query.value.text = text.value;

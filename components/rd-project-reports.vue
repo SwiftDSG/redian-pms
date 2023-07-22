@@ -202,7 +202,7 @@
                     report.progress?.user.name || report.incident?.user.name
                   }}</span></span
                 >
-                <span class="rd-report-name rd-headline-4">{{
+                <span class="rd-report-name rd-headline-5">{{
                   report.kind === "progress"
                     ? `Progress report #${counterProgress[i]}`
                     : `Incident report #${counterIncident[i]}`

@@ -2,7 +2,7 @@
   <div class="rd-container">
     <div class="rd-project-menu">
       <div class="rd-project-menu-section">
-        <rd-input-select v-if="view === 'desktop'" :input="projectInput" />
+        <!-- <rd-input-select v-if="view === 'desktop'" :input="projectInput" /> -->
         <rd-input-button-small
           :icon="menu.icon"
           v-for="menu in projectMenus"
@@ -33,10 +33,6 @@
           "
           label="Add report"
           @clicked="openAddReport"
-        />
-        <rd-input-select
-          v-else-if="projectMenu === 'users'"
-          :input="roleInput"
         />
         <rd-input-select v-else :input="areaInput" />
       </div>

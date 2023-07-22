@@ -72,6 +72,10 @@ export type ProjectResponse = {
   customer: {
     _id: string;
     name: string;
+    image?: {
+      _id: string;
+      extension: string;
+    }
   };
   name: string;
   code: string;

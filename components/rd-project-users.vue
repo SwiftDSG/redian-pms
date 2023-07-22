@@ -4,7 +4,6 @@
       <div class="rd-panel-role-header">
         <span class="rd-panel-role-header-title rd-headline-3">Role list</span>
         <rd-input-button-small
-          v-if="project.status[0]?.kind === 'pending'"
           :icon="'plus'"
           :type="'primary'"
           @clicked="addRole"
@@ -39,7 +38,6 @@
           >Member list</span
         >
         <rd-input-button-small
-          v-if="project.status[0]?.kind === 'pending'"
           :icon="'plus'"
           :type="'primary'"
           @clicked="addUser"

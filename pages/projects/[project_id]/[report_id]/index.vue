@@ -1,11 +1,32 @@
 <template>
   <div class="rd-report-wrapper">
-    <div class="rd-report-container">
+    <div v-if="company" class="rd-report-container">
       <div v-if="report" ref="rdReport" class="rd-report">
         <div class="rd-report-header">
+          <div class="rd-report-logo-container">
+            <img
+              :src="
+                company.image
+                  ? `${config.public.apiBase}/files?kind=company_image&name=${company._id}/${company.image._id}.${company.image.extension}`
+                  : `${config.app.baseURL}/logo.svg`
+              "
+              class="rd-report-logo"
+            />
+          </div>
           <div class="rd-report-detail-container">
+            <span class="rd-report-name">{{ company.name }}</span>
             <span class="rd-report-name">Progress Report</span>
             <span class="rd-report-title">{{ report.project.name }}</span>
+          </div>
+          <div class="rd-report-logo-container">
+            <img
+              :src="
+                project.data?.customer.image
+                  ? `${config.public.apiBase}/files?kind=customer_image&name=${project.data?.customer._id}/${project.data?.customer.image._id}.${project.data?.customer.image.extension}`
+                  : `${config.app.baseURL}/default_customer.svg`
+              "
+              class="rd-report-logo"
+            />
           </div>
         </div>
         <div class="rd-report-body">
@@ -90,14 +111,27 @@
           <div v-if="report.documentation?.length" class="rd-report-section">
             <span class="rd-report-section-name">Documentation</span>
             <div class="rd-report-section-images">
-              <div
-                v-for="image in report.documentation"
-                :key="image._id"
-                class="rd-report-section-image"
-              >
+              <div class="rd-report-section-images-container">
                 <div
-                  :style="`background-image: url(${config.public.apiBase}/files?kind=project_documentation&name=${report._id}/${image._id}.${image.extension})`"
-                ></div>
+                  v-for="image in documentations[0]"
+                  :key="image._id"
+                  class="rd-report-section-image"
+                >
+                  <img
+                    :src="`${config.public.apiBase}/files?kind=project_documentation&name=${report._id}/${image._id}.${image.extension}`"
+                  />
+                </div>
+              </div>
+              <div class="rd-report-section-images-container">
+                <div
+                  v-for="image in documentations[1]"
+                  :key="image._id"
+                  class="rd-report-section-image"
+                >
+                  <img
+                    :src="`${config.public.apiBase}/files?kind=project_documentation&name=${report._id}/${image._id}.${image.extension}`"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -112,6 +146,7 @@
   import { ProjectMemberKind, ProjectMemberResponse } from "types/project";
   import {
     ProjectProgressReportActualResponse,
+    ProjectProgressReportDocumentation,
     ProjectProgressReportResponse,
   } from "types/project-report";
 
@@ -127,11 +162,8 @@
 
   const route = useRoute();
   const config = useRuntimeConfig();
-  const { getProjectReport } = useProject();
-
-  definePageMeta({
-    middleware: ["auth"],
-  });
+  const { company } = useCompany();
+  const { project, getProject, getProjectReport } = useProject();
 
   const rdReport = ref<HTMLDivElement | null>(null);
 
@@ -167,6 +199,25 @@
       }
       return a;
     }, []);
+  });
+  const documentations = computed<
+    [ProjectProgressReportDocumentation[], ProjectProgressReportDocumentation[]]
+  >(() => {
+    if (!report.value?.documentation?.length) return [[], []];
+    const documentations = JSON.parse(
+      JSON.stringify(report.value.documentation)
+    );
+    const length =
+      documentations.length % 2 === 0
+        ? documentations.length / 2
+        : (documentations.length - 1) / 2;
+    return [
+      documentations.slice(0, length),
+      documentations.slice(
+        length,
+        length + length + (documentations.length % 2 === 0 ? 0 : 1)
+      ),
+    ];
   });
 
   const months = [
@@ -205,7 +256,24 @@
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   }
 
+  watch(
+    () => documentations.value,
+    (val) => {
+      console.log(val);
+    }
+  );
+
   onMounted(async () => {
+    project.value = {
+      data: await getProject({
+        _id: route.params.project_id.toString(),
+      }),
+      timeline: null,
+      progress: null,
+      areas: null,
+      users: null,
+      reports: null,
+    };
     report.value = await getProjectReport({
       project_id: route.params.project_id.toString(),
       report_id: route.params.report_id.toString(),
@@ -233,6 +301,7 @@
       justify-content: center;
       span {
         font-family: "Courier New", Courier, monospace;
+        color: #000 !important;
       }
       span.rd-report-title {
         font-weight: bold;
@@ -267,7 +336,7 @@
         min-height: 29.7cm;
         padding: 2cm;
         box-sizing: border-box;
-        background: var(--background-depth-one-color);
+        background: #fff;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -285,6 +354,25 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+          }
+          .rd-report-logo-container {
+            position: absolute;
+            left: 0;
+            width: 2cm;
+            height: 2cm;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            img {
+              position: relative;
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+            &:last-child {
+              left: auto;
+              right: 0;
+            }
           }
         }
         .rd-report-body {
@@ -332,19 +420,24 @@
               display: flex;
               gap: 0.5cm;
               flex-wrap: wrap;
-              .rd-report-section-image {
+              .rd-report-section-images-container {
                 position: relative;
                 width: calc(50% - 0.25cm);
-                height: calc(16.5cm / 2);
-                border: 3px solid black;
-                padding: 0.25cm;
-                box-sizing: border-box;
-                div {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5cm;
+                .rd-report-section-image {
                   position: relative;
                   width: 100%;
-                  height: 100%;
-                  background-size: cover;
-                  background-position: center center;
+                  border: 3px solid black;
+                  padding: 0.25cm;
+                  box-sizing: border-box;
+                  img {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                  }
                 }
               }
             }

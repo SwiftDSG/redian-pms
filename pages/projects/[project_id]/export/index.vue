@@ -1,6 +1,6 @@
 <template>
   <div class="rd-report-wrapper">
-    <div class="rd-report-container">
+    <div v-if="company" class="rd-report-container">
       <div
         v-if="project.data"
         class="rd-report"
@@ -8,12 +8,35 @@
         :style="`width: ${(datas.length ? datas.length * 2 : 16) + 4}cm`"
       >
         <div class="rd-report-header">
+          <div class="rd-report-logo-container">
+            <img
+              :src="
+                company.image
+                  ? `${config.public.apiBase}/files?kind=company_image&name=${company._id}/${company.image._id}.${company.image.extension}`
+                  : `${config.app.baseURL}/logo.svg`
+              "
+              class="rd-report-logo"
+            />
+          </div>
           <div class="rd-report-detail-container">
+            <span class="rd-report-name">{{ company.name }}</span>
             <span class="rd-report-name">Progress Report</span>
             <span class="rd-report-title">{{ project.data?.name }}</span>
-            <span class="rd-report-description">{{
-              `${formatDate(startDate || 0)} - ${formatDate(endDate || 0)}`
-            }}</span>
+            <!-- <span class="rd-report-description">{{
+              `${formatDate(startDate || datas[0].x)} - ${formatDate(
+                endDate || datas[datas.length - 1].x
+              )}`
+            }}</span> -->
+          </div>
+          <div class="rd-report-logo-container">
+            <img
+              :src="
+                project.data?.customer.image
+                  ? `${config.public.apiBase}/files?kind=customer_image&name=${project.data?.customer._id}/${project.data?.customer.image._id}.${project.data?.customer.image.extension}`
+                  : `${config.app.baseURL}/default_customer.svg`
+              "
+              class="rd-report-logo"
+            />
           </div>
         </div>
         <div class="rd-report-body">
@@ -62,7 +85,7 @@
             >
               <div
                 class="rd-report-cursor-circle"
-                :style="`background: var(--warning-color); bottom: ${data.y[0]}%; translate: 0 6px`"
+                :style="`background: #ffd975; bottom: ${data.y[0]}%; translate: 0 6px`"
               >
                 <div class="rd-report-cursor-circle-inner"></div>
               </div>
@@ -92,11 +115,9 @@
               }}</span>
             </div>
             <div class="rd-report-data">
-              <span
-                class="rd-report-data-value"
-                style="color: var(--warning-color)"
-                >{{ (data.y[0] - (datas[i - 1]?.y[0] || 0)).toFixed(2) }}</span
-              >
+              <span class="rd-report-data-value" style="color: #ffd975">{{
+                (data.y[0] - (datas[i - 1]?.y[0] || 0)).toFixed(2)
+              }}</span>
             </div>
             <div class="rd-report-data">
               <span
@@ -148,6 +169,8 @@
   type GroupKind = "daily" | "weekly" | "monthly";
 
   const { project, getProject, getProjectProgress } = useProject();
+  const { company } = useCompany();
+  const config = useRuntimeConfig();
   const route = useRoute();
 
   const datas = ref<ProjectProgressResponse[]>([]);
@@ -181,10 +204,8 @@
       });
       const base64image = canvas.toDataURL("image/png");
       const link = document.createElement("a");
-
       link.href = base64image;
       link.download = "Test.png";
-
       link.click();
       window.close();
     }
@@ -355,6 +376,7 @@
     } else {
       window.close();
     }
+
     setTimeout(() => {
       if (rdReportSparkline.value) {
         draw();
@@ -381,6 +403,7 @@
       flex-grow: 1;
       span {
         font-family: "Courier New", Courier, monospace;
+        color: #000 !important;
       }
       span.rd-report-title {
         font-weight: bold;
@@ -401,13 +424,13 @@
         height: 100vh;
         padding: 2cm;
         box-sizing: border-box;
-        background: var(--background-depth-one-color);
+        background: #fff;
         display: flex;
         flex-direction: column;
         align-items: center;
         .rd-report-header {
           position: relative;
-          width: 100%;
+          width: 20cm;
           margin-bottom: 1cm;
           display: flex;
           justify-content: center;
@@ -420,6 +443,25 @@
             justify-content: center;
             align-items: center;
           }
+          .rd-report-logo-container {
+            position: absolute;
+            left: 0;
+            width: 2cm;
+            height: 2cm;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            img {
+              position: relative;
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+            &:last-child {
+              left: auto;
+              right: 0;
+            }
+          }
         }
         .rd-report-body {
           position: relative;
@@ -430,7 +472,7 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            background: var(--background-depth-two-color);
+            background: #f0f0f0;
             display: flex;
             flex-direction: column;
             opacity: 0.375;
@@ -440,8 +482,8 @@
               height: 100%;
               padding-top: 0.25rem;
               font-size: 0.375cm;
-              border-top: 1px solid var(--border-color);
-              color: var(--font-sub-color);
+              border-top: 1px solid #fafafa;
+              color: rgba(0, 0, 0, 0.375);
               box-sizing: border-box;
               flex-shrink: 1;
               display: flex;
@@ -520,7 +562,7 @@
                 left: calc(50% - 0.5px);
                 width: 1px;
                 height: 100%;
-                background: var(--border-color);
+                background: #fafafa;
                 opacity: 0.5;
               }
               .rd-report-legend-plan,
@@ -530,7 +572,7 @@
                 width: 87.5%;
                 height: 0.5cm;
                 box-sizing: border-box;
-                background: var(--background-depth-one-color);
+                background: #fff;
                 span.rd-report-legend-value {
                   position: relative;
                   width: 100%;
@@ -544,7 +586,7 @@
                 }
               }
               .rd-report-legend-plan {
-                border: 1px solid var(--warning-color);
+                border: 1px solid #ffd975;
               }
               .rd-report-legend-actual {
                 &.rd-report-legend-actual-ahead {

@@ -1,7 +1,11 @@
 <template>
   <div class="rd-layout" ref="rdLayout">
     <rd-progress-bar
-      v-if="route.name !== 'auth'"
+      v-if="
+        route.name !== 'auth' &&
+        route.name !== 'projects-project_id-report_id' &&
+        route.name !== 'projects-project_id-export'
+      "
       class="rd-loading"
       type="overlay"
       :state="routeLoading ? 'show' : 'hide'"

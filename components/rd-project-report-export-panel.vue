@@ -20,7 +20,6 @@
       <rd-input-button
         class="rd-panel-button"
         label="generate"
-        :disabled="!start || !end"
         @clicked="submit"
       />
     </div>
@@ -117,13 +116,6 @@
       if (val === "hide") panelState.value = "hide";
     }
   );
-
-  onMounted(() => {
-    startDateInput.value.value = new Date(
-      props.data.period.start
-    ).toISOString();
-    endDateInput.value.value = new Date(props.data.period.end).toISOString();
-  });
 </script>
 
 <style lang="scss" scoped>

@@ -1,10 +1,9 @@
-import { Customer, CustomerMin, CustomerRequest } from "~~/types/customer";
+import { Customer, CustomerRequest } from "~~/types/customer";
 
 export default () => {
   const { $fetch } = useNuxtApp();
   const config = useRuntimeConfig();
 
-  const names = useState<CustomerMin[] | null>("customer", () => null);
   const customers = useState<Customer[] | null>("customers", () => null);
 
   const getCustomers = async (): Promise<Customer[]> => {
@@ -22,7 +21,7 @@ export default () => {
       return [];
     }
   };
-  const getCustomer = async (payload: { customer_id: string }): Promise<CustomerMin[]> => {
+  const getCustomer = async (payload: { customer_id: string }): Promise<Customer[]> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/customers/${payload.customer_id}`,
@@ -31,7 +30,6 @@ export default () => {
       if (response.status !== 200) throw new Error("");
 
       const result = await response.json();
-      names.value = result;
 
       return result;
     } catch (e) {
@@ -114,7 +112,6 @@ export default () => {
 
   return {
     customers,
-    names,
     deleteCustomer,
     updateCustomer,
     getCustomers,
