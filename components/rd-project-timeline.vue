@@ -45,6 +45,9 @@
               }}</span>
               <div class="rd-panel-task-value-dot"></div>
             </div>
+            <span class="rd-panel-task-area rd-headline-6">{{
+              getArea(task.area_id)
+            }}</span>
           </div>
           <div
             v-if="task.status[0].kind !== 'pending' && task.actual"
@@ -397,6 +400,9 @@
       x: 0,
     };
   }
+  function getArea(_id: string): string {
+    return props.project.area?.find((a) => a._id === _id)?.name || "";
+  }
   function bindScroll(e: Event): void {
     if (
       e.target instanceof HTMLElement &&
@@ -610,6 +616,20 @@
                   background: var(--font-main-color);
                 }
               }
+            }
+            span.rd-panel-task-area {
+              position: absolute;
+              top: -0.5rem;
+              right: 0.75rem;
+              height: 1rem;
+              padding: 0 0.5rem;
+              border-radius: 0.5rem;
+              border: 2px solid var(--border-color);
+              background: var(--background-depth-one-color);
+              box-sizing: border-box;
+              display: flex;
+              justify-content: center;
+              align-items: center;
             }
           }
           .rd-panel-task-actual {

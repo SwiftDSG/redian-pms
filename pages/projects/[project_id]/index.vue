@@ -254,17 +254,6 @@
       },
     ],
   });
-  const roleInput = ref<InputOption>({
-    name: "role",
-    placeholder: "Role",
-    model: "All role",
-    options: [
-      {
-        name: "All role",
-        value: "all",
-      },
-    ],
-  });
 
   const projectMenuState = ref<"idle" | "changing">("idle");
   const projectMenu = ref<ProjectMenuKind | null>(null);
@@ -351,7 +340,12 @@
     if (projectWarning.value === "empty-area") str = "Empty project stage";
     if (projectWarning.value === "empty-task") str = "Empty project task";
     if (projectWarning.value === "incomplete-value")
-      str = "Invalid tasks values";
+      str = `Invalid tasks values (${
+        projectAreas.value?.reduce(
+          (a, b) => a + (b?.task?.reduce((c, d) => c + d.value, 0) || 0),
+          0
+        ) || 0
+      }%)`;
     if (projectWarning.value === "incomplete-period")
       str = "Tasks period incomplete";
     if (projectWarning.value === "breakdown")

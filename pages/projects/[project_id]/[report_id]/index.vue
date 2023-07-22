@@ -256,13 +256,6 @@
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   }
 
-  watch(
-    () => documentations.value,
-    (val) => {
-      console.log(val);
-    }
-  );
-
   onMounted(async () => {
     project.value = {
       data: await getProject({
