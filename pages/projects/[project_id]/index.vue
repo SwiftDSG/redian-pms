@@ -337,6 +337,13 @@
   function projectWarningName(): string {
     let str = "";
 
+    console.log(
+      projectAreas.value?.reduce(
+        (a, b) => a + (b?.task?.reduce((c, d) => c + d.value, 0) || 0),
+        0
+      ) || 0
+    );
+
     if (projectWarning.value === "empty-area") str = "Empty project stage";
     if (projectWarning.value === "empty-task") str = "Empty project task";
     if (projectWarning.value === "incomplete-value")
