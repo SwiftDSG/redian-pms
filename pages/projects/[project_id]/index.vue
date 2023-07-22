@@ -345,7 +345,7 @@
           (a, b) => a + (b?.task?.reduce((c, d) => c + d.value, 0) || 0),
           0
         ) || 0
-      ).toFixed(2)}%)`;
+      ).toFixed(3)}%)`;
     if (projectWarning.value === "incomplete-period")
       str = "Tasks period incomplete";
     if (projectWarning.value === "breakdown")
