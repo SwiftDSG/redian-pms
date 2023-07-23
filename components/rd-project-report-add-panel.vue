@@ -34,7 +34,7 @@
               class="rd-panel-form-task"
             >
               <div class="rd-panel-form-task-header">
-                <span class="rd-panel-form-task-name rd-headline-4">{{
+                <span class="rd-panel-form-task-name rd-headline-5">{{
                   task.name
                 }}</span>
                 <span
@@ -274,12 +274,13 @@
   const config = useRuntimeConfig();
   const {
     project,
-    getProject,
-    getProjectTasks,
     createProjectReport,
     createProjectIncident,
+    getProject,
+    getProjectTasks,
     getProjectReports,
     getProjectUsers,
+    getProjectProgress,
   } = useProject();
 
   const panelState = ref<"idle" | "hide">("idle");
@@ -573,6 +574,12 @@
       _id: props.data.project_id,
     });
     project.value.reports = await getProjectReports({
+      _id: props.data.project_id,
+    });
+    project.value.progress = await getProjectProgress({
+      _id: props.data.project_id,
+    });
+    project.value.timeline = await getProjectTasks({
       _id: props.data.project_id,
     });
 

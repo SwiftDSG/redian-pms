@@ -72,7 +72,7 @@
         str = "Pending";
         break;
       case "running":
-        str = "Running";
+        str = `${props.task.progress.toFixed(3)}%`;
         break;
     }
 
