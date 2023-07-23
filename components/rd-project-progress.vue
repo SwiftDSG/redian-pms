@@ -325,6 +325,7 @@
   }
   function draw(): void {
     if (rdSparkline.value) {
+      rdSparkline.value.innerHTML = "";
       const { width, height } = rdSparkline.value.getBoundingClientRect();
 
       const xLen = datas.value.length - 1;

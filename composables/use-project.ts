@@ -1,56 +1,91 @@
 import { ProjectIncidentReportRequest } from "types/project-incident";
-import { ProjectProgressReportRequest, ProjectProgressReportResponse } from "types/project-report";
-import { ProjectMinResponse, ProjectAreaRequest, ProjectAreaResponse, ProjectProgressResponse, ProjectRequest, ProjectResponse, ProjectUserResponse, ProjectMemberRequest, ProjectReportResponse, ProjectStatusKind } from "~~/types/project";
-import { ProjectRolePermission, ProjectRoleRequest } from "~~/types/project-role";
-import { ProjectTaskMinResponse, ProjectTaskPeriodRequest, ProjectTaskRequest, ProjectTaskResponse, ProjectTaskStatusKind } from "~~/types/project-task";
+import {
+  ProjectProgressReportRequest,
+  ProjectProgressReportResponse,
+} from "types/project-report";
+import {
+  ProjectMinResponse,
+  ProjectAreaRequest,
+  ProjectAreaResponse,
+  ProjectProgressResponse,
+  ProjectRequest,
+  ProjectResponse,
+  ProjectUserResponse,
+  ProjectMemberRequest,
+  ProjectReportResponse,
+  ProjectStatusKind,
+} from "~~/types/project";
+import {
+  ProjectRolePermission,
+  ProjectRoleRequest,
+} from "~~/types/project-role";
+import {
+  ProjectTaskMinResponse,
+  ProjectTaskPeriodRequest,
+  ProjectTaskRequest,
+  ProjectTaskResponse,
+  ProjectTaskStatusKind,
+} from "~~/types/project-task";
 
 export default () => {
   const { $fetch } = useNuxtApp();
-  const { user } = useUser()
+  const { user } = useUser();
   const config = useRuntimeConfig();
 
   const query = useState<{
-    status?: string,
-    sort?: string,
-    text?: string,
-    skip: number,
-    limit: number
-  }>('projects-query', () => ({
-    status: '',
-    sort: '',
-    text: '',
+    status?: string;
+    sort?: string;
+    text?: string;
+    skip: number;
+    limit: number;
+  }>("projects-query", () => ({
+    status: "",
+    sort: "",
+    text: "",
     skip: 0,
-    limit: 10
-  }))
-  const projects = useState<ProjectMinResponse[] | null>("projects", () => null);
+    limit: 10,
+  }));
+  const projects = useState<ProjectMinResponse[] | null>(
+    "projects",
+    () => null
+  );
   const project = useState<{
-    data: ProjectResponse | null,
-    timeline: ProjectTaskMinResponse[] | null,
-    progress: ProjectProgressResponse[] | null,
-    areas: ProjectAreaResponse[] | null,
-    users: ProjectUserResponse | null,
-    reports: ProjectReportResponse[] | null
-  }>('project', () => ({
+    data: ProjectResponse | null;
+    timeline: ProjectTaskMinResponse[] | null;
+    progress: ProjectProgressResponse[] | null;
+    areas: ProjectAreaResponse[] | null;
+    users: ProjectUserResponse | null;
+    reports: ProjectReportResponse[] | null;
+  }>("project", () => ({
     data: null,
     timeline: null,
     progress: null,
     areas: null,
     users: null,
-    reports: null
+    reports: null,
   }));
 
   function validate(permit: ProjectRolePermission): boolean {
-    if (!user.value || !project.value.users?.user) return false
-    const roles = project.value.users.user.find((a) => a._id === user.value?._id)?.role || []
+    if (!user.value || !project.value.users?.user) return false;
+    const roles =
+      project.value.users.user.find((a) => a._id === user.value?._id)?.role ||
+      [];
     for (const role of roles) {
-      if (role.permission.includes(permit) || role.permission.includes('owner')) return true
+      if (role.permission.includes(permit) || role.permission.includes("owner"))
+        return true;
     }
-    return false
+    return false;
   }
   const getProjects = async (): Promise<ProjectMinResponse[]> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/projects?${query.value?.sort ? `sort=${query.value.sort}&` : ''}${query.value?.text ? `text=${query.value.text}&` : ''}${query.value?.status ? `status=${query.value.status}&` : ''}${query.value?.limit ? `limit=${query.value.limit}&` : ''}${query.value?.skip ? `skip=${query.value.skip}&` : ''}`,
+        `${config.public.apiBase}/projects?${
+          query.value?.sort ? `sort=${query.value.sort}&` : ""
+        }${query.value?.text ? `text=${query.value.text}&` : ""}${
+          query.value?.status ? `status=${query.value.status}&` : ""
+        }${query.value?.limit ? `limit=${query.value.limit}&` : ""}${
+          query.value?.skip ? `skip=${query.value.skip}&` : ""
+        }`,
         "get"
       );
       if (response.status !== 200) {
@@ -65,7 +100,9 @@ export default () => {
       return [];
     }
   };
-  const getProject = async (payload: { _id: string }): Promise<ProjectResponse | null> => {
+  const getProject = async (payload: {
+    _id: string;
+  }): Promise<ProjectResponse | null> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/projects/${payload._id}`,
@@ -81,13 +118,17 @@ export default () => {
     }
   };
   const getProjectTasks = async (payload: {
-    _id: string, query?: {
-      status?: ProjectTaskStatusKind
-    }
+    _id: string;
+    query?: {
+      status?: ProjectTaskStatusKind;
+      area_id?: string;
+    };
   }): Promise<ProjectTaskMinResponse[]> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/projects/${payload._id}/tasks?${payload.query?.status ? `status=${payload.query.status}&` : ''}`,
+        `${config.public.apiBase}/projects/${payload._id}/tasks?${
+          payload.query?.status ? `status=${payload.query.status}&` : ""
+        }${payload.query?.area_id ? `area_id=${payload.query.area_id}&` : ""}`,
         "get"
       );
       if (response.status !== 200) throw new Error("");
@@ -100,8 +141,8 @@ export default () => {
     }
   };
   const getProjectTask = async (payload: {
-    project_id: string,
-    task_id: string
+    project_id: string;
+    task_id: string;
   }): Promise<ProjectTaskResponse | null> => {
     try {
       const response: Response = await $fetch(
@@ -117,7 +158,9 @@ export default () => {
       return null;
     }
   };
-  const getProjectAreas = async (payload: { _id: string }): Promise<ProjectAreaResponse[]> => {
+  const getProjectAreas = async (payload: {
+    _id: string;
+  }): Promise<ProjectAreaResponse[]> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/projects/${payload._id}/areas`,
@@ -132,10 +175,17 @@ export default () => {
       return [];
     }
   };
-  const getProjectProgress = async (payload: { _id: string }): Promise<ProjectProgressResponse[]> => {
+  const getProjectProgress = async (payload: {
+    _id: string;
+    query?: {
+      area_id?: string;
+    };
+  }): Promise<ProjectProgressResponse[]> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/projects/${payload._id}/progress`,
+        `${config.public.apiBase}/projects/${payload._id}/progress?${
+          payload.query?.area_id ? `area_id=${payload.query.area_id}&` : ""
+        }`,
         "get"
       );
       if (response.status !== 200) throw new Error("");
@@ -147,7 +197,9 @@ export default () => {
       return [];
     }
   };
-  const getProjectUsers = async (payload: { _id: string }): Promise<ProjectUserResponse | null> => {
+  const getProjectUsers = async (payload: {
+    _id: string;
+  }): Promise<ProjectUserResponse | null> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/projects/${payload._id}/members`,
@@ -162,7 +214,9 @@ export default () => {
       return null;
     }
   };
-  const getProjectReports = async (payload: { _id: string }): Promise<ProjectReportResponse[]> => {
+  const getProjectReports = async (payload: {
+    _id: string;
+  }): Promise<ProjectReportResponse[]> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/projects/${payload._id}/reports`,
@@ -177,7 +231,10 @@ export default () => {
       return [];
     }
   };
-  const getProjectReport = async (payload: { project_id: string, report_id: string }): Promise<ProjectProgressReportResponse | null> => {
+  const getProjectReport = async (payload: {
+    project_id: string;
+    report_id: string;
+  }): Promise<ProjectProgressReportResponse | null> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/projects/${payload.project_id}/reports/${payload.report_id}`,
@@ -193,7 +250,7 @@ export default () => {
     }
   };
   const createProject = async (payload: {
-    request: ProjectRequest
+    request: ProjectRequest;
   }): Promise<string> => {
     try {
       const response: Response = await $fetch(
@@ -206,7 +263,7 @@ export default () => {
       const result = await response.json();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const createProjectTask = async (payload: {
@@ -216,7 +273,8 @@ export default () => {
   }): Promise<string> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/projects/${payload.project_id}/tasks${payload.task_id ? `/${payload.task_id}` : ""
+        `${config.public.apiBase}/projects/${payload.project_id}/tasks${
+          payload.task_id ? `/${payload.task_id}` : ""
         }`,
         "post",
         JSON.stringify(payload.request)
@@ -226,7 +284,7 @@ export default () => {
       const result = await response.json();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const createProjectReport = async (payload: {
@@ -242,22 +300,22 @@ export default () => {
       const result = await response.text();
       if (response.status === 201) {
         if (payload.request.documentation_photo?.length) {
-          const data = new FormData()
+          const data = new FormData();
           for (const photo of payload.request.documentation_photo) {
-            data.append('file', photo, photo.name)
+            data.append("file", photo, photo.name);
           }
           const response: Response = await $fetch(
             `${config.public.apiBase}/projects/${payload.project_id}/reports/${result}`,
             "put",
             data
           );
-          if (response.status !== 200) throw new Error(await response.json())
+          if (response.status !== 200) throw new Error(await response.json());
         }
-        return result
+        return result;
       }
       throw new Error("");
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const createProjectIncident = async (payload: {
@@ -266,7 +324,9 @@ export default () => {
   }): Promise<string> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/projects/${payload.project_id}/incidents?${payload.request.breakdown ? 'breakdown=true' : ''}`,
+        `${config.public.apiBase}/projects/${payload.project_id}/incidents?${
+          payload.request.breakdown ? "breakdown=true" : ""
+        }`,
         "post",
         JSON.stringify(payload.request)
       );
@@ -275,7 +335,7 @@ export default () => {
       const result = await response.json();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const createProjectRole = async (payload: {
@@ -293,7 +353,7 @@ export default () => {
       const result = await response.json();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const updateProjectStatus = async (payload: {
@@ -302,8 +362,7 @@ export default () => {
   }): Promise<string> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/projects/${payload.project_id}/status?status=${payload.request
-        }`,
+        `${config.public.apiBase}/projects/${payload.project_id}/status?status=${payload.request}`,
         "put",
         JSON.stringify(payload.request)
       );
@@ -312,7 +371,7 @@ export default () => {
       const result = await response.text();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const updateProjectTask = async (payload: {
@@ -322,8 +381,7 @@ export default () => {
   }): Promise<string> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/projects/${payload.project_id}/tasks/${payload.task_id
-        }`,
+        `${config.public.apiBase}/projects/${payload.project_id}/tasks/${payload.task_id}`,
         "put",
         JSON.stringify(payload.request)
       );
@@ -332,7 +390,7 @@ export default () => {
       const result = await response.text();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const updateProjectTaskPeriod = async (payload: {
@@ -342,8 +400,7 @@ export default () => {
   }): Promise<string> => {
     try {
       const response: Response = await $fetch(
-        `${config.public.apiBase}/projects/${payload.project_id}/tasks/${payload.task_id
-        }/period`,
+        `${config.public.apiBase}/projects/${payload.project_id}/tasks/${payload.task_id}/period`,
         "put",
         JSON.stringify(payload.request)
       );
@@ -352,7 +409,7 @@ export default () => {
       const result = await response.text();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const updateProjectRole = async (payload: {
@@ -371,7 +428,7 @@ export default () => {
       const result = await response.text();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const addProjectArea = async (payload: {
@@ -389,7 +446,7 @@ export default () => {
       const result = await response.text();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const addProjectMember = async (payload: {
@@ -407,12 +464,12 @@ export default () => {
       const result = await response.text();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const removeProjectArea = async (payload: {
     project_id: string;
-    area_id: string
+    area_id: string;
   }): Promise<string> => {
     try {
       const response: Response = await $fetch(
@@ -424,12 +481,12 @@ export default () => {
       const result = await response.text();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
   const deleteProjectTask = async (payload: {
     project_id: string;
-    task_id: string
+    task_id: string;
   }): Promise<string> => {
     try {
       const response: Response = await $fetch(
@@ -441,7 +498,7 @@ export default () => {
       const result = await response.text();
       return result;
     } catch (e) {
-      return '';
+      return "";
     }
   };
 
@@ -471,6 +528,6 @@ export default () => {
     addProjectArea,
     addProjectMember,
     removeProjectArea,
-    deleteProjectTask
+    deleteProjectTask,
   };
 };

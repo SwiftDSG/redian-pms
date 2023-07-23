@@ -250,7 +250,7 @@
     options: [
       {
         name: "All stages",
-        value: "all",
+        value: "*",
       },
     ],
   });
@@ -258,6 +258,12 @@
   const projectMenuState = ref<"idle" | "changing">("idle");
   const projectMenu = ref<ProjectMenuKind | null>(null);
   const projectInit = ref<boolean>(true);
+
+  const area = computed<string>(() =>
+    !areaInput.value.value || areaInput.value.value === "*"
+      ? ""
+      : areaInput.value.value
+  );
 
   const projectUsers = computed<ProjectUserResponse | null>(
     () => project.value.users
@@ -337,13 +343,6 @@
   function projectWarningName(): string {
     let str = "";
 
-    console.log(
-      projectAreas.value?.reduce(
-        (a, b) => a + (b?.task?.reduce((c, d) => c + d.value, 0) || 0),
-        0
-      ) || 0
-    );
-
     if (projectWarning.value === "empty-area") str = "Empty project stage";
     if (projectWarning.value === "empty-task") str = "Empty project task";
     if (projectWarning.value === "incomplete-value")
@@ -379,16 +378,22 @@
   }
   function projectMenuChange(name: ProjectMenuKind): Promise<void> {
     return new Promise((resolve) => {
-      projectMenuState.value = "changing";
+      if (name !== projectMenu.value) projectMenuState.value = "changing";
       setTimeout(async () => {
         projectMenu.value = name;
         switch (name) {
           case "overview":
             project.value.progress = await getProjectProgress({
               _id: project.value.data?._id || "",
+              query: {
+                area_id: area.value,
+              },
             });
             project.value.timeline = await getProjectTasks({
               _id: project.value.data?._id || "",
+              query: {
+                area_id: area.value,
+              },
             });
             project.value.users = await getProjectUsers({
               _id: project.value.data?._id || "",
@@ -397,6 +402,9 @@
           case "progress":
             project.value.progress = await getProjectProgress({
               _id: project.value.data?._id || "",
+              query: {
+                area_id: area.value,
+              },
             });
             break;
           case "reports":
@@ -412,6 +420,9 @@
           case "timeline":
             project.value.timeline = await getProjectTasks({
               _id: project.value.data?._id || "",
+              query: {
+                area_id: area.value,
+              },
             });
             break;
           case "users":
@@ -522,6 +533,13 @@
       },
     });
   }
+
+  watch(
+    () => area.value,
+    () => {
+      if (projectMenu.value) projectMenuChange(projectMenu.value);
+    }
+  );
 
   onMounted(async () => {
     await getProjects();

@@ -78,10 +78,10 @@
   });
 
   const start = computed<ProjectTaskPeriodRequest["start"]>(() =>
-    new Date(startDateInput.value.value || new Date()).setHours(0, 0, 0, 0)
+    new Date(startDateInput.value.value || -1).setHours(0, 0, 0, 0)
   );
   const end = computed<ProjectTaskPeriodRequest["end"]>(() =>
-    new Date(endDateInput.value.value || new Date()).getTime()
+    new Date(endDateInput.value.value || -1).getTime()
   );
 
   async function submit(): Promise<void> {

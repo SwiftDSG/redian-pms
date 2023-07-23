@@ -61,7 +61,7 @@
             />
           </div>
           <div class="rd-panel-user-detail-container">
-            <span class="rd-panel-user-name rd-headline-4">{{
+            <span class="rd-panel-user-name rd-headline-5">{{
               user.name
             }}</span>
             <span class="rd-panel-user-role rd-caption-text">{{
@@ -313,6 +313,10 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
+            span.rd-panel-user-name {
+              position: relative;
+              margin-bottom: 0.25rem;
+            }
           }
         }
 

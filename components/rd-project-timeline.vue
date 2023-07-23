@@ -12,8 +12,10 @@
         <div
           v-for="task in data"
           :key="task._id"
+          :data-id="task._id"
           class="rd-panel-task"
           :class="`rd-panel-task-${task.status[0].kind}`"
+          ref="rdPanelTask"
         >
           <div class="rd-panel-task-plan">
             <div class="rd-panel-task-detail">
@@ -115,6 +117,7 @@
               :key="i"
               class="rd-panel-timeline-data"
               :class="`rd-panel-timeline-data-${task.status}`"
+              :style="`top: ${task.period.position?.y}px`"
             >
               <div
                 class="rd-panel-timeline-data-plan"
@@ -217,6 +220,7 @@
       position?: {
         w: number;
         x: number;
+        y: number;
       };
     };
     actual?: {
@@ -248,6 +252,7 @@
   const { view } = useMain();
 
   const rdPanel = ref<HTMLDivElement | null>(null);
+  const rdPanelTask = ref<HTMLDivElement[] | null>(null);
   const rdPanelTaskBody = ref<HTMLDivElement | null>(null);
   const rdPanelTimeline = ref<HTMLDivElement | null>(null);
   const rdPanelTimelineIntersector = ref<HTMLDivElement | null>(null);
@@ -258,6 +263,7 @@
 
   const datas = ref<DataTimeline[]>([]);
 
+  const init = ref<boolean>(true);
   const period = ref<Period | null>(null);
   const today = ref<number>(new Date().setHours(0, 0, 0, 0));
   const days = ref<Date[]>([]);
@@ -377,10 +383,12 @@
 
     if (!days.value?.length) addDays();
   }
-  function getPosition(data: DataTimeline["actual"] | DataTimeline["period"]): {
+  function getPosition(task: ProjectTaskMinResponse): {
     w: number;
     x: number;
+    y: number;
   } {
+    const data = task.period;
     if (data) {
       const start = new Date(data.start).setHours(0, 0, 0, 0);
       const end = new Date(data.end).setHours(23, 59, 59, 999);
@@ -389,15 +397,22 @@
       const x: number = Math.ceil(
         (start - (period.value?.start.getTime() || 0)) / 86400000
       );
-
+      const y: number =
+        (rdPanelTask.value
+          ?.find((a) => a.dataset.id === task._id)
+          ?.getBoundingClientRect().top || 0) -
+        (rdPanelTaskBody.value?.getBoundingClientRect().top || 0) +
+        (rdPanelTaskBody.value?.scrollTop || 0);
       return {
         w,
         x,
+        y,
       };
     }
     return {
       w: 0,
       x: 0,
+      y: 0,
     };
   }
   function getArea(_id: string): string {
@@ -448,54 +463,61 @@
     (val) => {
       if (val?.length) {
         setPeriod(val);
-        datas.value = val
-          .filter((a) => !!a.period)
-          .map<DataTimeline>((a) => {
-            const payload: DataTimeline = {
-              name: a.name,
-              period: {
-                ...(a.period || {
-                  start: "",
-                  end: "",
-                }),
-                position: getPosition(a.period),
-              },
-              status: a.status[0].kind,
-            };
-            if (a.actual) {
-              payload.actual = {
-                ...a.actual,
-                position: getPosition(a.actual),
-              };
+        setTimeout(
+          () => {
+            if (
+              rdPanelTimelineDataContainer.value &&
+              rdPanelTimelineDataWrapper.value &&
+              rdPanelTimelineDayContainer.value
+            ) {
+              rdPanelTimelineDataContainer.value.style.height = `${
+                3.5 * val.length + 0.75 * (val.length - 1) + 1.5 - 0.75
+              }rem`;
+              rdPanelTimelineDataWrapper.value.style.width = `${
+                rdPanelTimelineDayContainer.value.getBoundingClientRect().width
+              }px`;
             }
-            return payload;
-          });
-        setTimeout(() => {
-          if (
-            rdPanelTimelineDataContainer.value &&
-            rdPanelTimelineDataWrapper.value &&
-            rdPanelTimelineDayContainer.value
-          ) {
-            rdPanelTimelineDataContainer.value.style.height = `${
-              3.5 * val.length + 0.75 * (val.length - 1) + 1.5 - 0.75
-            }rem`;
-            rdPanelTimelineDataWrapper.value.style.width = `${
-              rdPanelTimelineDayContainer.value.getBoundingClientRect().width
-            }px`;
-          }
-        }, 50);
+            datas.value = val
+              .filter((a) => !!a.period)
+              .map<DataTimeline>((a, i, x) => {
+                const payload: DataTimeline = {
+                  name: a.name,
+                  period: {
+                    ...(a.period || {
+                      start: "",
+                      end: "",
+                    }),
+                    position: getPosition(a),
+                  },
+                  status: a.status[0].kind,
+                };
+                if (a.actual) {
+                  payload.actual = {
+                    ...a.actual,
+                    position: getPosition(a),
+                  };
+                }
+                if (init.value && i === x.length - 1) {
+                  setTimeout(() => {
+                    if (rdPanel.value) {
+                      animate.init(rdPanel.value, () => {
+                        emits("changing-done");
+                        init.value = false;
+                      });
+                    }
+                  }, 100);
+                }
+                return payload;
+              });
+          },
+          init.value ? 100 : 500
+        );
       }
     },
     { immediate: true }
   );
 
   onMounted(() => {
-    if (rdPanel.value) {
-      animate.init(rdPanel.value, () => {
-        emits("changing-done");
-      });
-    }
-
     window.addEventListener("focus", initCounter);
   });
   onBeforeUnmount(() => {
@@ -837,7 +859,7 @@
             gap: 0.75rem;
             flex-direction: column;
             .rd-panel-timeline-data {
-              position: relative;
+              position: absolute;
               width: 100%;
               height: 5.75rem;
               display: flex;

@@ -1,7 +1,7 @@
 <template>
   <div class="rd-project-task">
     <div class="rd-project-task-header">
-      <span class="rd-project-task-name rd-headline-4">{{ task.name }}</span>
+      <span class="rd-project-task-name rd-headline-5">{{ task.name }}</span>
       <span
         class="rd-project-task-status rd-headline-6"
         :class="`rd-project-task-status-${task.status[0].kind}`"
