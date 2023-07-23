@@ -47,7 +47,7 @@
               }}</span>
               <div class="rd-panel-task-value-dot"></div>
             </div>
-            <span class="rd-panel-task-area rd-headline-6">{{
+            <span class="rd-panel-task-area rd-caption-text">{{
               getArea(task.area_id)
             }}</span>
           </div>

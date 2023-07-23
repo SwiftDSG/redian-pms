@@ -875,7 +875,7 @@
     --border-color: #fafafa;
     --font-main-color: #242529;
     --font-secondary-color: #242529;
-    --font-sub-color: rgba(0, 0, 0, 0.375);
+    --font-sub-color: rgba(36, 37, 41, 0.5);
     --background-depth-one-color: #ffffff;
     --background-depth-two-color: #fafafa;
     --background-depth-three-color: #f0f0f0;
@@ -1017,8 +1017,7 @@
     font-size: 0.55rem;
     font-family: "Poppins";
     font-weight: 500;
-    color: var(--font-main-color);
-    opacity: 0.5;
+    color: var(--font-sub-color);
   }
 
   .rd-button-text {

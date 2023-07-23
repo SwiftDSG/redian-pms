@@ -225,6 +225,11 @@
         class="rd-panel-button"
         label="submit"
         :loading="loadingSubmit"
+        :disabled="
+          type === 'Daily' &&
+          (time?.[0]?.[0] || 0) * 60 + (time?.[0]?.[1] || 0) >=
+            (time?.[1]?.[0] || 0) * 60 + (time?.[1]?.[1] || 0)
+        "
         @clicked="submit"
       />
     </div>

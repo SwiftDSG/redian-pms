@@ -123,7 +123,7 @@
     if (!projects.value) return 0;
     return (
       projects.value.reduce((a, b) => a + b.progress.actual, 0) /
-      projects.value.length
+      (projects.value.length || 1)
     );
   });
 
