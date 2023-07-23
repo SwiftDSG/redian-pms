@@ -14,7 +14,13 @@
           :key="task._id"
           :data-id="task._id"
           class="rd-panel-task"
-          :class="`rd-panel-task-${task.status[0].kind}`"
+          :class="`rd-panel-task-${
+            task.status[0].kind !== 'pending' &&
+            new Date(task.actual?.end || new Date()).getTime() >
+              new Date(task.period?.end || new Date()).getTime()
+              ? 'late'
+              : task.status[0].kind
+          }`"
           ref="rdPanelTask"
         >
           <div class="rd-panel-task-plan">
@@ -116,7 +122,11 @@
               v-for="(task, i) in datas"
               :key="i"
               class="rd-panel-timeline-data"
-              :class="`rd-panel-timeline-data-${task.status}`"
+              :class="`rd-panel-timeline-data-${
+                task.actual?.end && task.actual.end > task.period.end
+                  ? 'late'
+                  : task.status
+              }`"
               :style="`top: ${task.period.position?.y}px`"
             >
               <div
@@ -383,12 +393,15 @@
 
     if (!days.value?.length) addDays();
   }
-  function getPosition(task: ProjectTaskMinResponse): {
+  function getPosition(
+    task: ProjectTaskMinResponse,
+    actual?: boolean
+  ): {
     w: number;
     x: number;
     y: number;
   } {
-    const data = task.period;
+    const data = actual ? task.actual : task.period;
     if (data) {
       const start = new Date(data.start).setHours(0, 0, 0, 0);
       const end = new Date(data.end).setHours(23, 59, 59, 999);
@@ -494,7 +507,7 @@
                 if (a.actual) {
                   payload.actual = {
                     ...a.actual,
-                    position: getPosition(a),
+                    position: getPosition(a, true),
                   };
                 }
                 if (init.value && i === x.length - 1) {
@@ -744,6 +757,28 @@
               }
             }
           }
+          &.rd-panel-task-late {
+            .rd-panel-task-value-container {
+              .rd-panel-task-value-dot {
+                &::before {
+                  background: var(--error-color);
+                }
+                &::after {
+                  background: var(--error-color);
+                }
+              }
+            }
+            .rd-panel-task-actual {
+              border-color: var(--error-color);
+              span {
+                color: var(--error-color);
+                opacity: 1 !important;
+              }
+              &::before {
+                background: var(--error-color);
+              }
+            }
+          }
         }
         &::-webkit-scrollbar {
           display: none;
@@ -947,6 +982,18 @@
                   }
                   &::before {
                     background: var(--warning-color);
+                  }
+                }
+              }
+              &.rd-panel-timeline-data-late {
+                .rd-panel-timeline-data-actual {
+                  border-color: var(--error-color);
+                  span {
+                    color: var(--error-color);
+                    opacity: 1 !important;
+                  }
+                  &::before {
+                    background: var(--error-color);
                   }
                 }
               }
