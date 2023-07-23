@@ -129,6 +129,12 @@
             background: var(--success-color);
           }
         }
+        &.rd-project-task-status-running {
+          color: var(--warning-color);
+          &::before {
+            background: var(--warning-color);
+          }
+        }
       }
     }
 
