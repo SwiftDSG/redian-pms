@@ -277,6 +277,7 @@
       width: 100%;
       height: calc(100% - 3rem);
       overflow: auto;
+      overscroll-behavior: none;
       .rd-data {
         position: absolute;
         height: 3.5rem;
