@@ -84,7 +84,7 @@
       position: relative;
       width: 100%;
       height: 100%;
-      background: var(--background-depth-three-color);
+      background: var(--background-depth-one-color);
       border-radius: 0.5rem;
       padding: 0.25rem;
       box-sizing: border-box;
@@ -92,6 +92,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      transition: background-color 0.25s;
       * {
         pointer-events: none;
       }
@@ -127,7 +128,7 @@
           position: relative;
           width: 100%;
           height: 100%;
-          color: #fff;
+          color: var(--font-secondary-color);
           display: flex;
           flex-shrink: 0;
           justify-content: center;
@@ -143,7 +144,7 @@
         width: 100%;
         height: 100%;
         border-radius: 0.5rem;
-        border: 1px solid rgba(0, 0, 0, 0.125);
+        border: var(--border);
         box-sizing: border-box;
         transition: 0.25s border-color, 0.25s border-width;
         &::before {
@@ -159,6 +160,9 @@
           opacity: 0;
           transition: 0.25s opacity;
         }
+      }
+      &:hover {
+        background: var(--background-depth-two-color);
       }
       &:focus {
         .rd-input-label-border {

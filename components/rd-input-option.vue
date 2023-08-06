@@ -2,7 +2,9 @@
   <div
     ref="rdInputComponent"
     class="rd-input-component"
-    :class="input.error ? 'rd-input-error-active' : ''"
+    :class="`${input.error ? 'rd-input-error-active' : ''} ${
+      input.disabled ? 'rd-input-disabled' : ''
+    }`"
   >
     <label v-if="input.label" class="rd-input-label rd-headline-6">{{
       input.label
@@ -18,7 +20,7 @@
         :name="input.name"
         :type="input.type"
         @focus="dropDownHandler('open')"
-        @blur="dropDownHandler('close')"
+        @blur="selectOption(true)"
         @keydown.up.prevent="
           selectIndex(
             dropDownIndex <= 0
@@ -33,11 +35,16 @@
               : dropDownIndex + 1
           )
         "
-        @keypress.enter="selectOption"
+        @keypress.enter="selectOption(false)"
         @input="updateModel"
+        :disabled="input.disabled"
       />
       <div class="rd-input-border"></div>
+      <div v-if="inputOptions?.length" class="rd-input-chevron-container">
+        <rd-svg name="chevron-down" />
+      </div>
       <div
+        v-if="inputOptions?.length"
         ref="rdInputOptions"
         class="rd-input-options"
         :class="dropDownOpened ? 'rd-input-options-opened' : ''"
@@ -47,7 +54,7 @@
           v-for="(option, i) in inputOptions"
           :key="i"
           @mouseover="selectIndex(i)"
-          @mousedown="selectOption"
+          @mousedown="selectOption(false)"
           :class="dropDownIndex === i ? 'rd-input-option-selected' : ''"
         >
           {{ typeof option === "string" ? option : option.name }}
@@ -142,11 +149,11 @@
 
   function filterOptions(str: string): void {
     if (str.length) {
-      inputOptions.value = [...(props.input.options || [])].filter(
-        (a: string | { name: string; value: string }): boolean =>
-          (typeof a === "string" ? a : a.name)
-            .toLowerCase()
-            .includes(str.toLowerCase())
+      inputOptions.value = [...(props.input.options || [])].filter((a) =>
+        (typeof a === "string" ? a : a.name)
+          .replace(/[^A-Za-z0-9]/g, "")
+          .toLowerCase()
+          .includes(str.replace(/[^A-Za-z0-9]/g, "").toLowerCase())
       );
     } else {
       inputOptions.value = props.input.options;
@@ -157,10 +164,19 @@
     dropDownIndex.value = index;
   }
 
-  function selectOption(): void {
+  function selectOption(clear?: boolean): void {
+    if (clear) dropDownIndex.value = -1;
     if (inputOptions.value && rdInput.value) {
-      const selection: string | { name: string; value: string } =
-        inputOptions.value[dropDownIndex.value];
+      const selection =
+        dropDownIndex.value > -1
+          ? inputOptions.value[dropDownIndex.value]
+          : inputOptions.value.find(
+              (a) =>
+                (typeof a === "string" ? a : a.name)
+                  .replace(/[^A-Za-z0-9]/g, "")
+                  .toLowerCase() ===
+                inputModel.value.replace(/[^A-Za-z0-9]/g, "").toLowerCase()
+            );
       if (selection) {
         inputModel.value =
           typeof selection === "string" ? selection : selection.name;
@@ -174,6 +190,8 @@
           filterOptions(inputModel.value);
         }, 250);
       } else {
+        inputValue.value = "";
+        props.input.value = inputValue.value;
         dropDownHandler("close");
       }
     }
@@ -234,7 +252,7 @@
       position: relative;
       width: 100%;
       height: 2rem;
-      background: var(--background-depth-three-color);
+      background: var(--background-depth-one-color);
       border-radius: 0.5rem;
       display: flex;
       align-items: center;
@@ -257,42 +275,38 @@
         position: relative;
         width: 100%;
         height: 100%;
-        padding: 0 0.5rem;
+        padding: 0 2rem 0 0.5rem;
         border: none;
-        border-top-right-radius: 0.5rem;
-        border-bottom-right-radius: 0.5rem;
+        border-radius: 0.5rem;
         box-sizing: border-box;
         color: var(--font-main-color);
         background: rgba(0, 0, 0, 0);
         display: flex;
         transition: background-color 0.25s;
-
         &::placeholder {
           color: var(--font-main-color);
           opacity: 0.5;
           transition: opacity 0.25s;
         }
-
         &:hover {
           outline: none;
           background: rgba(0, 0, 0, 0);
-
           &::placeholder {
             opacity: 1;
           }
         }
-
         &:focus {
           outline: none;
           background: var(--background-depth-two-color);
         }
-
         &:focus + .rd-input-border {
           border-color: var(--primary-color);
-
           &::before {
             opacity: 0.25;
           }
+        }
+        &:focus ~ .rd-input-chevron-container {
+          rotate: 180deg;
         }
       }
 
@@ -307,7 +321,6 @@
         border: var(--border);
         box-sizing: border-box;
         transition: 0.25s border-color, 0.25s border-width;
-
         &::before {
           content: "";
           position: absolute;
@@ -315,7 +328,7 @@
           left: -3px;
           width: calc(100% + 6px);
           height: calc(100% + 6px);
-          border-radius: calc(0.5rem + 1.5px);
+          border-radius: calc(0.5rem + 1px);
           border: 3px solid var(--primary-color);
           box-sizing: border-box;
           opacity: 0;
@@ -366,6 +379,22 @@
           pointer-events: all;
         }
       }
+      .rd-input-chevron-container {
+        z-index: 2;
+        pointer-events: none;
+        position: absolute;
+        right: 0;
+        width: 2rem;
+        height: 2rem;
+        padding: 0 0.5rem;
+        border-top-left-radius: 0.5rem;
+        border-bottom-left-radius: 0.5rem;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: 0.25s rotate;
+      }
     }
 
     span.rd-input-error {
@@ -386,7 +415,11 @@
         }
       }
     }
-
+    &.rd-input-disabled {
+      pointer-events: none;
+      filter: grayscale(0.75);
+      opacity: 0.5;
+    }
     &.rd-input-error-active {
       span.rd-input-error {
         span.rd-text-wrapper {

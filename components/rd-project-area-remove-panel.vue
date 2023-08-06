@@ -70,8 +70,9 @@
     .rd-panel-body {
       position: relative;
       display: flex;
-      .rd-panel-message {
+      span.rd-panel-message {
         position: relative;
+        width: 100%;
         line-height: 2;
       }
     }

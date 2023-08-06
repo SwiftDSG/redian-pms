@@ -490,38 +490,36 @@
                 rdPanelTimelineDayContainer.value.getBoundingClientRect().width
               }px`;
             }
-            datas.value = val
-              .filter((a) => !!a.period)
-              .map<DataTimeline>((a, i, x) => {
-                const payload: DataTimeline = {
-                  name: a.name,
-                  period: {
-                    ...(a.period || {
-                      start: "",
-                      end: "",
-                    }),
-                    position: getPosition(a),
-                  },
-                  status: a.status[0].kind,
+            datas.value = val.map<DataTimeline>((a, i, x) => {
+              const payload: DataTimeline = {
+                name: a.name,
+                period: {
+                  ...(a.period || {
+                    start: "",
+                    end: "",
+                  }),
+                  position: getPosition(a),
+                },
+                status: a.status[0].kind,
+              };
+              if (a.actual) {
+                payload.actual = {
+                  ...a.actual,
+                  position: getPosition(a, true),
                 };
-                if (a.actual) {
-                  payload.actual = {
-                    ...a.actual,
-                    position: getPosition(a, true),
-                  };
-                }
-                if (init.value && i === x.length - 1) {
-                  setTimeout(() => {
-                    if (rdPanel.value) {
-                      animate.init(rdPanel.value, () => {
-                        emits("changing-done");
-                        init.value = false;
-                      });
-                    }
-                  }, 100);
-                }
-                return payload;
-              });
+              }
+              if (init.value && i === x.length - 1) {
+                init.value = false;
+                setTimeout(() => {
+                  if (rdPanel.value) {
+                    animate.init(rdPanel.value, () => {
+                      emits("changing-done");
+                    });
+                  }
+                }, 100);
+              }
+              return payload;
+            });
           },
           init.value ? 100 : 500
         );

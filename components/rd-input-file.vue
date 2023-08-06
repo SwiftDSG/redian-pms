@@ -23,7 +23,7 @@
     </div>
     <div v-else ref="rdInputDetails" class="rd-input-details-container">
       <div class="rd-input-icon-container">
-        <rd-svg :name="iconHandler(file.name)" :color="'secondary'" />
+        <rd-svg :name="iconHandler(file.name)" color="primary" />
       </div>
       <div class="rd-input-details">
         <span class="rd-input-value rd-headline-5">{{ file.name }}</span>
@@ -196,8 +196,8 @@
     if (str === "png") return "image";
     if (str === "jpg") return "image";
     if (str === "jpeg") return "image";
-    if (str === "word") return "word";
-    if (str === "excel") return "excel";
+    if (str === "doc" || str === "docs") return "word";
+    if (str === "xlx" || str === "xlxs" || str === "csv") return "excel";
     if (str === "pdf") return "pdf";
     return "file";
   }
@@ -409,7 +409,7 @@
       width: 100%;
       height: 100%;
       border-radius: 0.5rem;
-      border: 1px solid var(--font-main-color);
+      border: var(--border);
       box-sizing: border-box;
       opacity: 0.05;
     }

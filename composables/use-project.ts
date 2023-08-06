@@ -287,6 +287,27 @@ export default () => {
       return "";
     }
   };
+  const createProjectTaskBulk = async (payload: {
+    project_id: string;
+    file: File;
+  }): Promise<string> => {
+    try {
+      const data = new FormData();
+      data.append("file", payload.file);
+
+      const response: Response = await $fetch(
+        `${config.public.apiBase}/projects/${payload.project_id}/tasks/bulk`,
+        "post",
+        data
+      );
+      if (response.status !== 201) throw new Error("");
+
+      const result = await response.json();
+      return result;
+    } catch (e) {
+      return "";
+    }
+  };
   const createProjectReport = async (payload: {
     project_id: string;
     request: ProjectProgressReportRequest;
@@ -518,6 +539,7 @@ export default () => {
     getProjectReport,
     createProject,
     createProjectTask,
+    createProjectTaskBulk,
     createProjectReport,
     createProjectIncident,
     createProjectRole,

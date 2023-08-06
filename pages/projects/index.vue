@@ -115,7 +115,7 @@
         str = "";
         break;
       case "Completed":
-        str = "completed";
+        str = "finished";
         break;
       case "Cancelled":
         str = "cancelled";

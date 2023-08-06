@@ -19,6 +19,7 @@
         :placeholder="props.input.placeholder"
         ref="rdInput"
         :id="`rd-input-${inputId}`"
+        :class="dropDownOpened ? 'rd-input-focused' : ''"
         type="date"
         :model="inputModel"
         :name="props.input.name"
@@ -28,7 +29,7 @@
       />
       <div class="rd-input-border"></div>
       <div class="rd-input-calendar-container" @click="dropDownHandler('open')">
-        <rd-svg class="rd-input-calendar" name="calendar" color="primary" />
+        <rd-svg class="rd-input-calendar" name="calendar" />
       </div>
       <div
         v-if="dropDownOpened && selectedMonth"
@@ -339,7 +340,10 @@
         </div>
       </div>
     </div>
-    <span class="rd-input-error rd-headline-6">
+    <span
+      v-if="typeof input.error === 'string'"
+      class="rd-input-error rd-headline-6"
+    >
       <span class="rd-text-wrapper">
         <span class="rd-text-container rd-text-container-up">
           <span class="rd-text">{{ inputError }}</span>
@@ -815,11 +819,13 @@
             opacity: 1;
           }
         }
-        &:focus {
+        &:focus,
+        &.rd-input-focused {
           outline: none;
           background: var(--background-depth-two-color);
         }
-        &:focus + .rd-input-border {
+        &:focus + .rd-input-border,
+        &.rd-input-focused + .rd-input-border {
           border-color: var(--primary-color);
           &::before {
             opacity: 0.25;
@@ -850,7 +856,7 @@
         width: 100%;
         height: 100%;
         border-radius: 0.5rem;
-        border: 1px solid rgba(0, 0, 0, 0.125);
+        border: var(--border);
         box-sizing: border-box;
         transition: 0.25s border-color, 0.25s border-width;
         &::before {
