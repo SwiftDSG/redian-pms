@@ -281,7 +281,7 @@
       width: 100%;
       height: 1rem;
       box-sizing: border-box;
-      color: var(--font-main-color);
+      color: var(--font-primary-color);
       opacity: 0.5;
       display: flex;
       justify-content: space-between;

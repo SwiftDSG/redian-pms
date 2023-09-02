@@ -787,7 +787,7 @@
                     width: 0.25rem;
                     height: 0.25rem;
                     border-radius: 0.125rem;
-                    background: var(--font-main-color);
+                    background: var(--font-primary-color);
                     opacity: 0.5;
                   }
                 }

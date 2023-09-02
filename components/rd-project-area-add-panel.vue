@@ -184,7 +184,7 @@
           width: 100%;
           padding: 0.75rem;
           border-radius: 0.75rem;
-          border: var(--border-color);
+          border: var(--border);
           box-sizing: border-box;
           display: flex;
           gap: 0.75rem;

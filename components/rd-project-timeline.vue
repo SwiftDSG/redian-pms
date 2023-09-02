@@ -648,7 +648,7 @@
                   width: 100%;
                   height: 100%;
                   border-radius: 50%;
-                  background: var(--font-main-color);
+                  background: var(--font-primary-color);
                   opacity: 0.1;
                 }
                 &::after {
@@ -657,7 +657,7 @@
                   width: 50%;
                   height: 50%;
                   border-radius: 50%;
-                  background: var(--font-main-color);
+                  background: var(--font-primary-color);
                 }
               }
             }

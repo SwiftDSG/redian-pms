@@ -212,7 +212,7 @@
       height: 1rem;
       padding: 0 0.25rem;
       border-radius: 0.25rem;
-      background: var(--font-main-color);
+      background: var(--font-primary-color);
       opacity: 0;
       transform: scale(0.75);
       transform-origin: top center;
@@ -234,7 +234,8 @@
         transform: translateX(-50%);
         border-width: 0.25rem;
         border-style: solid;
-        border-color: transparent transparent var(--font-main-color) transparent;
+        border-color: transparent transparent var(--font-primary-color)
+          transparent;
       }
     }
     .rd-input-border {

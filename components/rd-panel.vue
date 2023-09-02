@@ -307,7 +307,7 @@
           left: 0;
           width: 100%;
           height: 100%;
-          background: var(--font-main-color);
+          background: var(--font-primary-color);
           opacity: 0.25;
         }
         &.rd-panel-overlay-active {

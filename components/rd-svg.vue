@@ -63,7 +63,7 @@
       height: 100%;
       &.rd-svg-filled {
         .rd-svg-filled-main {
-          fill: var(--font-main-color);
+          fill: var(--font-primary-color);
         }
         .rd-svg-filled-secondary {
           fill: var(--font-secondary-color);
@@ -71,7 +71,7 @@
       }
       &.rd-svg-outlined {
         .rd-svg-outlined-main {
-          stroke: var(--font-main-color);
+          stroke: var(--font-primary-color);
         }
         .rd-svg-outlined-secondary {
           stroke: var(--font-secondary-color);
@@ -85,7 +85,7 @@
             fill: var(--font-secondary-color);
           }
           .rd-svg-filled-secondary {
-            fill: var(--font-main-color);
+            fill: var(--font-primary-color);
           }
         }
         &.rd-svg-outlined {
@@ -93,7 +93,7 @@
             stroke: var(--font-secondary-color);
           }
           .rd-svg-outlined-secondary {
-            stroke: var(--font-main-color);
+            stroke: var(--font-primary-color);
           }
         }
       }

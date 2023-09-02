@@ -240,7 +240,7 @@
       .rd-project-data {
         .rd-project-data-status {
           &::before {
-            background: var(--font-main-color);
+            background: var(--font-primary-color);
           }
         }
       }

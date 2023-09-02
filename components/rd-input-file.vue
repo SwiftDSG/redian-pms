@@ -260,6 +260,7 @@
     width: 100%;
     height: 3.5rem;
     padding: 0.75rem;
+    border: var(--border);
     border-radius: 0.5rem;
     box-sizing: border-box;
     overflow: hidden;

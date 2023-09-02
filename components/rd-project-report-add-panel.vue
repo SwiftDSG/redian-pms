@@ -682,7 +682,7 @@
                   padding: 0 0.5rem;
                   border-radius: 0.5rem;
                   box-sizing: border-box;
-                  color: var(--font-main-color);
+                  color: var(--font-primary-color);
                   display: flex;
                   justify-content: center;
                   align-items: center;
@@ -692,7 +692,7 @@
                     width: 100%;
                     height: 100%;
                     border-radius: 0.5rem;
-                    background: var(--font-main-color);
+                    background: var(--font-primary-color);
                     opacity: 0.1;
                   }
                   &.rd-panel-form-task-status-finished {

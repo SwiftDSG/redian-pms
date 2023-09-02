@@ -358,7 +358,7 @@
       box-sizing: border-box;
       .rd-input-label-container {
         label.rd-input-label {
-          color: var(--font-main-color);
+          color: var(--font-primary-color);
         }
       }
     }
@@ -366,7 +366,7 @@
       background: var(--background-depth-one-color);
       .rd-input-label-container {
         label.rd-input-label {
-          color: var(--font-main-color);
+          color: var(--font-primary-color);
         }
       }
     }

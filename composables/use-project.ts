@@ -76,8 +76,11 @@ export default () => {
     }
     return false;
   }
-  const getProjects = async (): Promise<ProjectMinResponse[]> => {
+  const getProjects = async (
+    reset: boolean = false
+  ): Promise<ProjectMinResponse[]> => {
     try {
+      if (reset) query.value.limit = 10;
       const response: Response = await $fetch(
         `${config.public.apiBase}/projects?${
           query.value?.sort ? `sort=${query.value.sort}&` : ""
@@ -90,9 +93,11 @@ export default () => {
       );
       if (response.status !== 200) {
         projects.value = [];
+        query.value.limit = 0;
       }
 
       const result = await response.json();
+      if (result.length < 10) query.value.limit = 0;
       projects.value = result;
 
       return result;

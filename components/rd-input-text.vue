@@ -137,7 +137,7 @@
       width: 100%;
       height: 1rem;
       display: flex;
-      color: var(--font-main-color);
+      color: var(--font-primary-color);
       opacity: 0.5;
       align-items: center;
     }
@@ -184,12 +184,12 @@
         border: none;
         border-radius: 0.5rem;
         box-sizing: border-box;
-        color: var(--font-main-color);
+        color: var(--font-primary-color);
         background: rgba(0, 0, 0, 0);
         display: flex;
         transition: background-color 0.25s;
         &::placeholder {
-          color: var(--font-main-color);
+          color: var(--font-primary-color);
           opacity: 0.5;
           transition: opacity 0.25s;
         }
@@ -197,7 +197,7 @@
           outline: none;
           background: rgba(0, 0, 0, 0);
           &::placeholder {
-            opacity: 1;
+            opacity: 0.75;
           }
         }
         &:focus {

@@ -766,7 +766,7 @@
       width: 100%;
       height: 1rem;
       display: flex;
-      color: var(--font-main-color);
+      color: var(--font-primary-color);
       opacity: 0.5;
       align-items: center;
     }
@@ -798,7 +798,7 @@
         border: none;
         border-radius: 0.5rem;
         box-sizing: border-box;
-        color: var(--font-main-color);
+        color: var(--font-primary-color);
         background: rgba(0, 0, 0, 0);
         display: flex;
         transition: background-color 0.25s;
@@ -808,7 +808,7 @@
           display: none;
         }
         &::placeholder {
-          color: var(--font-main-color);
+          color: var(--font-primary-color);
           opacity: 0.5;
           transition: opacity 0.25s;
         }
@@ -816,13 +816,16 @@
           outline: none;
           background: rgba(0, 0, 0, 0);
           &::placeholder {
-            opacity: 1;
+            opacity: 0.75;
           }
         }
         &:focus,
         &.rd-input-focused {
           outline: none;
           background: var(--background-depth-two-color);
+          &::placeholder {
+            opacity: 1;
+          }
         }
         &:focus + .rd-input-border,
         &.rd-input-focused + .rd-input-border {
@@ -1009,7 +1012,7 @@
                   width: 0.25rem;
                   height: 0.25rem;
                   border-radius: 50%;
-                  background: var(--font-main-color);
+                  background: var(--font-primary-color);
                   opacity: 0.05;
                 }
                 &.rd-input-date-week-day-disabled {

@@ -681,7 +681,7 @@
         }
 
         span.rd-navigation-link-name {
-          color: var(--font-main-color);
+          color: var(--font-primary-color);
           text-decoration: none;
           transition: 0.25s color;
         }
@@ -725,7 +725,7 @@
           align-items: center;
         }
         span.rd-navigation-theme-sitch-name {
-          color: var(--font-main-color);
+          color: var(--font-primary-color);
           text-decoration: none;
           transition: 0.25s color;
         }
@@ -872,8 +872,8 @@
     --error-color: #ff584c;
     --warning-color: #ffd975;
     --success-color: #6bc785;
-    --border-color: #fafafa;
-    --font-main-color: #242529;
+    --border-color: #f0f0f0;
+    --font-primary-color: #242529;
     --font-secondary-color: #242529;
     --font-sub-color: rgba(36, 37, 41, 0.5);
     --background-depth-one-color: #ffffff;
@@ -894,7 +894,7 @@
     padding: 0;
     font-size: 24px;
     font-family: "Poppins", -apple-system, BlinkMacSystemFont, sans-serif;
-    color: var(--font-main-color);
+    color: var(--font-primary-color);
     background: var(--background-depth-two-color);
     overflow-x: hidden;
 
@@ -945,9 +945,9 @@
       --background-depth-one-color: #2d2e32;
       --background-depth-two-color: #242529;
       --background-depth-three-color: #202124;
-      --border-color: #242529;
+      --border-color: #222327;
       --box-shadow: 0 0.5rem 1rem rgba(15, 16, 17, 0.25);
-      --font-main-color: #fdebdd;
+      --font-primary-color: #fdebdd;
       --font-secondary-color: #242529;
       --font-sub-color: rgba(253, 235, 221, 0.375);
     }

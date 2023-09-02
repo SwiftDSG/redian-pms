@@ -7,7 +7,7 @@
       class="rd-alert"
     >
       <div class="rd-alert-icon-container">
-        <rd-svg :name="alert.type" />
+        <rd-svg :name="alert.type" color="secondary" />
       </div>
       <div class="rd-alert-details">
         <span class="rd-alert-title rd-headline-5">
@@ -191,20 +191,18 @@
         position: relative;
         width: calc(100% - 2rem);
         height: 100%;
-        color: #fff;
+        color: var(--font-secondary-color);
         padding-left: 0.5rem;
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: flex-start;
+        gap: 0.25rem;
         span {
           position: relative;
           line-height: 1;
           color: inherit;
-        }
-        span.rd-alert-title {
-          margin-bottom: 0.25rem;
         }
       }
     }

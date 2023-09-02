@@ -241,7 +241,7 @@
         height: 1rem;
         margin-bottom: -1rem;
         display: flex;
-        color: var(--font-main-color);
+        color: var(--font-primary-color);
         opacity: 0.5;
         align-items: center;
       }

@@ -222,6 +222,7 @@
     margin: 0;
     display: flex;
     align-items: center;
+    overflow: hidden;
     * {
       pointer-events: none;
     }
@@ -286,7 +287,7 @@
           left: 0;
           width: 0.75rem;
           height: 0.75rem;
-          border: 2px solid #fff;
+          border: 2px solid var(--font-secondary-color);
           border-radius: 50%;
           border-left-color: transparent;
           border-bottom-color: transparent;
@@ -369,7 +370,7 @@
       background: var(--background-depth-one-color);
       .rd-input-label-container {
         label.rd-input-label {
-          color: var(--font-main-color);
+          color: var(--font-primary-color);
         }
       }
     }

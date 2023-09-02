@@ -28,6 +28,14 @@
         />
       </div>
       <div class="rd-project-panel-body">
+        <div
+          class="rd-project-progress-bar"
+          :class="searchLoading ? 'rd-project-progress-bar-active' : ''"
+        >
+          <div class="rd-project-progress-bar-outer">
+            <div class="rd-project-progress-bar-inner"></div>
+          </div>
+        </div>
         <rd-project
           class="rd-project"
           v-for="project in projects"
@@ -40,7 +48,11 @@
             })
           "
         />
-        <div class="rd-project-observer"></div>
+        <div class="rd-project-observer" ref="rdProjectObserver">
+          <span class="rd-project-observer-message rd-caption-text">{{
+            query.limit ? "Loading projects..." : "End of the list"
+          }}</span>
+        </div>
       </div>
     </div>
   </div>
@@ -62,9 +74,10 @@
     middleware: ["auth"],
   });
 
-  const searchTimeout = ref<NodeJS.Timeout | null>(null);
+  const rdProjectObserver = ref<HTMLDivElement | null>(null);
 
-  const skip = ref<number>(0);
+  const searchTimeout = ref<NodeJS.Timeout | null>(null);
+  const searchLoading = ref<boolean>(false);
 
   const tabsInput = ref<InputSwitchOption>({
     options: [
@@ -86,12 +99,12 @@
   const sortInput = ref<InputOption>({
     name: "search",
     placeholder: "Sort",
-    model: "Oldest",
-    value: "oldest",
+    model: "Latest",
+    value: "latest",
     icon: "sort",
     options: [
       {
-        name: "Time added",
+        name: "Latest",
         value: "latest",
       },
       {
@@ -99,13 +112,17 @@
         value: "oldest",
       },
       {
-        name: "Alphabetically",
-        value: "alphabetical",
+        name: "Alphabetical (A-Z)",
+        value: "a_z",
+      },
+      {
+        name: "Alphabetical (Z-A)",
+        value: "z_a",
       },
     ],
   });
 
-  const sort = computed<string>(() => sortInput.value.value || "oldest");
+  const sort = computed<string>(() => sortInput.value.value || "latest");
   const text = computed<string>(() => searchInput.value.model);
   const status = computed<string>(() => {
     let str = "";
@@ -143,48 +160,62 @@
       type: "project-add",
     });
   }
-  async function refreshProjects(): Promise<void> {
+  async function refreshProjects(reset: boolean = false): Promise<void> {
+    searchLoading.value = true;
+    if (reset) query.value.skip = 0;
     query.value.status = status.value;
     query.value.text = text.value;
     query.value.sort = sort.value;
-    query.value.skip = skip.value;
-    await getProjects();
+
+    await getProjects(reset);
+    searchLoading.value = false;
+    query.value.skip += 10;
+    if (init.value) {
+      setTimeout(() => {
+        init.value = false;
+        state.value = "idle";
+      }, 250);
+    }
+  }
+  function intersect(entries: IntersectionObserverEntry[]): void {
+    if (entries[0].isIntersecting && query.value.limit) {
+      refreshProjects();
+    }
   }
 
   watch(
     () => sort.value,
     () => {
-      if (searchTimeout.value) clearTimeout(searchTimeout.value);
-      searchTimeout.value = setTimeout(refreshProjects, 500);
+      refreshProjects(true);
     }
   );
   watch(
     () => text.value,
     () => {
       if (searchTimeout.value) clearTimeout(searchTimeout.value);
-      searchTimeout.value = setTimeout(refreshProjects, 500);
+      searchTimeout.value = setTimeout(() => {
+        refreshProjects(true);
+      }, 500);
     }
   );
   watch(
     () => status.value,
     () => {
-      if (searchTimeout.value) clearTimeout(searchTimeout.value);
-      searchTimeout.value = setTimeout(refreshProjects, 500);
+      refreshProjects(true);
     }
   );
 
   onMounted(async () => {
     tabsInput.value.model = "All";
 
-    query.value.status = status.value;
-    query.value.text = text.value;
-    query.value.sort = sort.value;
-    query.value.skip = skip.value;
-    await getProjects();
     setTimeout(() => {
-      init.value = false;
-      state.value = "idle";
-    }, 250);
+      if (rdProjectObserver.value) {
+        const observer = new IntersectionObserver(intersect, {
+          threshold: 0.5,
+        });
+        observer.observe(rdProjectObserver.value);
+      }
+    }, 100);
   });
 </script>
 
@@ -207,10 +238,10 @@
       display: flex;
       flex-direction: column;
       .rd-project-panel-header {
+        z-index: 2;
         position: relative;
         width: 100%;
         padding: 0.75rem 0 0 0;
-        border-bottom: var(--border);
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
@@ -243,6 +274,51 @@
         flex-grow: 1;
         flex-direction: column;
         overflow-y: auto;
+        .rd-project-progress-bar {
+          pointer-events: none;
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: var(--border-color);
+          display: flex;
+          justify-content: center !important;
+          align-items: center !important;
+          overflow: hidden;
+          .rd-project-progress-bar-outer {
+            position: relative;
+            width: 100%;
+            height: 2px;
+            background: var(--border-color);
+            display: flex;
+            opacity: 0;
+            transition: 0.25s opacity;
+            overflow: hidden;
+            .rd-project-progress-bar-inner {
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 100%;
+              height: 100%;
+              background: var(--primary-color);
+              animation: rd-loading 2s ease infinite;
+            }
+          }
+          &.rd-project-progress-bar-active {
+            .rd-project-progress-bar-outer {
+              opacity: 1;
+            }
+          }
+        }
+        .rd-project-observer {
+          position: relative;
+          width: 100%;
+          height: 2rem;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
       }
     }
     @media only screen and (max-width: 1024px) {
