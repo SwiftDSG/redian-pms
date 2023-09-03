@@ -460,7 +460,6 @@
       position: relative;
       width: 100%;
       border: var(--border);
-      // border-radius: 0.75rem;
       box-sizing: border-box;
       display: flex;
       flex: 1;

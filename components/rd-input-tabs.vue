@@ -5,15 +5,15 @@
     :class="input.disabled ? 'rd-input-component-disabled' : ''"
   >
     <input
-      v-for="(option, i) in input.options"
-      :key="i"
+      v-for="i in input.options.length"
+      :key="i - 1"
       type="radio"
       class="rd-input"
       name="rd-input-radio"
       ref="rdInput"
-      :id="`${id}-${i}`"
+      :id="`${id}-${i - 1}`"
       :disabled="input.disabled"
-      :data-index="i"
+      :data-index="i - 1"
       @change="updateModel"
     />
     <label

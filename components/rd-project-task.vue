@@ -3,7 +3,7 @@
     <div class="rd-project-task-header">
       <span class="rd-project-task-name rd-headline-5">{{ task.name }}</span>
       <span
-        class="rd-project-task-status rd-headline-6"
+        class="rd-project-task-status rd-caption-text"
         :class="`rd-project-task-status-${task.status[0].kind}`"
         >{{ getStatus(task.status[0].kind) }}</span
       >
@@ -13,15 +13,15 @@
         <span class="rd-project-task-placeholder rd-caption-text"
           >Index Value</span
         >
-        <span class="rd-project-task-value rd-headline-5">{{
+        <span class="rd-project-task-value rd-headline-6">{{
           `${task.value.toFixed(3)}%`
         }}</span>
       </div>
-      <div class="rd-project-task-collaborators">
+      <div class="rd-project-task-detail">
         <span class="rd-project-task-placeholder rd-caption-text">{{
           task.task?.length ? "Subtasks" : "Collaborators"
         }}</span>
-        <span class="rd-project-task-value rd-headline-5">{{
+        <span class="rd-project-task-value rd-headline-6">{{
           task.task?.length || task.user?.length || 0
         }}</span>
       </div>
@@ -146,18 +146,13 @@
       display: flex;
 
       .rd-project-task-detail {
-        flex-direction: column;
-        width: 100%;
         position: relative;
-        display: flex;
-      }
-      .rd-project-task-collaborators {
-        flex-direction: column;
         width: 100%;
-        position: relative;
-        justify-content: flex-end;
-        align-items: flex-end;
         display: flex;
+        flex-direction: column;
+        &:last-child {
+          align-items: flex-end;
+        }
       }
     }
     .rd-project-task-overlay {

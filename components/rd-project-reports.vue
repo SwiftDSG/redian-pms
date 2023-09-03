@@ -230,7 +230,7 @@
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >In</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5">{{
+                  <span class="rd-report-detail-value rd-headline-6">{{
                     `${report.progress.time?.[0][0]
                       .toString()
                       .padStart(2, "0")}:${report.progress.time?.[0][1]
@@ -242,7 +242,7 @@
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Out</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5">{{
+                  <span class="rd-report-detail-value rd-headline-6">{{
                     `${report.progress.time?.[1][0]
                       .toString()
                       .padStart(2, "0")}:${report.progress.time?.[1][1]
@@ -254,7 +254,7 @@
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Duration (hrs)</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5">{{
+                  <span class="rd-report-detail-value rd-headline-6">{{
                     `${
                       report.progress.time
                         ? formatHours(report.progress.time).toFixed(2)
@@ -266,7 +266,7 @@
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Progress (%)</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5">{{
+                  <span class="rd-report-detail-value rd-headline-6">{{
                     `${report.progress.progress.toFixed(3)}%`
                   }}</span>
                 </div>
@@ -274,7 +274,7 @@
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Documentation</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5">{{
+                  <span class="rd-report-detail-value rd-headline-6">{{
                     `${report.progress.documentation?.length || 0} photos`
                   }}</span>
                 </div>
@@ -282,7 +282,7 @@
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Worker</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5">{{
+                  <span class="rd-report-detail-value rd-headline-6">{{
                     `${report.progress.member?.length || 0} workers`
                   }}</span>
                 </div>
@@ -294,7 +294,7 @@
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Time</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5">{{
+                  <span class="rd-report-detail-value rd-headline-6">{{
                     formatTime(report.incident.date)
                   }}</span>
                 </div>
@@ -302,7 +302,7 @@
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Type</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5">{{
+                  <span class="rd-report-detail-value rd-headline-6">{{
                     getIncidentKind(report.incident.kind)
                   }}</span>
                 </div>
@@ -310,7 +310,7 @@
                   <span class="rd-report-detail-placeholder rd-caption-text"
                     >Casualties</span
                   >
-                  <span class="rd-report-detail-value rd-headline-5">{{
+                  <span class="rd-report-detail-value rd-headline-6">{{
                     `${report.incident.member?.length || 0} workers`
                   }}</span>
                 </div>

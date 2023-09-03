@@ -57,6 +57,7 @@ export type ProjectTaskMinResponse = {
   user?: ProjectTaskUserResponse[];
   task?: ProjectTaskTaskResponse[];
   name: string;
+  description?: string;
   period?: ProjectTaskPeriodResponse;
   actual?: ProjectTaskPeriodResponse;
   status: ProjectTaskStatus[];
@@ -91,9 +92,9 @@ export type ProjectTaskTaskResponse = {
   period?: ProjectTaskPeriodResponse;
   status: ProjectTaskStatus[];
   volume?: ProjectTaskVolume;
-}
+};
 export type ProjectTaskUserResponse = {
   _id: string;
   name: string;
   image?: UserImage;
-}
+};

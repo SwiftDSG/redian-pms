@@ -78,6 +78,7 @@
 
   const searchTimeout = ref<NodeJS.Timeout | null>(null);
   const searchLoading = ref<boolean>(false);
+  const searchObserver = ref<IntersectionObserver | null>(null);
 
   const tabsInput = ref<InputSwitchOption>({
     options: [
@@ -162,15 +163,18 @@
   }
   async function refreshProjects(reset: boolean = false): Promise<void> {
     searchLoading.value = true;
-    if (reset) query.value.skip = 0;
+    if (reset) {
+      query.value.skip = 0;
+      query.value.limit = 10;
+    }
     query.value.status = status.value;
     query.value.text = text.value;
     query.value.sort = sort.value;
 
-    await getProjects(reset);
+    await getProjects();
     searchLoading.value = false;
     query.value.skip += 10;
-    if (init.value) {
+    if (init.value || state.value === "changing") {
       setTimeout(() => {
         init.value = false;
         state.value = "idle";
@@ -208,14 +212,18 @@
   onMounted(async () => {
     tabsInput.value.model = "All";
 
-    setTimeout(() => {
-      if (rdProjectObserver.value) {
-        const observer = new IntersectionObserver(intersect, {
-          threshold: 0.5,
-        });
-        observer.observe(rdProjectObserver.value);
-      }
-    }, 100);
+    query.value.skip = 0;
+    query.value.limit = 10;
+
+    if (rdProjectObserver.value) {
+      searchObserver.value = new IntersectionObserver(intersect, {
+        threshold: 0.5,
+      });
+      searchObserver.value.observe(rdProjectObserver.value);
+    }
+  });
+  onBeforeUnmount(() => {
+    if (searchObserver.value) searchObserver.value.disconnect();
   });
 </script>
 

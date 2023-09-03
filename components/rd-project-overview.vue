@@ -6,11 +6,11 @@
       </div>
       <div class="rd-panel-detail-container">
         <div class="rd-panel-detail-value-container">
-          <span class="rd-panel-detail-value rd-headline-3">{{
+          <span class="rd-panel-detail-value rd-headline-4">{{
             taskComplete
           }}</span>
-          <span class="rd-panel-detail-target rd-headline-3">/</span>
-          <span class="rd-panel-detail-target rd-headline-3">{{
+          <span class="rd-panel-detail-target rd-headline-4">/</span>
+          <span class="rd-panel-detail-target rd-headline-4">{{
             taskTotal
           }}</span>
         </div>
@@ -25,11 +25,11 @@
       </div>
       <div class="rd-panel-detail-container">
         <div class="rd-panel-detail-value-container">
-          <span class="rd-panel-detail-value rd-headline-3">{{
+          <span class="rd-panel-detail-value rd-headline-4">{{
             durationActual
           }}</span>
-          <span class="rd-panel-detail-target rd-headline-3">/</span>
-          <span class="rd-panel-detail-target rd-headline-3">{{
+          <span class="rd-panel-detail-target rd-headline-4">/</span>
+          <span class="rd-panel-detail-target rd-headline-4">{{
             durationPlan
           }}</span>
         </div>
@@ -49,7 +49,7 @@
       <div class="rd-panel-detail-container">
         <div class="rd-panel-detail-value-container">
           <span
-            class="rd-panel-detail-value rd-headline-3"
+            class="rd-panel-detail-value rd-headline-4"
             :style="`color: ${
               valueActual - valuePlan >= 0
                 ? 'var(--success-color)'
@@ -59,12 +59,12 @@
           >
           <span
             v-if="view === 'desktop'"
-            class="rd-panel-detail-target rd-headline-3"
+            class="rd-panel-detail-target rd-headline-4"
             >/</span
           >
           <span
             v-if="view === 'desktop'"
-            class="rd-panel-detail-target rd-headline-3"
+            class="rd-panel-detail-target rd-headline-4"
             >{{ `${valuePlan.toFixed(2)}%` }}</span
           >
         </div>
@@ -84,7 +84,7 @@
       <div class="rd-panel-detail-container">
         <div class="rd-panel-detail-value-container">
           <span
-            class="rd-panel-detail-value rd-headline-3"
+            class="rd-panel-detail-value rd-headline-4"
             :style="`color: ${
               valueActual - valuePlan >= 0
                 ? 'var(--success-color)'
@@ -125,128 +125,89 @@
         :project="project"
       />
     </div>
-    <div
-      class="rd-panel rd-panel-chart rd-panel-members"
-      style="margin-bottom: 2rem"
-    >
+    <div class="rd-panel rd-panel-chart rd-panel-chart-full">
       <div class="rd-panel-header">
-        <span class="rd-panel-name rd-headline-3">Members</span>
-        <rd-input-button
-          v-if="validate('get_roles')"
-          label="More"
-          @clicked="emits('change-menu', 'users')"
-        />
+        <span class="rd-panel-name rd-headline-3">Tasks list</span>
+        <rd-input-select :input="statusInput" />
       </div>
-      <div class="rd-panel-body">
-        <div
-          v-for="member in data.projectMembers.slice(0, 3)"
-          :key="member._id"
-          class="rd-panel-member"
-        >
-          <div class="rd-panel-member-image-container">
-            <img
-              :src="
-                member.image
-                  ? `${config.public.apiBase}/files?name=${member._id}/${member.image._id}.${member.image.extension}&kind=user_image`
-                  : `${config.public.base}/default_user.svg`
-              "
-              class="rd-panel-member-image"
-            />
-          </div>
-          <div class="rd-panel-member-detail-container">
-            <span class="rd-panel-member-placeholder rd-caption-text"
-              >Name</span
-            >
-            <span class="rd-panel-member-value rd-headline-5">{{
-              member.name
-            }}</span>
-          </div>
-          <div class="rd-panel-member-detail-container">
-            <span class="rd-panel-member-placeholder rd-caption-text"
-              >Role</span
-            >
-            <span class="rd-panel-member-value rd-headline-5">{{
-              member.role[0].name
-            }}</span>
-          </div>
+      <rd-project-tasks-lite
+        :data="data.projectTimeline"
+        :project="project"
+        :status="taskStatus"
+        @open-task="openTask"
+      />
+    </div>
+    <div
+      v-if="validate('get_tasks')"
+      class="rd-panel rd-panel-action"
+      @click="emits('change-menu', 'tasks')"
+    >
+      <div class="rd-panel-icon-container">
+        <rd-svg class="rd-panel-icon" name="clipboard" />
+      </div>
+      <div class="rd-panel-detail-container">
+        <div class="rd-panel-detail-value-container">
+          <span class="rd-panel-detail-value rd-headline-4">Manage tasks</span>
         </div>
+        <span class="rd-panel-detail-placeholder rd-headline-6">{{
+          `See or manage all ${taskTotal} tasks.`
+        }}</span>
       </div>
     </div>
-    <div class="rd-panel-container" style="margin-bottom: 2rem">
-      <div
-        v-if="validate('get_tasks')"
-        class="rd-panel rd-panel-counter"
-        @click="emits('change-menu', 'tasks')"
-      >
-        <div class="rd-panel-icon-container">
-          <rd-svg class="rd-panel-icon" name="clipboard" />
-        </div>
-        <div class="rd-panel-detail-container">
-          <div class="rd-panel-detail-value-container">
-            <span class="rd-panel-detail-value rd-headline-3"
-              >Manage tasks</span
-            >
-          </div>
-          <span class="rd-panel-detail-placeholder rd-headline-6">{{
-            `See or manage all ${taskTotal} tasks.`
-          }}</span>
-        </div>
+    <div
+      v-if="validate('create_report')"
+      class="rd-panel rd-panel-action"
+      @click="emits('change-menu', 'reports')"
+    >
+      <div class="rd-panel-icon-container">
+        <rd-svg class="rd-panel-icon" name="file" />
       </div>
-      <div
-        v-if="validate('create_report')"
-        class="rd-panel rd-panel-counter"
-        @click="emits('change-menu', 'reports')"
-      >
-        <div class="rd-panel-icon-container">
-          <rd-svg class="rd-panel-icon" name="file" />
+      <div class="rd-panel-detail-container">
+        <div class="rd-panel-detail-value-container">
+          <span class="rd-panel-detail-value rd-headline-4"
+            >Manage reports</span
+          >
         </div>
-        <div class="rd-panel-detail-container">
-          <div class="rd-panel-detail-value-container">
-            <span class="rd-panel-detail-value rd-headline-3"
-              >Manage reports</span
-            >
-          </div>
-          <span class="rd-panel-detail-placeholder rd-headline-6">{{
-            `See, create or export reports.`
-          }}</span>
-        </div>
+        <span class="rd-panel-detail-placeholder rd-headline-6">{{
+          `See, create or export reports.`
+        }}</span>
       </div>
-      <div
-        v-if="validate('get_roles')"
-        class="rd-panel rd-panel-counter"
-        @click="emits('change-menu', 'users')"
-      >
-        <div class="rd-panel-icon-container">
-          <rd-svg class="rd-panel-icon" name="account-group" />
-        </div>
-        <div class="rd-panel-detail-container">
-          <div class="rd-panel-detail-value-container">
-            <span class="rd-panel-detail-value rd-headline-3"
-              >Manage members</span
-            >
-          </div>
-          <span class="rd-panel-detail-placeholder rd-headline-6">{{
-            `Change roles and members for this project.`
-          }}</span>
-        </div>
+    </div>
+    <div
+      v-if="validate('get_roles')"
+      class="rd-panel rd-panel-action"
+      @click="emits('change-menu', 'users')"
+    >
+      <div class="rd-panel-icon-container">
+        <rd-svg class="rd-panel-icon" name="account-group" />
       </div>
-      <div
-        class="rd-panel rd-panel-counter"
-        @click="emits('change-menu', 'timeline')"
-      >
-        <div class="rd-panel-icon-container">
-          <rd-svg class="rd-panel-icon" name="timeline" />
+      <div class="rd-panel-detail-container">
+        <div class="rd-panel-detail-value-container">
+          <span class="rd-panel-detail-value rd-headline-4"
+            >Manage members</span
+          >
         </div>
-        <div class="rd-panel-detail-container">
-          <div class="rd-panel-detail-value-container">
-            <span class="rd-panel-detail-value rd-headline-3"
-              >Manage timeline</span
-            >
-          </div>
-          <span class="rd-panel-detail-placeholder rd-headline-6">{{
-            `See or change the workflow of this project.`
-          }}</span>
+        <span class="rd-panel-detail-placeholder rd-headline-6">{{
+          `Change roles and members.`
+        }}</span>
+      </div>
+    </div>
+    <div
+      class="rd-panel rd-panel-action"
+      @click="emits('change-menu', 'timeline')"
+    >
+      <div class="rd-panel-icon-container">
+        <rd-svg class="rd-panel-icon" name="timeline" />
+      </div>
+      <div class="rd-panel-detail-container">
+        <div class="rd-panel-detail-value-container">
+          <span class="rd-panel-detail-value rd-headline-4"
+            >Manage timeline</span
+          >
         </div>
+        <span class="rd-panel-detail-placeholder rd-headline-6">{{
+          `See or add reports.`
+        }}</span>
       </div>
     </div>
   </div>
@@ -254,12 +215,16 @@
 
 <script lang="ts" setup>
   import { gsap } from "gsap";
+  import { InputGeneric } from "types/general";
   import {
     ProjectMemberResponse,
     ProjectProgressResponse,
     ProjectResponse,
   } from "~~/types/project";
-  import { ProjectTaskMinResponse } from "~~/types/project-task";
+  import {
+    ProjectTaskMinResponse,
+    ProjectTaskStatusKind,
+  } from "~~/types/project-task";
 
   const props = defineProps<{
     project: ProjectResponse;
@@ -270,8 +235,7 @@
       projectMembers: ProjectMemberResponse[];
     };
   }>();
-  const emits = defineEmits(["change-menu", "changing-done"]);
-  const config = useRuntimeConfig();
+  const emits = defineEmits(["change-menu", "changing-done", "open-task"]);
   const { view } = useMain();
   const { validate } = useProject();
 
@@ -283,6 +247,30 @@
       : new Date().setHours(23, 59, 59, 999)
   );
 
+  const statusInput = ref<InputGeneric<ProjectTaskStatusKind>>({
+    name: "status",
+    placeholder: "Tasks status",
+    model: "On progress",
+    value: "running",
+    options: [
+      {
+        name: "On progress",
+        value: "running",
+      },
+      {
+        name: "Pending",
+        value: "pending",
+      },
+      {
+        name: "Finished",
+        value: "finished",
+      },
+    ],
+  });
+
+  const taskStatus = computed<ProjectTaskStatusKind>(
+    () => statusInput.value.value || "running"
+  );
   const taskTotal = computed<number>(() => props.data.projectTimeline.length);
   const taskComplete = computed<number>(
     () =>
@@ -339,6 +327,10 @@
     },
   };
 
+  function openTask(_id: string): void {
+    emits("open-task", _id);
+  }
+
   watch(
     () => props.state,
     (val) => {
@@ -367,6 +359,7 @@
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
+    align-items: flex-start;
     .rd-panel-container {
       position: relative;
       width: calc(50% - 0.5rem);
@@ -392,7 +385,8 @@
       box-sizing: border-box;
       background: var(--background-depth-one-color);
       display: flex;
-      &.rd-panel-counter {
+      &.rd-panel-counter,
+      &.rd-panel-action {
         width: calc((100% - 3rem) / 4);
         align-items: center;
         gap: 0.75rem;
@@ -409,7 +403,7 @@
           position: relative;
           width: calc(100% - 3.75rem);
           display: flex;
-          gap: 0.125rem;
+          gap: 0.25rem;
           flex-direction: column;
           justify-content: center;
           span.rd-panel-detail-placeholder {
@@ -432,6 +426,9 @@
             color: var(--font-secondary-color) !important;
           }
         }
+      }
+      &.rd-panel-action {
+        cursor: pointer;
       }
       &.rd-panel-chart {
         width: calc(50% - 0.5rem);
@@ -497,6 +494,12 @@
             }
           }
         }
+        &.rd-panel-chart-full {
+          width: 100%;
+        }
+      }
+      &:last-child {
+        margin-bottom: 2rem;
       }
     }
     &.rd-component-overview {
@@ -516,6 +519,9 @@
       .rd-panel {
         width: 100%;
         &.rd-panel-chart {
+          width: 100%;
+        }
+        &.rd-panel-action {
           width: 100%;
         }
         &.rd-panel-counter {

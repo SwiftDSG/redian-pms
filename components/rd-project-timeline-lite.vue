@@ -1,7 +1,12 @@
 <template>
   <div class="rd-component">
     <div ref="rdDayContainer" v-if="!init" class="rd-day-container">
-      <div v-for="(day, i) in days" :key="i" class="rd-day">
+      <div
+        v-for="(day, i) in days"
+        :key="i"
+        class="rd-day"
+        :class="day.getTime() === today ? 'rd-day-active' : ''"
+      >
         <div class="rd-day-date">
           <span class="rd-day-date-value rd-headline-3">{{
             day.getDate()
@@ -11,6 +16,33 @@
           }}</span>
         </div>
         <div class="rd-day-body"></div>
+      </div>
+      <div
+        v-if="period"
+        class="rd-counter-container"
+        :style="`left: ${
+          Math.floor((today - period.start.getTime()) / 86400000) * 3
+        }rem`"
+      >
+        <div ref="rdCounter" class="rd-counter">
+          <div class="rd-counter-line"></div>
+          <svg
+            class="rd-counter-circle"
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              width="12"
+              height="12"
+              rx="6"
+              style="fill: var(--warning-color)"
+            />
+            <rect x="3" y="3" width="6" height="6" rx="3" fill="white" />
+          </svg>
+        </div>
       </div>
     </div>
     <div
@@ -41,6 +73,7 @@
 </template>
 
 <script lang="ts" setup>
+  import { gsap } from "gsap";
   import { ProjectResponse } from "~~/types/project";
   import {
     ProjectTaskMinResponse,
@@ -69,15 +102,19 @@
     project: ProjectResponse;
     data: ProjectTaskMinResponse[];
   }>();
+  const { rem } = useMain();
 
   const rdDayContainer = ref<HTMLDivElement | null>(null);
   const rdDataContainer = ref<HTMLDivElement | null>(null);
+  const rdCounter = ref<HTMLDivElement | null>(null);
 
   const datas = ref<DataTimeline[]>([]);
 
   const period = ref<Period | null>(null);
-  const days = ref<Date[]>([]);
   const init = ref<boolean>(true);
+  const today = ref<number>(new Date().setHours(0, 0, 0, 0));
+  const days = ref<Date[]>([]);
+  const daysInterval = ref<NodeJS.Timer | null>(null);
 
   const months = [
     "January",
@@ -95,31 +132,38 @@
   ];
 
   function setPeriod(tasks: ProjectTaskMinResponse[]): void {
-    const allPeriod: [number[], number[]] = tasks.reduce<[number[], number[]]>(
-      (a, b) => {
-        if (b.period) {
-          a[0].push(new Date(b.period.start).getTime());
-          a[1].push(new Date(b.period.end).getTime());
+    if (tasks.length) {
+      const allPeriod: [number[], number[]] = tasks.reduce<
+        [number[], number[]]
+      >(
+        (a, b) => {
+          if (b.period) {
+            a[0].push(new Date(b.period.start).getTime());
+            a[1].push(new Date(b.period.end).getTime());
+          }
+          return a;
+        },
+        [[], []]
+      );
+
+      if (allPeriod[0].length && allPeriod[1].length) {
+        period.value = {
+          start: new Date(Math.min(...allPeriod[0])),
+          end: new Date(Math.max(...allPeriod[1])),
+        };
+
+        const diff =
+          Math.ceil(
+            (period.value.end.getTime() - period.value.start.getTime()) /
+              86400000
+          ) + 1;
+        if (!days.value.length) {
+          for (var i: number = 0; i < diff; i++) {
+            days.value.push(
+              new Date(period.value.start.setHours(0, 0, 0, 0) + 86400000 * i)
+            );
+          }
         }
-        return a;
-      },
-      [[], []]
-    );
-
-    period.value = {
-      start: new Date(Math.min(...allPeriod[0])),
-      end: new Date(Math.max(...allPeriod[1])),
-    };
-
-    const diff =
-      Math.ceil(
-        (period.value.end.getTime() - period.value.start.getTime()) / 86400000
-      ) + 1;
-    if (!days.value.length) {
-      for (var i: number = 0; i < diff; i++) {
-        days.value.push(
-          new Date(period.value.start.setHours(0, 0, 0, 0) + 86400000 * i)
-        );
       }
     }
   }
@@ -168,6 +212,25 @@
       rdDataContainer.value.scrollLeft = scrollLeft;
     }
   }
+  function initCounter(shift?: boolean): void {
+    if (rdCounter.value) {
+      today.value = new Date().setHours(0, 0, 0, 0);
+      const percentage = (new Date().getTime() - today.value) / 86400000;
+
+      if (shift && period.value && rdDataContainer.value)
+        rdDataContainer.value.scrollLeft =
+          Math.floor((today.value - period.value.start.getTime()) / 86400000) *
+          3 *
+          rem.value;
+
+      gsap.to(rdCounter.value, {
+        x: `${percentage * 3}rem`,
+        duration: 0,
+      });
+
+      daysInterval.value = setInterval(initCounter, 60000);
+    }
+  }
 
   watch(
     () => props.data,
@@ -195,6 +258,13 @@
     },
     { immediate: true }
   );
+
+  onMounted(() => {
+    initCounter(true);
+  });
+  onBeforeUnmount(() => {
+    if (daysInterval.value) clearInterval(daysInterval.value);
+  });
 </script>
 
 <style lang="scss" scoped>
@@ -252,6 +322,13 @@
           flex-grow: 1;
           opacity: 0.375;
         }
+        &.rd-day-active {
+          .rd-day-date {
+            span {
+              color: var(--primary-color) !important;
+            }
+          }
+        }
         &::after {
           content: "";
           pointer-events: none;
@@ -265,6 +342,37 @@
         }
         &:last-child::after {
           border: none;
+        }
+      }
+      .rd-counter-container {
+        z-index: 2;
+        position: absolute;
+        top: 3rem;
+        bottom: 0;
+        left: 0;
+        width: 3rem;
+        height: calc(100% - 2.75rem);
+        .rd-counter {
+          position: relative;
+          left: -0.25rem;
+          width: 0.5rem;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          svg.rd-counter-circle {
+            position: absolute;
+            top: -0.25rem;
+            left: 0;
+            width: 0.5rem;
+            height: 0.5rem;
+          }
+          .rd-counter-line {
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: var(--warning-color);
+          }
         }
       }
       &::-webkit-scrollbar {

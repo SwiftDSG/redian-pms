@@ -97,6 +97,7 @@
       }"
       @changing-done="projectMenuState = 'idle'"
       @change-menu="projectMenuChange"
+      @open-task="openTask"
     />
     <rd-project-progress
       v-if="projectMenu === 'progress' && project.data && projectProgress"

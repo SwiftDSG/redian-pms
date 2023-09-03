@@ -259,7 +259,7 @@
     "edit-task",
     "open-task",
   ]);
-  const { view } = useMain();
+  const { view, rem } = useMain();
 
   const rdPanel = ref<HTMLDivElement | null>(null);
   const rdPanelTask = ref<HTMLDivElement[] | null>(null);
@@ -277,7 +277,7 @@
   const period = ref<Period | null>(null);
   const today = ref<number>(new Date().setHours(0, 0, 0, 0));
   const days = ref<Date[]>([]);
-  const daysAnim = ref<GSAPAnimation | null>(null);
+  const daysInterval = ref<NodeJS.Timer | null>(null);
 
   const months = [
     "January",
@@ -442,24 +442,23 @@
       rdPanelTimelineDataWrapper.value.scrollTop = scrollTop;
     }
   }
-  function initCounter(): void {
+  function initCounter(shift?: boolean): void {
     if (rdPanelTimelineCounter.value) {
       today.value = new Date().setHours(0, 0, 0, 0);
       const percentage = (new Date().getTime() - today.value) / 86400000;
+
+      if (shift && period.value && rdPanelTimeline.value)
+        rdPanelTimeline.value.scrollLeft =
+          Math.floor((today.value - period.value.start.getTime()) / 86400000) *
+          3 *
+          rem.value;
 
       gsap.to(rdPanelTimelineCounter.value, {
         x: `${percentage * 3}rem`,
         duration: 0,
       });
 
-      if (daysAnim.value) daysAnim.value.kill();
-
-      daysAnim.value = gsap.to(rdPanelTimelineCounter.value, {
-        x: "3rem",
-        ease: "power0",
-        duration: percentage * 86400,
-        onComplete: initCounter,
-      });
+      daysInterval.value = setInterval(initCounter, 60000);
     }
   }
 
@@ -529,10 +528,10 @@
   );
 
   onMounted(() => {
-    window.addEventListener("focus", initCounter);
+    initCounter(true);
   });
   onBeforeUnmount(() => {
-    if (daysAnim.value) daysAnim.value.kill();
+    if (daysInterval.value) clearInterval(daysInterval.value);
   });
 </script>
 

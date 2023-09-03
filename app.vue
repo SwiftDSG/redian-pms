@@ -612,6 +612,7 @@
       flex-direction: column;
 
       .rd-navigation-company {
+        cursor: pointer;
         position: relative;
         width: 100%;
         height: 6rem;
@@ -620,6 +621,9 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        * {
+          pointer-events: none;
+        }
         .rd-navigation-company-logo-container {
           position: relative;
           width: 2rem;
