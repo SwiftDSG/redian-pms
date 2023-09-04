@@ -4,7 +4,7 @@
       <div
         v-if="project.data"
         class="rd-report"
-        ref="rdReport"
+        ref="rdReportChart"
         :style="`width: ${(datas.length ? datas.length * 2 : 16) + 4}cm`"
       >
         <div class="rd-report-header">
@@ -20,13 +20,12 @@
           </div>
           <div class="rd-report-detail-container">
             <span class="rd-report-name">{{ company.name }}</span>
-            <span class="rd-report-name">Progress Report</span>
+            <span class="rd-report-name">{{
+              `Cumulative Report: ${formatDate(
+                startDate || datas[0].x
+              )} - ${formatDate(endDate || datas[datas.length - 1].x)}`
+            }}</span>
             <span class="rd-report-title">{{ project.data?.name }}</span>
-            <!-- <span class="rd-report-description">{{
-              `${formatDate(startDate || datas[0].x)} - ${formatDate(
-                endDate || datas[datas.length - 1].x
-              )}`
-            }}</span> -->
           </div>
           <div class="rd-report-logo-container">
             <img
@@ -158,6 +157,152 @@
           </div>
         </div>
       </div>
+      <div
+        v-if="project.data"
+        class="rd-report"
+        ref="rdReportDetail"
+        style="width: 29.7cm; height: auto"
+      >
+        <div class="rd-report-header">
+          <div class="rd-report-logo-container">
+            <img
+              :src="
+                company.image
+                  ? `${config.public.apiBase}/files?kind=company_image&name=${company._id}/${company.image._id}.${company.image.extension}`
+                  : `${config.app.baseURL}/logo.svg`
+              "
+              class="rd-report-logo"
+            />
+          </div>
+          <div class="rd-report-detail-container">
+            <span class="rd-report-name">{{ company.name }}</span>
+            <span class="rd-report-name">Cumulative Report Detail</span>
+            <span class="rd-report-title">{{ project.data?.name }}</span>
+          </div>
+          <div class="rd-report-logo-container">
+            <img
+              :src="
+                project.data?.customer.image
+                  ? `${config.public.apiBase}/files?kind=customer_image&name=${project.data?.customer._id}/${project.data?.customer.image._id}.${project.data?.customer.image.extension}`
+                  : `${config.app.baseURL}/default_customer.svg`
+              "
+              class="rd-report-logo"
+            />
+          </div>
+        </div>
+        <div class="rd-report-details">
+          <div class="rd-report-detail">
+            <span class="rd-report-detail-placeholder">Current period:</span>
+            <span class="rd-report-detail-value">{{
+              `${formatDate(startDate || datas[0].x)} - ${formatDate(
+                endDate || datas[datas.length - 1].x
+              )}`
+            }}</span>
+          </div>
+          <div v-if="otherValid" class="rd-report-detail">
+            <span class="rd-report-detail-placeholder">Comparison period:</span>
+            <span class="rd-report-detail-value">{{
+              `${formatDate(otherStartDate || 0)} - ${formatDate(
+                otherEndDate || 0
+              )}`
+            }}</span>
+          </div>
+        </div>
+        <div
+          class="rd-report-table"
+          :class="otherValid ? 'rd-report-table-compare' : ''"
+        >
+          <div class="rd-report-table-header">
+            <span class="rd-report-table-data">No</span>
+            <span class="rd-report-table-data rd-report-table-data-name"
+              >Name</span
+            >
+            <span class="rd-report-table-data rd-report-table-data-volume"
+              >Volume</span
+            >
+            <span
+              v-if="otherValid"
+              class="rd-report-table-data rd-report-table-data-value"
+              >Comparison period (%)</span
+            >
+            <span class="rd-report-table-data rd-report-table-data-value"
+              >Current period (%)</span
+            >
+            <span class="rd-report-table-data rd-report-table-data-value"
+              >Cumulative (%)</span
+            >
+          </div>
+          <div
+            v-for="area in areas"
+            :key="area._id"
+            class="rd-report-table-area"
+          >
+            <span class="rd-report-table-data rd-report-table-data-area">{{
+              area.name
+            }}</span>
+            <div
+              v-for="(task, i) in area.task"
+              :key="task._id"
+              class="rd-report-table-body"
+            >
+              <span class="rd-report-table-data">{{ i + 1 }}</span>
+              <span
+                class="rd-report-table-data rd-report-table-data-name"
+                :style="`padding-left: ${0.25 * getLevel(task._id)}cm`"
+                >{{ task.name }}</span
+              >
+              <span class="rd-report-table-data rd-report-table-data-volume">{{
+                task.volume
+                  ? `${task.volume.value} ${task.volume.unit}`
+                  : "1 pcs"
+              }}</span>
+              <span
+                v-if="otherValid"
+                class="rd-report-table-data rd-report-table-data-value"
+                >{{
+                  task.count?.other.toLocaleString("de-DE", {
+                    maximumFractionDigits: 4,
+                  }) || ""
+                }}</span
+              >
+              <span class="rd-report-table-data rd-report-table-data-value">{{
+                task.count?.current.toLocaleString("de-DE", {
+                  maximumFractionDigits: 4,
+                }) || ""
+              }}</span>
+              <span class="rd-report-table-data rd-report-table-data-value">{{
+                task.count?.cumulative.toLocaleString("de-DE", {
+                  maximumFractionDigits: 4,
+                }) || ""
+              }}</span>
+            </div>
+          </div>
+          <div class="rd-report-table-footer">
+            <span class="rd-report-table-data rd-report-table-data-total"
+              >Total</span
+            >
+            <span
+              v-if="otherValid"
+              class="rd-report-table-data rd-report-table-data-value"
+              >{{
+                total.other.toLocaleString("de-DE", {
+                  maximumFractionDigits: 4,
+                })
+              }}</span
+            >
+            <span class="rd-report-table-data rd-report-table-data-value">{{
+              total.current.toLocaleString("de-DE", {
+                maximumFractionDigits: 4,
+              })
+            }}</span>
+            <span class="rd-report-table-data rd-report-table-data-value">{{
+              total.cumulative.toLocaleString("de-DE", {
+                maximumFractionDigits: 4,
+              })
+            }}</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -165,10 +310,27 @@
 <script lang="ts" setup>
   import html2canvas from "html2canvas";
   import { ProjectProgressResponse } from "types/project";
+  import { ProjectTaskMinResponse } from "types/project-task";
 
   type GroupKind = "daily" | "weekly" | "monthly";
+  interface RelationalObject extends ProjectTaskMinResponse {
+    child?: RelationalObject[];
+  }
+  interface ProjectTask extends ProjectTaskMinResponse {
+    count?: {
+      other: number;
+      current: number;
+      cumulative: number;
+    };
+  }
 
-  const { project, getProject, getProjectProgress } = useProject();
+  const {
+    project,
+    getProject,
+    getProjectProgress,
+    getProjectTasks,
+    getProjectReports,
+  } = useProject();
   const { company } = useCompany();
   const config = useRuntimeConfig();
   const route = useRoute();
@@ -176,8 +338,85 @@
   const datas = ref<ProjectProgressResponse[]>([]);
   const today = ref<number>(new Date().setHours(23, 59, 59, 999));
 
-  const rdReport = ref<HTMLDivElement | null>(null);
+  const rdReportChart = ref<HTMLDivElement | null>(null);
+  const rdReportDetail = ref<HTMLDivElement | null>(null);
   const rdReportSparkline = ref<SVGSVGElement | null>(null);
+
+  const areas = computed<
+    {
+      _id: string;
+      name: string;
+      task: ProjectTask[];
+    }[]
+  >(
+    () =>
+      project.value.data?.area?.map((a) => {
+        const task: ProjectTask[] = sort(
+          project.value.timeline?.filter((b) => b.area_id === a._id) || []
+        ).map((a) => {
+          if (
+            project.value.timeline?.findIndex((b) => b.task_id === a._id) === -1
+          ) {
+            return {
+              ...a,
+              count: {
+                other: otherValid.value
+                  ? getCompletition(a._id, {
+                      start: new Date(otherStartDate.value || 0),
+                      end: new Date(otherEndDate.value || 0),
+                    })
+                  : 0,
+                current: getCompletition(a._id, {
+                  start: new Date(startDate.value || datas.value[0]?.x),
+                  end: new Date(
+                    endDate.value || datas.value[datas.value.length - 1]?.x
+                  ),
+                }),
+                cumulative: getCompletition(a._id),
+              },
+            };
+          }
+          return a;
+        });
+
+        return {
+          _id: a._id,
+          name: a.name,
+          task,
+        };
+      }) || []
+  );
+  const total = computed<{
+    other: number;
+    current: number;
+    cumulative: number;
+  }>(() =>
+    areas.value.reduce<{
+      other: number;
+      current: number;
+      cumulative: number;
+    }>(
+      (v, a) => {
+        return a.task.reduce<{
+          other: number;
+          current: number;
+          cumulative: number;
+        }>(
+          (v, a) => ({
+            other: v.other + (a.count?.other || 0),
+            current: v.current + (a.count?.current || 0),
+            cumulative: v.cumulative + (a.count?.cumulative || 0),
+          }),
+          v
+        );
+      },
+      {
+        other: 0,
+        current: 0,
+        cumulative: 0,
+      }
+    )
+  );
 
   const startDate = computed<number | null>(() => {
     const date = route.query.start?.toString();
@@ -189,6 +428,19 @@
     if (!date) return null;
     return parseInt(date);
   });
+  const otherStartDate = computed<number | null>(() => {
+    const date = route.query.other_start?.toString();
+    if (!date) return null;
+    return parseInt(date);
+  });
+  const otherEndDate = computed<number | null>(() => {
+    const date = route.query.other_end?.toString();
+    if (!date) return null;
+    return parseInt(date);
+  });
+  const otherValid = computed<boolean>(
+    () => (otherStartDate.value || 0) < (otherEndDate.value || 0)
+  );
   const groupKind = computed<GroupKind>(() => {
     const kind = route.query.group?.toString();
     if (kind === "weekly") return "weekly";
@@ -197,18 +449,41 @@
   });
 
   async function download(): Promise<void> {
-    if (rdReport.value) {
-      const canvas = await html2canvas(rdReport.value, {
+    if (rdReportChart.value) {
+      const canvas = await html2canvas(rdReportChart.value, {
         useCORS: true,
         allowTaint: true,
+        scrollX: 0,
+        scrollY: 0,
       });
       const base64image = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       link.href = base64image;
-      link.download = "Test.png";
+      link.download = `Cumulative Report Graph ${
+        project.value.data?.name || "Project"
+      } ${formatDate(startDate.value || datas.value[0].x)}-${formatDate(
+        endDate.value || datas.value[datas.value.length - 1].x
+      )}.png`;
       link.click();
-      window.close();
     }
+    if (rdReportDetail.value) {
+      const canvas = await html2canvas(rdReportDetail.value, {
+        useCORS: true,
+        allowTaint: true,
+        scrollX: 0,
+        scrollY: 0,
+      });
+      const base64image = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = base64image;
+      link.download = `Cumulative Report Table ${
+        project.value.data?.name || "Project"
+      } ${formatDate(startDate.value || datas.value[0].x)}-${formatDate(
+        endDate.value || datas.value[datas.value.length - 1].x
+      )}.png`;
+      link.click();
+    }
+    window.close();
   }
   function draw(): void {
     if (rdReportSparkline.value) {
@@ -299,6 +574,131 @@
 
     return Math.ceil(((date.getTime() - year.getTime()) / 86400000 + 1) / 7);
   }
+  function getLevel(_id: string): number {
+    if (project.value.timeline?.length) {
+      const task = project.value.timeline.find((a) => a._id === _id);
+      if (task) {
+        let value = 1;
+        if (task.task_id) {
+          _id = task.task_id;
+          let found = true;
+          while (found) {
+            const task = project.value.timeline.find((a) => a._id === _id);
+            if (task) {
+              value++;
+              if (task.task_id) _id = task.task_id;
+              else found = false;
+            } else found = false;
+          }
+        }
+        return value;
+      }
+    }
+    return 1;
+  }
+  function getValue(_id: string): number {
+    if (project.value.timeline?.length) {
+      const task = project.value.timeline.find((a) => a._id === _id);
+      if (task) {
+        let value = task.value / 100;
+        if (task.task_id) {
+          _id = task.task_id;
+          let found = true;
+          while (found) {
+            const task = project.value.timeline.find((a) => a._id === _id);
+            if (task) {
+              value *= task.value / 100;
+              if (task.task_id) _id = task.task_id;
+              else found = false;
+            } else found = false;
+          }
+        }
+        return value * 100;
+      }
+    }
+    return 0;
+  }
+  function getCompletition(
+    _id: string,
+    period?: {
+      start: Date;
+      end: Date;
+    }
+  ): number {
+    if (project.value.timeline?.length && project.value.reports?.length) {
+      const start = period?.start.setHours(0, 0, 0, 0) || 0;
+      const end = period?.end.setHours(23, 59, 59, 999) || 0;
+      const completed = project.value.reports
+        .filter((a) => {
+          if (a.progress) {
+            const index = (a.progress.actual || []).findIndex(
+              (b) => b.task_id === _id
+            );
+            if (index > -1) {
+              if (
+                start &&
+                end &&
+                start < end &&
+                new Date(a.progress.date).getTime() >= start &&
+                new Date(a.progress.date).getTime() <= end
+              )
+                return true;
+              else if (!start && !end) return true;
+            }
+          }
+          return false;
+        })
+        .reduce((v, a) => {
+          if (a.progress && a.progress.actual) {
+            const task = a.progress.actual.find((b) => b.task_id === _id);
+            if (task) return v + task.value;
+          }
+          return v;
+        }, 0);
+
+      const value = (completed / 100) * getValue(_id);
+      return value;
+    }
+    return 0;
+  }
+  function sort(arr: ProjectTaskMinResponse[]): ProjectTaskMinResponse[] {
+    const copy: RelationalObject[] = JSON.parse(JSON.stringify(arr));
+
+    const keys: { [key: string]: RelationalObject } = {};
+    copy.forEach((obj) => {
+      keys[obj._id] = obj;
+      obj.child = [];
+    });
+
+    const root: RelationalObject[] = [];
+    copy.forEach((obj) => {
+      if (!obj.task_id) {
+        root.push(obj);
+      } else {
+        const parent = keys[obj.task_id];
+        if (parent?.child) {
+          parent.child.push(obj);
+        }
+      }
+    });
+
+    const result: RelationalObject[] = [];
+    function traverse(node: RelationalObject) {
+      result.push(node);
+      if (node.child?.length) {
+        node.child.sort((a, b) => a._id.localeCompare(b._id));
+        node.child.forEach((child) => traverse(child));
+      }
+    }
+
+    root.sort((a, b) => a._id.localeCompare(b._id));
+    root.forEach((root) => traverse(root));
+
+    return result.map((a) => {
+      delete a.child;
+      return a;
+    });
+  }
 
   onMounted(async () => {
     project.value = {
@@ -309,9 +709,16 @@
         _id: route.params.project_id.toString(),
       }),
       areas: null,
-      timeline: null,
+      timeline: await getProjectTasks({
+        _id: route.params.project_id.toString(),
+        query: {
+          kind: "full",
+        },
+      }),
       users: null,
-      reports: null,
+      reports: await getProjectReports({
+        _id: route.params.project_id.toString(),
+      }),
     };
 
     if (project.value.progress) {
@@ -392,14 +799,15 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: var(--background-depth-three-color);
+    background: #fff;
     display: flex;
-    justify-content: center;
-    overflow-x: auto;
+    overflow: auto;
     .rd-report-container {
       position: relative;
-      width: 100%;
+      width: fit-content;
+      height: fit-content;
       display: flex;
+      flex-direction: column;
       flex-grow: 1;
       span {
         font-family: "Courier New", Courier, monospace;
@@ -407,11 +815,11 @@
       }
       span.rd-report-title {
         font-weight: bold;
-        font-size: 0.625cm;
+        font-size: 0.5cm;
         text-transform: uppercase;
       }
       span.rd-report-name {
-        font-size: 0.625cm;
+        font-size: 0.5cm;
         text-transform: uppercase;
       }
       span.rd-report-description {
@@ -419,18 +827,19 @@
         text-transform: uppercase;
       }
       .rd-report {
-        position: absolute;
-        min-width: 20cm;
+        position: relative;
+        min-width: 29.7cm;
         height: 100vh;
         padding: 2cm;
         box-sizing: border-box;
         background: #fff;
         display: flex;
+        flex-shrink: 0;
         flex-direction: column;
         align-items: center;
         .rd-report-header {
           position: relative;
-          width: 20cm;
+          width: 25.7cm;
           margin-bottom: 1cm;
           display: flex;
           justify-content: center;
@@ -454,7 +863,6 @@
             img {
               position: relative;
               width: 100%;
-              height: 100%;
               object-fit: contain;
             }
             &:last-child {
@@ -626,7 +1034,7 @@
                 width: 100%;
                 height: 100%;
                 font-weight: bold;
-                font-size: 0.25cm;
+                font-size: 0.3cm;
                 line-height: 1;
                 display: flex;
                 justify-content: center;
@@ -652,6 +1060,124 @@
             }
             &:last-child {
               border: none;
+            }
+          }
+        }
+        .rd-report-details {
+          position: relative;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.25cm;
+          .rd-report-detail {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5cm;
+            span.rd-report-detail-placeholder {
+              position: relative;
+              font-size: 0.375cm;
+              line-height: 1;
+            }
+            span.rd-report-detail-value {
+              position: relative;
+              font-size: 0.375cm;
+              font-weight: bold;
+              line-height: 1;
+            }
+          }
+        }
+        .rd-report-table {
+          position: relative;
+          width: 100%;
+          margin-top: 0.5cm;
+          display: flex;
+          flex-direction: column;
+          .rd-report-table-header,
+          .rd-report-table-footer {
+            position: relative;
+            width: 100%;
+            border-left: 1px solid black;
+            border-bottom: 1px solid #000;
+            box-sizing: border-box;
+            display: flex;
+            span.rd-report-table-data {
+              height: 1cm;
+              font-weight: bold;
+              align-items: center;
+            }
+          }
+          .rd-report-table-header {
+            border-top: 1px solid #000;
+          }
+          .rd-report-table-area {
+            position: relative;
+            width: 100%;
+            border-left: 1px solid black;
+            border-bottom: 1px solid #000;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            span.rd-report-table-data-area {
+              width: 100%;
+              height: 1cm;
+              font-weight: bold;
+              border-bottom: 1px solid #000;
+              align-items: center;
+            }
+            .rd-report-table-body {
+              position: relative;
+              width: 100%;
+              display: flex;
+              &:nth-child(2) {
+                span.rd-report-table-data {
+                  padding-top: 0.25cm;
+                }
+              }
+              span.rd-report-table-data {
+                padding-bottom: 0.25cm;
+                box-sizing: border-box;
+              }
+            }
+          }
+          span.rd-report-table-data {
+            position: relative;
+            width: 5%;
+            height: auto;
+            font-size: 0.375cm;
+            border-right: 1px solid black;
+            padding-left: 0.25cm;
+            box-sizing: border-box;
+            display: flex;
+            align-items: flex-start;
+            &.rd-report-table-data-total {
+              width: 50%;
+            }
+            &.rd-report-table-data-name {
+              width: 35%;
+            }
+            &.rd-report-table-data-volume {
+              width: 10%;
+            }
+            &.rd-report-table-data-value {
+              width: 25%;
+            }
+          }
+          &.rd-report-table-compare {
+            span.rd-report-table-data {
+              &.rd-report-table-data-total {
+                width: 40%;
+              }
+              &.rd-report-table-data-name {
+                width: 25%;
+              }
+              &.rd-report-table-data-volume {
+                width: 10%;
+              }
+              &.rd-report-table-data-value {
+                width: 20%;
+              }
             }
           }
         }

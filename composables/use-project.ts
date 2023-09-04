@@ -124,13 +124,16 @@ export default () => {
     query?: {
       status?: ProjectTaskStatusKind;
       area_id?: string;
+      kind?: "default" | "full";
     };
   }): Promise<ProjectTaskMinResponse[]> => {
     try {
       const response: Response = await $fetch(
         `${config.public.apiBase}/projects/${payload._id}/tasks?${
           payload.query?.status ? `status=${payload.query.status}&` : ""
-        }${payload.query?.area_id ? `area_id=${payload.query.area_id}&` : ""}`,
+        }${
+          payload.query?.area_id ? `area_id=${payload.query.area_id}&` : ""
+        }kind=${payload.query?.kind || "default"}`,
         "get"
       );
       if (response.status !== 200) throw new Error("");

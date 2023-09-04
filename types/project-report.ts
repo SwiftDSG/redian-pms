@@ -13,7 +13,7 @@ export type ProjectProgressReportRequest = {
   plan?: ProjectProgressReportPlan;
   weather?: ProjectProgressReportWeather;
   documentation?: ProjectProgressReportDocumentationRequest[];
-  documentation_photo?: File[]
+  documentation_photo?: File[];
 };
 export type ProjectProgressReportDocumentationRequest = {
   description?: string;
@@ -47,7 +47,7 @@ export type ProjectProgressReportResponse = {
   weather?: ProjectProgressReportWeather[];
   documentation?: ProjectProgressReportDocumentation[];
   progress: number;
-}
+};
 export type ProjectProgressReportMinResponse = {
   _id: string;
   user: ProjectProgressReportUserResponse;
@@ -60,25 +60,25 @@ export type ProjectProgressReportMinResponse = {
   weather?: ProjectProgressReportWeather[];
   documentation?: ProjectProgressReportDocumentation[];
   progress: number;
-}
+};
 export type ProjectProgressReportUserResponse = {
   _id: string;
   name: string;
-}
+};
 export type ProjectProgressReportProjectResponse = {
   _id: string;
   name: string;
-}
+};
 export type ProjectProgressReportActualResponse = {
   _id: string;
   name: string;
   value: number;
   area: {
     _id: string;
-    name: string
-  }
-}
+    name: string;
+  };
+};
 export type ProjectProgressReportPlanResponse = {
   _id: string;
   name: string;
-}
+};

@@ -2,7 +2,9 @@
   <div
     ref="rdInputComponent"
     class="rd-input-component"
-    :class="input.error ? 'rd-input-error-active' : ''"
+    :class="`${input.error ? 'rd-input-error-active' : ''} ${
+      input.disabled ? 'rd-input-disabled' : ''
+    }`"
   >
     <label
       :for="`rd-input-${inputId}`"
@@ -21,6 +23,7 @@
         :id="`rd-input-${inputId}`"
         :class="dropDownOpened ? 'rd-input-focused' : ''"
         type="date"
+        :disabled="input.disabled"
         :model="inputModel"
         :name="props.input.name"
         :min="inputMin"
@@ -1064,6 +1067,11 @@
           }
         }
       }
+    }
+    &.rd-input-disabled {
+      pointer-events: none;
+      filter: grayscale(0.75);
+      opacity: 0.5;
     }
   }
 </style>

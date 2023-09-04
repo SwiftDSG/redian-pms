@@ -298,11 +298,11 @@
       }
       span.rd-report-title {
         font-weight: bold;
-        font-size: 0.625cm;
+        font-size: 0.5cm;
         text-transform: uppercase;
       }
       span.rd-report-name {
-        font-size: 0.625cm;
+        font-size: 0.5cm;
         text-transform: uppercase;
       }
       span.rd-report-section-name {

@@ -54,6 +54,7 @@ export type ProjectTaskPeriodResponse = {
 export type ProjectTaskMinResponse = {
   _id: string;
   area_id: string;
+  task_id?: string;
   user?: ProjectTaskUserResponse[];
   task?: ProjectTaskTaskResponse[];
   name: string;
